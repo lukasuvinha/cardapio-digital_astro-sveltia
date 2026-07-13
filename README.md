@@ -304,3 +304,4 @@ foi resolvido — e blindado contra repetição — está em
 - Alterações mínimas, mantendo o estilo visual existente.
 - Documentação de commits e PRs em **português**.
 # cardapio-digital_astro-sveltia
+# cardapio-digital_astro-sveltia
