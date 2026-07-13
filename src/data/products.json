@@ -1,0 +1,74 @@
+[
+  {
+    "id": "p1",
+    "nome": "Brownie Trufado de Chocolate Belga",
+    "descricao": "Massa densa e úmida com cobertura brilhante de ganache de chocolate belga.",
+    "preco": 14,
+    "categoria": "Brownie",
+    "foto": "/img/products/p1.svg",
+    "disponivel": true
+  },
+  {
+    "id": "p2",
+    "nome": "Brownie de Doce de Leite",
+    "descricao": "Recheio generoso de doce de leite artesanal em cada mordida.",
+    "preco": 15,
+    "categoria": "Brownie",
+    "foto": "/img/products/p2.svg",
+    "disponivel": true
+  },
+  {
+    "id": "p3",
+    "nome": "Brigadeiro Gourmet de Chocolate Belga",
+    "descricao": "Enrolado à mão, com chocolate belga e granulado nobre.",
+    "preco": 4.5,
+    "categoria": "Brigadeiro",
+    "foto": "/img/products/p3.svg",
+    "disponivel": true
+  },
+  {
+    "id": "p4",
+    "nome": "Brigadeiro de Pistache",
+    "descricao": "Toque marcante e delicado de pistache siciliano.",
+    "preco": 6,
+    "categoria": "Brigadeiro",
+    "foto": null,
+    "disponivel": true
+  },
+  {
+    "id": "p5",
+    "nome": "Bolo de Pote Red Velvet",
+    "descricao": "Camadas de red velvet com creme aveludado de cream cheese.",
+    "preco": 18,
+    "categoria": "Bolo de Pote",
+    "foto": "/img/products/p5.svg",
+    "disponivel": true
+  },
+  {
+    "id": "p6",
+    "nome": "Bolo de Pote Ninho com Morango",
+    "descricao": "Creme de leite ninho, morangos frescos e chantilly.",
+    "preco": 18,
+    "categoria": "Bolo de Pote",
+    "foto": "/img/products/p6.svg",
+    "disponivel": false
+  },
+  {
+    "id": "p7",
+    "nome": "Cookie Recheado de Chocolate",
+    "descricao": "Casquinha crocante por fora e centro derretido de chocolate.",
+    "preco": 12,
+    "categoria": "Cookies",
+    "foto": "/img/products/p7.svg",
+    "disponivel": true
+  },
+  {
+    "id": "p8",
+    "nome": "Cookie de Doce de Leite com Flor de Sal",
+    "descricao": "O equilíbrio perfeito entre o doce e a flor de sal.",
+    "preco": 13,
+    "categoria": "Cookies",
+    "foto": "/img/products/p8.svg",
+    "disponivel": true
+  }
+]

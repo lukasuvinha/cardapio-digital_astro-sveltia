@@ -1,0 +1,107 @@
+---
+// Botao reutilizavel de alternancia de tema (claro/escuro).
+// Uso: <ThemeToggle /> em qualquer lugar. Pode haver mais de um na pagina;
+// o script sincroniza todos. A escolha e persistida em localStorage ('dn-theme')
+// e aplicada antes da pintura pelo script inline do BaseLayout (sem flash).
+---
+
+<button
+  class="dn-theme-toggle"
+  type="button"
+  aria-label="Alternar tema claro e escuro"
+>
+  <!-- Sol: exibido no tema ESCURO (clicar volta para o claro) -->
+  <svg class="icon icon-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="12" cy="12" r="5" fill="currentColor"></circle>
+    <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <line x1="12" y1="1" x2="12" y2="4"></line>
+      <line x1="12" y1="20" x2="12" y2="23"></line>
+      <line x1="1" y1="12" x2="4" y2="12"></line>
+      <line x1="20" y1="12" x2="23" y2="12"></line>
+      <line x1="4.2" y1="4.2" x2="6.3" y2="6.3"></line>
+      <line x1="17.7" y1="17.7" x2="19.8" y2="19.8"></line>
+      <line x1="4.2" y1="19.8" x2="6.3" y2="17.7"></line>
+      <line x1="17.7" y1="6.3" x2="19.8" y2="4.2"></line>
+    </g>
+  </svg>
+  <!-- Lua: exibida no tema CLARO (clicar vai para o escuro) -->
+  <svg class="icon icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 1 0 10.5 10.5Z" fill="currentColor"></path>
+  </svg>
+</button>
+
+<style>
+  .dn-theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--cream);
+    line-height: 0;
+    transition: background 0.15s;
+  }
+  /* so aplica hover em dispositivos com cursor real (mouse). No celular
+     (toque), o :hover "gruda" apos o toque e o botao ficava com o fundo
+     aceso como se o cursor estivesse sempre ali. */
+  @media (hover: hover) {
+    .dn-theme-toggle:hover {
+      background: rgba(198, 161, 91, 0.15);
+    }
+  }
+
+  /* Troca de icone puramente via CSS conforme o tema ativo */
+  .dn-theme-toggle .icon-sun {
+    display: none;
+  }
+  .dn-theme-toggle .icon-moon {
+    display: block;
+  }
+  :global(:root[data-theme='dark']) .dn-theme-toggle .icon-sun {
+    display: block;
+  }
+  :global(:root[data-theme='dark']) .dn-theme-toggle .icon-moon {
+    display: none;
+  }
+
+  /* Fallback sem JS: acompanha a preferencia do sistema */
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light']):not([data-theme='dark'])) .dn-theme-toggle .icon-sun {
+      display: block;
+    }
+    :global(:root:not([data-theme='light']):not([data-theme='dark'])) .dn-theme-toggle .icon-moon {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  function currentTheme(): 'dark' | 'light' {
+    const attr = document.documentElement.getAttribute('data-theme');
+    if (attr === 'dark' || attr === 'light') return attr;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  function applyTheme(theme: 'dark' | 'light') {
+    document.documentElement.setAttribute('data-theme', theme);
+    try {
+      localStorage.setItem('dn-theme', theme);
+    } catch (e) {
+      /* localStorage indisponivel: mantem apenas na sessao atual */
+    }
+    document.querySelectorAll('.dn-theme-toggle').forEach((btn) => {
+      btn.setAttribute('aria-pressed', String(theme === 'dark'));
+    });
+  }
+
+  document.querySelectorAll('.dn-theme-toggle').forEach((btn) => {
+    btn.setAttribute('aria-pressed', String(currentTheme() === 'dark'));
+    btn.addEventListener('click', () => {
+      applyTheme(currentTheme() === 'dark' ? 'light' : 'dark');
+    });
+  });
+</script>

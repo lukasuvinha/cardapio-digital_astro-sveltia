@@ -1,0 +1,407 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import CartDrawer from '../../components/CartDrawer.astro';
+import ProductImage from '../../components/ProductImage.astro';
+import { getProdutos, productHasPhoto } from '../../data/menu';
+import { formatPrice } from '../../lib/format';
+
+// Gera uma pagina estatica para cada produto (site 100% estatico).
+// Le da Content Collection "produtos".
+export async function getStaticPaths() {
+  const produtos = await getProdutos();
+  return produtos.map((product) => ({
+    params: { id: product.id },
+    props: { product },
+  }));
+}
+
+const { product } = Astro.props;
+// so deixa ampliar/abrir a foto quando existe uma foto de verdade (nao no
+// placeholder "Foto em breve").
+const temFoto = productHasPhoto(product);
+---
+
+<BaseLayout
+  title={`${product.nome} · Doçuras da Nina`}
+  description={product.descricao ?? product.nome}
+>
+  <Header />
+
+  <main class="dn-detail">
+    <a class="dn-detail__back" href="/">‹ Voltar ao cardápio</a>
+
+    <div class="dn-detail__grid">
+      <div class="dn-detail__media">
+        <ProductImage foto={product.foto} alt={`Foto de ${product.nome}`} loading="eager">
+          {!product.disponivel && <span class="dn-detail__soldout">Esgotado</span>}
+          {
+            temFoto && (
+              <button class="dn-detail__zoom" type="button" data-zoom aria-label="Ampliar foto">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  <line x1="11" y1="8" x2="11" y2="14" />
+                  <line x1="8" y1="11" x2="14" y2="11" />
+                </svg>
+              </button>
+            )
+          }
+        </ProductImage>
+      </div>
+
+      <div class="dn-detail__info">
+        <span class="dn-detail__cat">{product.categoria}</span>
+        <h1 class="dn-detail__name">{product.nome}</h1>
+        {product.descricao && <p class="dn-detail__desc">{product.descricao}</p>}
+
+        <div class="dn-detail__rule"></div>
+
+        <div class="dn-detail__priceLabel">Valor unitário</div>
+        <div class="dn-detail__price">{formatPrice(product.preco)}</div>
+
+        {
+          product.disponivel ? (
+            <div class="dn-detail__actions">
+              <div class="dn-qty" data-qty>
+                <button type="button" data-qty-dec aria-label="Diminuir quantidade">−</button>
+                <span data-qty-value>1</span>
+                <button type="button" data-qty-inc aria-label="Aumentar quantidade">+</button>
+              </div>
+              <button
+                class="dn-detail__add"
+                type="button"
+                data-add-detail={product.id}
+                data-preco={product.preco}
+              >
+                <span>Adicionar ao carrinho</span>
+                <span data-line-total>{formatPrice(product.preco)}</span>
+              </button>
+            </div>
+          ) : (
+            <div class="dn-detail__off">Este produto está esgotado no momento.</div>
+          )
+        }
+      </div>
+    </div>
+  </main>
+
+  {
+    temFoto && (
+      <div class="dn-lightbox" data-lightbox hidden role="dialog" aria-modal="true" aria-label={`Foto de ${product.nome}`}>
+        <button class="dn-lightbox__close" type="button" data-lightbox-close aria-label="Fechar imagem">✕</button>
+        <img class="dn-lightbox__img" src={product.foto} alt={`Foto de ${product.nome}`} />
+      </div>
+    )
+  }
+
+  <Footer />
+
+  <CartDrawer />
+</BaseLayout>
+
+<script>
+  import { cartStore } from '../../lib/cart-store';
+  import { formatPrice } from '../../lib/format';
+
+  const qtyWrap = document.querySelector<HTMLElement>('[data-qty]');
+  const addBtn = document.querySelector<HTMLElement>('[data-add-detail]');
+
+  if (qtyWrap && addBtn) {
+    const valueEl = qtyWrap.querySelector<HTMLElement>('[data-qty-value]')!;
+    const lineTotalEl = addBtn.querySelector<HTMLElement>('[data-line-total]')!;
+    const id = addBtn.dataset.addDetail!;
+    const preco = Number(addBtn.dataset.preco);
+    let qty = 1;
+
+    function refresh() {
+      valueEl.textContent = String(qty);
+      lineTotalEl.textContent = formatPrice(preco * qty);
+    }
+
+    qtyWrap.querySelector('[data-qty-dec]')!.addEventListener('click', () => {
+      qty = Math.max(1, qty - 1);
+      refresh();
+    });
+    qtyWrap.querySelector('[data-qty-inc]')!.addEventListener('click', () => {
+      qty = qty + 1;
+      refresh();
+    });
+
+    addBtn.addEventListener('click', () => {
+      cartStore.add(id, qty);
+      // abre o drawer do carrinho (o CartDrawer escuta cliques em [data-open-cart])
+      document.querySelector<HTMLElement>('[data-open-cart]')?.click();
+    });
+
+    refresh();
+  }
+
+  // ---- Lightbox da foto (ampliar) ----
+  const zoomBtn = document.querySelector<HTMLElement>('[data-zoom]');
+  const lightbox = document.querySelector<HTMLElement>('[data-lightbox]');
+  if (zoomBtn && lightbox) {
+    const closeBtn = lightbox.querySelector<HTMLElement>('[data-lightbox-close]');
+    const abrir = () => {
+      lightbox.hidden = false;
+      document.body.style.overflow = 'hidden';
+      closeBtn?.focus();
+    };
+    const fechar = () => {
+      lightbox.hidden = true;
+      document.body.style.overflow = '';
+    };
+    zoomBtn.addEventListener('click', abrir);
+    closeBtn?.addEventListener('click', fechar);
+    // clicar fora da imagem (no fundo) fecha
+    lightbox.addEventListener('click', (e) => {
+      if (e.target === lightbox) fechar();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !lightbox.hidden) fechar();
+    });
+  }
+</script>
+
+<style>
+  .dn-detail {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: clamp(16px, 4vw, 32px) clamp(16px, 4vw, 48px) 80px;
+  }
+
+  .dn-detail__back {
+    display: inline-block;
+    margin-bottom: 18px;
+    font-size: 12.5px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  @media (hover: hover) {
+    .dn-detail__back:hover {
+      color: var(--ink);
+    }
+  }
+
+  /* Mobile-first: media em cima, info embaixo */
+  .dn-detail__grid {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  /* A imagem 4:3 e o placeholder vivem no componente ProductImage.
+     Aqui so a borda, o arredondamento e o recorte. */
+  .dn-detail__media {
+    position: relative;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .dn-detail__soldout {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 5px 10px;
+    background: var(--rust);
+    color: #f7efe1;
+    font-size: 10px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    border-radius: 2px;
+    z-index: 2;
+  }
+
+  /* botao que cobre a foto toda: um toque/clique em qualquer ponto amplia.
+     Fica transparente, com so um icone de lupa no canto como afordancia. */
+  .dn-detail__zoom {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding: 10px;
+    background: transparent;
+    border: none;
+    cursor: zoom-in;
+    color: var(--cream);
+  }
+  .dn-detail__zoom svg {
+    background: rgba(31, 77, 58, 0.72);
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    padding: 7px;
+    width: 32px;
+    height: 32px;
+  }
+  .dn-detail__zoom:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: -4px;
+  }
+
+  /* Lightbox: sobreposicao em tela cheia com a foto ampliada. */
+  .dn-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(15, 22, 16, 0.9);
+  }
+  .dn-lightbox[hidden] {
+    display: none;
+  }
+  .dn-lightbox__img {
+    max-width: min(92vw, 900px);
+    max-height: 88vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+  .dn-lightbox__close {
+    position: absolute;
+    top: 16px;
+    right: 18px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--gold);
+    background: rgba(15, 22, 16, 0.6);
+    color: var(--cream);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .dn-lightbox__close:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  .dn-detail__info {
+    display: flex;
+    flex-direction: column;
+  }
+  .dn-detail__cat {
+    font-size: 10.5px;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .dn-detail__name {
+    margin: 8px 0 0;
+    font-family: var(--font-head);
+    font-weight: 400;
+    font-size: clamp(23px, 5vw, 30px);
+    line-height: 1.2;
+    color: var(--ink);
+  }
+  .dn-detail__desc {
+    margin: 12px 0 0;
+    font-style: italic;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--muted-text);
+  }
+  .dn-detail__rule {
+    height: 1px;
+    background: var(--border);
+    margin: 22px 0;
+  }
+  .dn-detail__priceLabel {
+    font-size: 10.5px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted-text);
+  }
+  .dn-detail__price {
+    margin-top: 4px;
+    font-family: var(--font-head);
+    font-size: 26px;
+    color: var(--gold-text);
+  }
+
+  .dn-detail__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+  .dn-qty {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid var(--brand-border);
+    border-radius: 22px;
+    padding: 9px 16px;
+    flex: none;
+  }
+  .dn-qty button {
+    background: transparent;
+    border: none;
+    color: var(--ink);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    width: 16px;
+    text-align: center;
+    padding: 0;
+    font-family: var(--font-body);
+  }
+  .dn-qty span {
+    font-family: var(--font-head);
+    font-size: 16px;
+    color: var(--ink);
+    min-width: 16px;
+    text-align: center;
+  }
+  .dn-detail__add {
+    flex: 1;
+    min-width: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 15px 18px;
+    background: var(--brand);
+    color: var(--cream);
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .dn-detail__add [data-line-total] {
+    font-family: var(--font-head);
+    font-size: 15px;
+    letter-spacing: 0.5px;
+  }
+  .dn-detail__off {
+    margin-top: 22px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--card-alt);
+    color: var(--muted-text);
+    font-size: 14px;
+  }
+
+  /* Desktop: media e info lado a lado */
+  @media (min-width: 760px) {
+    .dn-detail__grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+  }
+</style>

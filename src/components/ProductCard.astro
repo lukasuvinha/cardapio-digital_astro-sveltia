@@ -1,0 +1,202 @@
+---
+import type { Product } from '../data/menu';
+import { formatPrice } from '../lib/format';
+import { slugify } from '../lib/slug';
+import ProductImage from './ProductImage.astro';
+
+interface Props {
+  product: Product;
+}
+
+const { product } = Astro.props;
+const catSlug = slugify(product.categoria);
+---
+
+<a
+  class="dn-card"
+  href={`/produto/${product.id}`}
+  data-testid="product-card"
+  data-categoria={catSlug}
+  data-available={String(product.disponivel)}
+>
+  <div class="dn-card__media">
+    <ProductImage foto={product.foto} alt={`Foto de ${product.nome}`}>
+      {!product.disponivel && <span class="dn-card__soldout">Esgotado</span>}
+    </ProductImage>
+  </div>
+
+  <div class="dn-card__body">
+    <span class="dn-card__cat">{product.categoria}</span>
+    <h3 class="dn-card__name">{product.nome}</h3>
+    <div class="dn-card__foot">
+      <span class="dn-card__price">{formatPrice(product.preco)}</span>
+      <span class="dn-card__more" aria-hidden="true">›</span>
+    </div>
+  </div>
+
+  {/*
+    FUNCIONALIDADE OCULTA (Fase 4): botao "+" de adicao rapida no card.
+    Foi removido porque agora o card inteiro e um link para a pagina de
+    detalhe do produto (/produto/:id), onde o cliente escolhe a quantidade.
+    ONDE ESTAVA: dentro de <div class="dn-card__foot">, logo apos o preco.
+    COMO REATIVAR: recolar o bloco abaixo dentro do .dn-card__foot e
+    descomentar as regras .dn-card__add* no <style>. O handler global em
+    CartDrawer (para [data-add-to-cart]) ja faz stopPropagation/preventDefault,
+    entao o clique no botao NAO dispara a navegacao do link do card.
+
+    {product.disponivel && (
+      <button
+        class="dn-card__add"
+        type="button"
+        data-add-to-cart={product.id}
+        data-label="+"
+        aria-label={`Adicionar ${product.nome} ao carrinho`}
+      >
+        +
+      </button>
+    )}
+  */}
+</a>
+
+<style>
+  /* Mobile-first: o card e desenhado primeiro para telas pequenas.
+     Agora o card e um link (<a>) para a pagina de detalhe do produto. */
+  .dn-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+  /* realce so com cursor real: no toque o :hover "gruda" e o card ficava
+     levantado/sombreado apos o toque. */
+  @media (hover: hover) {
+    .dn-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 28px rgba(31, 77, 58, 0.16);
+      border-color: var(--gold);
+    }
+  }
+  /* usado pelo filtro de categorias (o display:flex acima sobrepoe o [hidden] padrao) */
+  .dn-card[hidden] {
+    display: none;
+  }
+
+  /* A caixa da imagem (proporcao 4:3) e o placeholder vivem no componente
+     reutilizavel ProductImage. Aqui so a borda inferior e o clip do card. */
+  .dn-card__media {
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .dn-card__soldout {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 4px 8px;
+    background: var(--rust);
+    color: #f7efe1;
+    font-size: 9.5px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    border-radius: 2px;
+  }
+  /* Produto indisponivel: esmaecemos apenas a FOTO, usando FILTER (nao
+     opacity). Com filter a imagem continua OPACA, entao o placeholder atras
+     ("Foto em breve") NAO vaza atraves dela; e o selo "Esgotado" e o texto do
+     placeholder (quando nao ha foto) mantem contraste total (acessibilidade).
+     A indisponibilidade ja fica clara pelo selo "Esgotado". */
+  .dn-card[data-available='false'] .dn-card__media :global(.dn-media__img) {
+    filter: saturate(0.65) brightness(0.9);
+  }
+
+  .dn-card__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 12px 12px 14px;
+  }
+  .dn-card__cat {
+    font-size: 9.5px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .dn-card__name {
+    margin: 5px 0 0;
+    font-family: var(--font-head);
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.3;
+    color: var(--ink);
+  }
+  .dn-card__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 12px;
+  }
+  .dn-card__price {
+    font-family: var(--font-head);
+    font-size: 16px;
+    color: var(--gold-text);
+    white-space: nowrap;
+  }
+  .dn-card__more {
+    font-size: 20px;
+    line-height: 1;
+    color: var(--muted);
+    transition: transform 0.15s ease, color 0.15s ease;
+  }
+  @media (hover: hover) {
+    .dn-card:hover .dn-card__more {
+      color: var(--ink);
+      transform: translateX(2px);
+    }
+  }
+
+  /*
+    Estilos do botao "+" de adicao rapida (oculto na Fase 4 — ver markup acima).
+    COMO REATIVAR: descomentar junto com o bloco do botao no markup.
+
+  .dn-card__add {
+    flex: none;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: var(--brand);
+    color: var(--cream);
+    font-family: var(--font-body);
+    font-size: 19px;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.15s;
+  }
+  .dn-card__add:hover { transform: scale(1.08); }
+  .dn-card__add.is-added { background: var(--gold); color: var(--brand); font-size: 15px; }
+  */
+
+  /* Telas maiores: um respiro a mais no conteudo */
+  @media (min-width: 640px) {
+    .dn-card__body {
+      padding: 16px 16px 18px;
+    }
+    .dn-card__name {
+      font-size: 15.5px;
+    }
+    .dn-card__price {
+      font-size: 17px;
+    }
+  }
+</style>

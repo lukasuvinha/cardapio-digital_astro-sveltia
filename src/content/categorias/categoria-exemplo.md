@@ -1,0 +1,3 @@
+---
+nome: Categoria Exemplo
+---

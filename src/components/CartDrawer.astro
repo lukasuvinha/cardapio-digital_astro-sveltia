@@ -1,0 +1,1125 @@
+---
+// Drawer do carrinho (reutilizavel): abre a partir do botao "Carrinho" do
+// header em qualquer pagina. Contem tres passos — carrinho, checkout e
+// confirmacao — dirigidos pelo store (src/lib/cart-store.ts). Ao confirmar,
+// abre o WhatsApp da Nina com a mensagem do pedido pronta.
+// Mobile-first: no celular ocupa a largura toda; em telas maiores vira um
+// painel lateral. Compatibilidade clara/escura via variaveis de tema.
+import { getProdutos, productHasPhoto } from '../data/menu';
+import { getCupons } from '../data/cupons';
+import { getCheckoutConfig } from '../data/checkout-config';
+
+// Catalogo enxuto para o carrinho CLIENT-SIDE (embutido como JSON inline em
+// #dn-catalog, a partir da Content Collection). A foto e a URL publica direta
+// (ex.: /uploads/foo.webp); so entra se for um formato suportado.
+const produtos = await getProdutos();
+const catalogo = produtos.map((p) => ({
+  id: p.id,
+  nome: p.nome,
+  preco: p.preco,
+  disponivel: p.disponivel,
+  foto: productHasPhoto(p) ? p.foto! : null,
+}));
+// escapa "<" no JSON para o navegador nao encerrar o bloco de script por
+// engano, caso algum nome de produto contenha a sequencia de fechamento.
+const catalogoJson = JSON.stringify(catalogo).replace(/</g, '\\u003c');
+
+// Cupons de desconto (da Content Collection), embutidos como JSON inline em
+// #dn-cupons para a validacao acontecer no navegador, no carrinho.
+const cupons = await getCupons();
+const cuponsJson = JSON.stringify(cupons).replace(/</g, '\\u003c');
+
+// Config de Entrega/Retirada (da Content Collection "configuracoes", editada
+// pela Nina no CMS), embutida como JSON inline em #dn-checkout-config para o
+// carrinho client-side saber quais opcoes mostrar e qual taxa somar.
+const checkoutConfig = await getCheckoutConfig();
+const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c');
+
+// ---- ANTES: texto da mensagem do WhatsApp editavel pela Nina no CMS
+//      (singleton src/content/configuracoes/whatsapp.json). Desativado a
+//      pedido do cliente — ver src/lib/whatsapp.ts (TITULO/MENSAGEM_FINAL) e
+//      docs/CUPONS-E-PEDIDOS.md ("Editar o texto do WhatsApp manualmente").
+//      Mantido comentado para referencia/reativacao.
+// import whatsappConfig from '../content/configuracoes/whatsapp.json';
+// const waConfig = {
+//   titulo: (whatsappConfig as { titulo?: string })?.titulo || '',
+//   mensagemFinal: (whatsappConfig as { mensagem_final?: string })?.mensagem_final || '',
+// };
+// const waConfigJson = JSON.stringify(waConfig).replace(/</g, '\\u003c');
+---
+
+<div class="dn-drawer-root" data-open="false" aria-hidden="true">
+  <div class="dn-drawer__backdrop" data-close></div>
+
+  <aside
+    class="dn-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Carrinho"
+    data-step="cart"
+  >
+    <!-- PASSO: CARRINHO -->
+    <section class="dn-step dn-step--cart">
+      <header class="dn-drawer__bar">
+        <span class="dn-drawer__title">Seu Carrinho</span>
+        <button class="dn-drawer__close" type="button" data-close aria-label="Fechar carrinho">✕</button>
+      </header>
+
+      <div class="dn-drawer__body" data-cart-list>
+        <!-- itens renderizados pelo script -->
+      </div>
+
+      <footer class="dn-drawer__foot" data-cart-foot hidden>
+        <!-- Cupom de desconto: o cliente digita o codigo e clica em Aplicar.
+             Cupom invalido/expirado NAO trava o pedido; so mostra o aviso. -->
+        <div class="dn-cupom">
+          <input
+            type="text"
+            class="dn-cupom__input"
+            data-cupom-input
+            placeholder="Cupom de desconto"
+            autocomplete="off"
+            aria-label="Código do cupom de desconto"
+          />
+          <button class="dn-cupom__apply" type="button" data-cupom-apply>Aplicar</button>
+        </div>
+        <div class="dn-cupom__msg" data-cupom-msg hidden></div>
+
+        <div class="dn-drawer__line">
+          <span>Subtotal</span>
+          <span data-cart-subtotal>R$ 0,00</span>
+        </div>
+        <div class="dn-drawer__line dn-drawer__line--desc" data-desconto-row hidden>
+          <span data-desconto-label>Desconto</span>
+          <span data-desconto-valor>−R$ 0,00</span>
+        </div>
+        <div class="dn-drawer__line" data-taxa-row hidden>
+          <span>Taxa de entrega</span>
+          <span data-taxa-valor>R$ 0,00</span>
+        </div>
+        <div class="dn-drawer__subtotal">
+          <span>Total</span>
+          <span data-cart-total>R$ 0,00</span>
+        </div>
+        <button class="dn-btn dn-btn--brand" type="button" data-go-checkout>Finalizar Pedido</button>
+      </footer>
+    </section>
+
+    <!-- PASSO: CHECKOUT -->
+    <section class="dn-step dn-step--checkout">
+      <header class="dn-drawer__bar">
+        <button class="dn-drawer__back" type="button" data-back-cart aria-label="Voltar ao carrinho">‹</button>
+        <span class="dn-drawer__title">Finalizar Pedido</span>
+        <button class="dn-drawer__close" type="button" data-close aria-label="Fechar carrinho">✕</button>
+      </header>
+
+      <div class="dn-drawer__body">
+        <form class="dn-form" data-checkout-form novalidate>
+          <label class="dn-field__label">Seus Dados</label>
+          <div class="dn-field">
+            <input type="text" name="nome" placeholder="Nome completo" autocomplete="name" required />
+          </div>
+          <div class="dn-field">
+            <input type="tel" name="telefone" placeholder="Telefone / WhatsApp" autocomplete="tel" required />
+          </div>
+
+          <!-- Entrega/Retirada: a Nina liga/desliga cada opcao pelo CMS
+               (collection "configuracoes", arquivo entrega.json). As duas
+               nunca ficam desligadas ao mesmo tempo (ver
+               src/lib/checkout-config.ts). Com as duas ligadas (padrao),
+               mostra o seletor; com so uma ligada, essa vira a unica opcao e
+               o seletor nem aparece. -->
+          {checkoutConfig.entregaHabilitada && checkoutConfig.retiradaHabilitada && (
+            <>
+              <label class="dn-field__label">Entrega</label>
+              <div class="dn-seg" data-seg="fulfillment">
+                <button type="button" class="dn-seg__opt is-active" data-value="retirada">Retirada</button>
+                <button type="button" class="dn-seg__opt" data-value="entrega">Entrega</button>
+              </div>
+            </>
+          )}
+          {checkoutConfig.entregaHabilitada && !checkoutConfig.retiradaHabilitada && (
+            <label class="dn-field__label">Endereço de Entrega</label>
+          )}
+          {checkoutConfig.entregaHabilitada && (
+            <div class="dn-field" data-address hidden={checkoutConfig.retiradaHabilitada}>
+              <input type="text" name="endereco" placeholder="Endereço completo" autocomplete="street-address" />
+            </div>
+          )}
+
+          <label class="dn-field__label">Pagamento</label>
+          <div class="dn-seg" data-seg="payment">
+            <button type="button" class="dn-seg__opt is-active" data-value="pix">Pix</button>
+            <button type="button" class="dn-seg__opt" data-value="cartao">Cartão</button>
+            <button type="button" class="dn-seg__opt" data-value="dinheiro">Dinheiro</button>
+          </div>
+
+          <label class="dn-field__label">Observações (opcional)</label>
+          <div class="dn-field">
+            <textarea name="observacoes" rows="2" placeholder="Alguma preferência ou observação..."></textarea>
+          </div>
+
+          <div class="dn-summary">
+            <div class="dn-summary__title">Resumo do Pedido</div>
+            <div data-summary-lines></div>
+            <div class="dn-summary__rule"></div>
+            <div class="dn-summary__row dn-summary__row--desc" data-desconto-row hidden>
+              <span data-desconto-label>Desconto</span>
+              <span data-desconto-valor>−R$ 0,00</span>
+            </div>
+            <div class="dn-summary__row" data-taxa-row hidden>
+              <span>Taxa de entrega</span>
+              <span data-taxa-valor>R$ 0,00</span>
+            </div>
+            <div class="dn-summary__total">
+              <span>Total</span>
+              <span data-cart-total>R$ 0,00</span>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <footer class="dn-drawer__foot">
+        <button class="dn-btn dn-btn--brand" type="button" data-send-whatsapp>Enviar pedido pelo WhatsApp</button>
+      </footer>
+    </section>
+
+    <!-- PASSO: CONFIRMADO -->
+    <section class="dn-step dn-step--confirmed">
+      <div class="dn-confirm">
+        <div class="dn-confirm__ring">
+          <img
+            class="dn-confirm__ring-img"
+            src="/logo-medalhao.png"
+            alt="Doçuras da Nina"
+            width="112"
+            height="112"
+            loading="eager"
+          />
+        </div>
+        <div class="dn-confirm__title">Pedido enviado!</div>
+        <p class="dn-confirm__text">
+          Abrimos o WhatsApp com o seu pedido <strong data-order-number></strong>.
+          É só enviar a mensagem para a Nina confirmar. 💛
+        </p>
+        <button class="dn-btn dn-btn--brand" type="button" data-close>Voltar ao Cardápio</button>
+      </div>
+    </section>
+  </aside>
+</div>
+
+<style>
+  .dn-drawer-root {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .dn-drawer-root[data-open='true'] {
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .dn-drawer__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 30, 20, 0.5);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .dn-drawer-root[data-open='true'] .dn-drawer__backdrop {
+    opacity: 1;
+  }
+
+  .dn-drawer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 100%;
+    max-width: 420px;
+    background: var(--bg);
+    border-left: 1px solid var(--border);
+    box-shadow: -20px 0 50px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+  }
+  .dn-drawer-root[data-open='true'] .dn-drawer {
+    transform: translateX(0);
+  }
+
+  /* Passos: mostra apenas o passo ativo */
+  .dn-step {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+  .dn-drawer[data-step='cart'] .dn-step--cart,
+  .dn-drawer[data-step='checkout'] .dn-step--checkout,
+  .dn-drawer[data-step='confirmed'] .dn-step--confirmed {
+    display: flex;
+  }
+
+  .dn-drawer__bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 20px;
+    background: var(--brand);
+  }
+  .dn-drawer__title {
+    flex: 1;
+    color: var(--cream);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+  }
+  .dn-drawer__close,
+  .dn-drawer__back {
+    background: transparent;
+    border: none;
+    color: var(--cream);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+  }
+  .dn-drawer__back {
+    font-size: 26px;
+  }
+
+  .dn-drawer__body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 18px 20px;
+  }
+
+  .dn-drawer__foot {
+    padding: 16px 20px 22px;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .dn-drawer__subtotal {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+  }
+  .dn-drawer__subtotal span:first-child {
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+    color: var(--muted-text);
+  }
+  .dn-drawer__subtotal span:last-child {
+    font-family: var(--font-head);
+    font-size: 22px;
+    color: var(--ink);
+  }
+
+  /* ---- Cupom de desconto (rodape do carrinho) ---- */
+  .dn-cupom {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .dn-cupom__input {
+    flex: 1;
+    min-width: 0;
+    border: 1px solid var(--brand-border);
+    border-radius: 3px;
+    background: transparent;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 12px;
+    outline: none;
+    text-transform: uppercase;
+  }
+  .dn-cupom__input::placeholder {
+    color: var(--muted-text);
+    font-weight: 400;
+    text-transform: none;
+  }
+  .dn-cupom__apply {
+    flex: none;
+    padding: 10px 16px;
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--brand-border);
+    border-radius: 3px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  @media (hover: hover) {
+    .dn-cupom__apply:hover {
+      background: var(--brand);
+      color: var(--cream);
+      border-color: var(--brand);
+    }
+  }
+  .dn-cupom__msg {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+  .dn-cupom__msg[data-state='ok'] {
+    color: var(--gold-text);
+  }
+  .dn-cupom__msg[data-state='err'] {
+    color: var(--rust);
+  }
+  /* linha de subtotal/desconto no rodape (antes do Total) */
+  .dn-drawer__line {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted-text);
+    margin-bottom: 8px;
+  }
+  .dn-drawer__line--desc span:last-child {
+    color: var(--gold-text);
+  }
+  /* o atributo [hidden] precisa vencer o display:flex acima, senao a linha de
+     desconto continuaria visivel (mostrando "−R$ 0,00") quando nao ha cupom. */
+  .dn-drawer__line[hidden] {
+    display: none;
+  }
+
+  .dn-btn {
+    width: 100%;
+    padding: 16px;
+    font-size: 14.5px;
+    font-weight: 600;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+  }
+  .dn-btn--brand {
+    background: var(--brand);
+    color: var(--cream);
+  }
+
+  /* Obs.: os estilos dos itens do carrinho, do estado vazio e das linhas do
+     resumo ficam no bloco <style is:global> abaixo, porque esse HTML e
+     injetado via innerHTML em runtime e nao recebe o atributo de escopo do
+     Astro. Estao namespaced sob .dn-drawer-root para nao vazar. */
+
+  /* ---- Formulario de checkout ---- */
+  .dn-field__label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 20px 0 10px;
+  }
+  .dn-field__label:first-child {
+    margin-top: 0;
+  }
+  .dn-field {
+    border-bottom: 1px solid var(--brand-border);
+    padding-bottom: 9px;
+  }
+  .dn-field input,
+  .dn-field textarea {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: var(--font-body);
+    font-size: 16.5px;
+    font-weight: 500;
+    color: var(--ink);
+    padding: 5px 0;
+    resize: none;
+  }
+  .dn-field input::placeholder,
+  .dn-field textarea::placeholder {
+    color: var(--muted-text);
+    font-weight: 400;
+  }
+  .dn-field.is-invalid {
+    border-bottom-color: var(--rust);
+  }
+
+  .dn-seg {
+    display: flex;
+    gap: 8px;
+  }
+  .dn-seg__opt {
+    flex: 1;
+    padding: 10px 4px;
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--brand-border);
+    border-radius: 3px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .dn-seg__opt.is-active {
+    background: var(--brand);
+    color: var(--cream);
+    border-color: var(--brand);
+  }
+
+  .dn-summary {
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-top: 22px;
+  }
+  .dn-summary__title {
+    font-family: var(--font-head);
+    font-size: 15px;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  /* .dn-summary__row esta no bloco is:global (injetado via innerHTML) */
+  .dn-summary__rule {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+    margin: 8px 0;
+  }
+  .dn-summary__total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .dn-summary__total span:first-child {
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--muted-text);
+  }
+  .dn-summary__total span:last-child {
+    font-family: var(--font-head);
+    font-size: 19px;
+    color: var(--gold-text);
+  }
+
+  /* ---- Confirmacao ---- */
+  .dn-confirm {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 34px;
+  }
+  /* Medalhao: logo oficial (public/Logo-Nina.jpeg, recortado em circulo em
+     public/logo-medalhao.png) dentro de um anel dourado. O verde de fundo do
+     logo e fixo (nao segue --brand do tema) — e proposital: recolorir a arte
+     por tema e impraticavel sem degradar as linhas douradas finas, entao a
+     adaptacao e via moldura (anel + sombra), nao via cor. Ver docs/LOGO.md. */
+  .dn-confirm__ring {
+    width: 112px;
+    height: 112px;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 22px;
+    box-shadow: 0 4px 16px rgba(198, 161, 91, 0.35);
+  }
+  .dn-confirm__ring-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+  /* ---- ANTES: monograma de texto no lugar do logo oficial (substituido).
+     Markup antigo: <div class="dn-confirm__ring-inner">Doçuras<br />da Nina</div>
+  .dn-confirm__ring-inner {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 1px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-head);
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  */
+  .dn-confirm__title {
+    font-family: var(--font-head);
+    font-size: 23px;
+    color: var(--ink);
+  }
+  .dn-confirm__text {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--muted-text);
+    margin: 12px 0 30px;
+    line-height: 1.65;
+    max-width: 34ch;
+  }
+  .dn-confirm__text strong {
+    color: var(--ink);
+  }
+</style>
+
+<!-- Estilos do conteudo injetado via innerHTML (itens, vazio, linhas do
+     resumo). Global, mas namespaced sob .dn-drawer-root para nao vazar. -->
+<style is:global>
+  .dn-drawer-root .dn-ci {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+  }
+  .dn-drawer-root .dn-ci__thumb {
+    width: 52px;
+    height: 52px;
+    flex: none;
+    background: var(--card-alt);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dn-drawer-root .dn-ci__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .dn-drawer-root .dn-ci__mono {
+    font-family: var(--font-head);
+    font-size: 20px;
+    color: var(--ink);
+    opacity: 0.35;
+  }
+  .dn-drawer-root .dn-ci__info {
+    flex: 1;
+    min-width: 0;
+  }
+  .dn-drawer-root .dn-ci__name {
+    font-family: var(--font-head);
+    font-size: 15.5px;
+    color: var(--ink);
+    line-height: 1.32;
+  }
+  .dn-drawer-root .dn-ci__line {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted-text);
+    margin-top: 4px;
+  }
+  .dn-drawer-root .dn-ci__remove {
+    margin-top: 7px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: 13px;
+    letter-spacing: 0.3px;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+  }
+  @media (hover: hover) {
+    .dn-drawer-root .dn-ci__remove:hover {
+      color: var(--rust);
+    }
+  }
+  .dn-drawer-root .dn-ci__qty {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid var(--brand-border);
+    border-radius: 16px;
+    padding: 5px 12px;
+    flex: none;
+  }
+  .dn-drawer-root .dn-ci__qty button {
+    background: transparent;
+    border: none;
+    color: var(--ink);
+    font-size: 17px;
+    cursor: pointer;
+    width: 16px;
+    text-align: center;
+    padding: 0;
+    font-family: var(--font-body);
+  }
+  .dn-drawer-root .dn-ci__qty span {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    min-width: 12px;
+    text-align: center;
+  }
+
+  .dn-drawer-root .dn-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    padding: 30px;
+  }
+  .dn-drawer-root .dn-empty__rule {
+    width: 30px;
+    height: 1px;
+    background: var(--gold);
+    margin-bottom: 14px;
+  }
+  .dn-drawer-root .dn-empty__title {
+    font-family: var(--font-head);
+    font-size: 19px;
+    color: var(--ink);
+  }
+  .dn-drawer-root .dn-empty__text {
+    font-size: 14.5px;
+    font-weight: 500;
+    color: var(--muted-text);
+    margin-top: 8px;
+    line-height: 1.55;
+  }
+
+  .dn-drawer-root .dn-summary__row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted-text);
+    margin-bottom: 6px;
+    gap: 12px;
+  }
+  .dn-drawer-root .dn-summary__row--desc span:last-child {
+    color: var(--gold-text);
+  }
+  /* [hidden] precisa vencer o display:flex de .dn-summary__row (mesmo motivo
+     do rodape): sem cupom, a linha de desconto do resumo fica oculta. */
+  .dn-drawer-root .dn-summary__row[hidden] {
+    display: none;
+  }
+</style>
+
+<!-- Catalogo de produtos (da Content Collection) para o carrinho client-side -->
+<script type="application/json" id="dn-catalog" set:html={catalogoJson}></script>
+<!-- Cupons de desconto (da Content Collection) para validacao client-side -->
+<script type="application/json" id="dn-cupons" set:html={cuponsJson}></script>
+<!-- Config de Entrega/Retirada e taxa (da Content Collection "configuracoes") -->
+<script type="application/json" id="dn-checkout-config" set:html={checkoutConfigJson}></script>
+<!-- ANTES: data island com o texto do WhatsApp editavel pela Nina (ver nota
+     de reativacao na frontmatter acima).
+<script type="application/json" id="dn-wa-config" set:html={waConfigJson}></script>
+-->
+
+<script>
+  import { cartStore } from '../lib/cart-store';
+  import { cartLines, cartTotal, totalCount, type Cart, type CatalogItem } from '../lib/cart-core';
+  import {
+    buildOrderMessage,
+    buildWhatsappUrl,
+    generateOrderId,
+    type Fulfillment,
+    type Payment,
+  } from '../lib/whatsapp';
+  // ANTES: numero de pedido sequencial (ver nota de reativacao em
+  // src/lib/order-number.ts). Desativado a pedido do cliente — voltou a usar
+  // generateOrderId (aleatorio, importado acima).
+  // import { nextOrderNumber } from '../lib/order-number';
+  import { applyCoupon, couponErrorMessage, type Coupon } from '../lib/coupon';
+  import { getCuponsUsados, marcarCupomUsado } from '../lib/coupon-usage';
+  import { formatPrice } from '../lib/format';
+  import { WHATSAPP_NUMBER } from '../config/site';
+
+  // catalogo embutido pelo servidor a partir da Content Collection
+  const catalogEl = document.getElementById('dn-catalog');
+  const products: CatalogItem[] = catalogEl ? JSON.parse(catalogEl.textContent || '[]') : [];
+
+  // cupons embutidos pelo servidor a partir da Content Collection
+  const cuponsEl = document.getElementById('dn-cupons');
+  const cupons: Coupon[] = cuponsEl ? JSON.parse(cuponsEl.textContent || '[]') : [];
+
+  // config de Entrega/Retirada (Nina edita no CMS) embutida pelo servidor
+  const checkoutConfigEl = document.getElementById('dn-checkout-config');
+  const checkoutConfig: {
+    entregaHabilitada: boolean;
+    retiradaHabilitada: boolean;
+    taxaEntrega: number;
+    taxaACombinar: boolean;
+  } = checkoutConfigEl
+    ? JSON.parse(checkoutConfigEl.textContent || '{}')
+    : { entregaHabilitada: true, retiradaHabilitada: true, taxaEntrega: 0, taxaACombinar: false };
+
+  // ---- ANTES: texto da mensagem do WhatsApp editavel pela Nina no CMS.
+  //      Desativado — ver nota de reativacao na frontmatter acima.
+  // const waCfgEl = document.getElementById('dn-wa-config');
+  // const waConfig: { titulo?: string; mensagemFinal?: string } = waCfgEl
+  //   ? JSON.parse(waCfgEl.textContent || '{}')
+  //   : {};
+
+  const root = document.querySelector<HTMLElement>('.dn-drawer-root');
+  const drawer = document.querySelector<HTMLElement>('.dn-drawer');
+  if (root && drawer) {
+    const listEl = root.querySelector<HTMLElement>('[data-cart-list]')!;
+    const footEl = root.querySelector<HTMLElement>('[data-cart-foot]')!;
+    const summaryLinesEl = root.querySelector<HTMLElement>('[data-summary-lines]')!;
+    const totalEls = root.querySelectorAll<HTMLElement>('[data-cart-total]');
+    const subtotalEls = root.querySelectorAll<HTMLElement>('[data-cart-subtotal]');
+    // linhas de desconto (rodape do carrinho + resumo do checkout)
+    const descontoRows = root.querySelectorAll<HTMLElement>('[data-desconto-row]');
+    const descontoLabels = root.querySelectorAll<HTMLElement>('[data-desconto-label]');
+    const descontoValores = root.querySelectorAll<HTMLElement>('[data-desconto-valor]');
+    const cupomInput = root.querySelector<HTMLInputElement>('[data-cupom-input]');
+    const cupomMsg = root.querySelector<HTMLElement>('[data-cupom-msg]');
+    const form = root.querySelector<HTMLFormElement>('[data-checkout-form]')!;
+    // pode nao existir: some do DOM quando a Entrega esta desligada no CMS
+    const addressField = root.querySelector<HTMLElement>('[data-address]');
+    const orderNumberEl = root.querySelector<HTMLElement>('[data-order-number]')!;
+    // linhas da taxa de entrega (rodape do carrinho + resumo do checkout)
+    const taxaRows = root.querySelectorAll<HTMLElement>('[data-taxa-row]');
+    const taxaValores = root.querySelectorAll<HTMLElement>('[data-taxa-valor]');
+
+    // Retirada e a preferencia padrao quando ambas estao ligadas; se so a
+    // Entrega estiver ligada, o unico valor possivel ja comeca selecionado
+    // (nao ha seletor para o cliente trocar).
+    const fulfillmentPadrao: Fulfillment = checkoutConfig.retiradaHabilitada ? 'retirada' : 'entrega';
+    let selecionado = { fulfillment: fulfillmentPadrao, payment: 'pix' as Payment };
+    if (addressField) addressField.hidden = selecionado.fulfillment !== 'entrega';
+    // codigo do cupom aplicado (null = nenhum). O desconto e recalculado a cada
+    // render, pois o subtotal muda quando o cliente altera o carrinho.
+    let cupomCodigo: string | null = null;
+
+    const esc = (s: string) =>
+      s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    // ---- abrir / fechar ----
+    function setStep(step: 'cart' | 'checkout' | 'confirmed') {
+      drawer!.dataset.step = step;
+    }
+    function open() {
+      render(cartStore.get());
+      setStep('cart');
+      root!.dataset.open = 'true';
+      root!.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+    function close() {
+      root!.dataset.open = 'false';
+      root!.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    // Limpa a mensagem de feedback do cupom.
+    function limparCupomMsg() {
+      if (!cupomMsg) return;
+      cupomMsg.hidden = true;
+      cupomMsg.textContent = '';
+      cupomMsg.removeAttribute('data-state');
+    }
+
+    // Recalcula subtotal/desconto/taxa/total e atualiza o DOM (rodape + resumo).
+    // Se o cupom aplicado deixou de valer (ex.: carrinho esvaziou), descarta-o.
+    function atualizarTotais(subtotal: number) {
+      let desconto = 0;
+      let subtotalComDesconto = subtotal;
+      let label = '';
+      if (cupomCodigo) {
+        const res = applyCoupon(cupons, cupomCodigo, subtotal, new Date(), getCuponsUsados());
+        if (res.ok) {
+          desconto = res.desconto;
+          subtotalComDesconto = res.total;
+          label = `Cupom ${res.coupon.codigo}`;
+        } else {
+          cupomCodigo = null; // cupom nao vale mais para este carrinho
+        }
+      }
+      // taxa "a combinar" nao tem valor: nao soma nada ao total, so mostra o aviso
+      const entregaEscolhida = selecionado.fulfillment === 'entrega';
+      const combinar = entregaEscolhida && checkoutConfig.taxaACombinar;
+      const taxa = entregaEscolhida && !checkoutConfig.taxaACombinar ? checkoutConfig.taxaEntrega : 0;
+      const total = subtotalComDesconto + taxa;
+      subtotalEls.forEach((el) => (el.textContent = formatPrice(subtotal)));
+      totalEls.forEach((el) => (el.textContent = formatPrice(total)));
+      descontoLabels.forEach((el) => (el.textContent = label));
+      descontoValores.forEach((el) => (el.textContent = `−${formatPrice(desconto)}`));
+      descontoRows.forEach((el) => (el.hidden = desconto <= 0));
+      taxaValores.forEach((el) => (el.textContent = combinar ? 'A combinar' : formatPrice(taxa)));
+      taxaRows.forEach((el) => (el.hidden = !(taxa > 0 || combinar)));
+    }
+
+    // ---- render do carrinho ----
+    function render(cart: Cart) {
+      const lines = cartLines(cart, products);
+      const count = totalCount(cart);
+      const subtotal = cartTotal(cart, products);
+
+      // badge no header (e qualquer contador)
+      document.querySelectorAll<HTMLElement>('[data-cart-count]').forEach((el) => {
+        el.textContent = String(count);
+        el.hidden = count === 0;
+      });
+
+      if (lines.length === 0) {
+        listEl.innerHTML = `
+          <div class="dn-empty">
+            <div class="dn-empty__rule"></div>
+            <div class="dn-empty__title">Seu carrinho está vazio</div>
+            <div class="dn-empty__text">Escolha alguma doçura no cardápio para começar.</div>
+          </div>`;
+        footEl.hidden = true;
+        summaryLinesEl.innerHTML = '';
+        // carrinho vazio: descarta cupom e zera os totais exibidos
+        cupomCodigo = null;
+        limparCupomMsg();
+        atualizarTotais(0);
+        return;
+      }
+
+      footEl.hidden = false;
+      listEl.innerHTML = lines
+        .map((l) => {
+          const thumb = l.foto
+            ? `<img src="${esc(l.foto)}" alt="" />`
+            : `<span class="dn-ci__mono">${esc(l.nome.charAt(0))}</span>`;
+          return `
+          <div class="dn-ci">
+            <div class="dn-ci__thumb">${thumb}</div>
+            <div class="dn-ci__info">
+              <div class="dn-ci__name">${esc(l.nome)}</div>
+              <div class="dn-ci__line">${l.qty} × ${formatPrice(l.preco)} = ${formatPrice(l.lineTotal)}</div>
+              <button type="button" class="dn-ci__remove" data-remove="${l.id}">Remover</button>
+            </div>
+            <div class="dn-ci__qty">
+              <button type="button" data-dec="${l.id}" aria-label="Diminuir">−</button>
+              <span>${l.qty}</span>
+              <button type="button" data-inc="${l.id}" aria-label="Aumentar">+</button>
+            </div>
+          </div>`;
+        })
+        .join('');
+
+      summaryLinesEl.innerHTML = lines
+        .map(
+          (l) => `<div class="dn-summary__row"><span>${l.qty}× ${esc(l.nome)}</span><span>${formatPrice(l.lineTotal)}</span></div>`,
+        )
+        .join('');
+
+      // subtotal, desconto do cupom (se houver) e total final
+      atualizarTotais(subtotal);
+    }
+
+    // Aplica (ou reavalia) o cupom digitado pelo cliente. NUNCA trava o pedido:
+    // em caso de erro apenas mostra a mensagem e mantem o carrinho sem desconto.
+    function aplicarCupom() {
+      const codigo = (cupomInput?.value || '').trim();
+      const subtotal = cartTotal(cartStore.get(), products);
+      const res = applyCoupon(cupons, codigo, subtotal, new Date(), getCuponsUsados());
+      if (res.ok) {
+        cupomCodigo = res.coupon.codigo;
+        if (cupomInput) cupomInput.value = res.coupon.codigo;
+        if (cupomMsg) {
+          cupomMsg.textContent = `Cupom aplicado! Desconto de ${formatPrice(res.desconto)}.`;
+          cupomMsg.dataset.state = 'ok';
+          cupomMsg.hidden = false;
+        }
+      } else {
+        cupomCodigo = null;
+        if (cupomMsg) {
+          cupomMsg.textContent = couponErrorMessage(res.motivo);
+          cupomMsg.dataset.state = 'err';
+          cupomMsg.hidden = false;
+        }
+      }
+      render(cartStore.get());
+    }
+
+    cartStore.subscribe(render);
+
+    // ---- interacoes ----
+    document.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement;
+
+      // abrir pelo header
+      if (t.closest('[data-open-cart]')) {
+        e.preventDefault();
+        open();
+        return;
+      }
+      // adicionar ao carrinho (cards)
+      const addBtn = t.closest<HTMLElement>('[data-add-to-cart]');
+      if (addBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const id = addBtn.dataset.addToCart!;
+        cartStore.add(id, 1);
+        // feedback curto que cabe no botao circular "+"
+        const original = addBtn.dataset.label ?? addBtn.textContent ?? '+';
+        addBtn.dataset.label = original;
+        addBtn.textContent = '✓';
+        addBtn.classList.add('is-added');
+        window.setTimeout(() => {
+          addBtn.textContent = original;
+          addBtn.classList.remove('is-added');
+        }, 1000);
+        return;
+      }
+    });
+
+    // fechar (backdrop / botoes com data-close)
+    root.querySelectorAll('[data-close]').forEach((el) =>
+      el.addEventListener('click', close),
+    );
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && root.dataset.open === 'true') close();
+    });
+
+    // navegacao entre passos
+    root.querySelector('[data-go-checkout]')?.addEventListener('click', () => setStep('checkout'));
+    root.querySelector('[data-back-cart]')?.addEventListener('click', () => setStep('cart'));
+
+    // cupom: aplicar pelo botao ou pela tecla Enter
+    root.querySelector('[data-cupom-apply]')?.addEventListener('click', aplicarCupom);
+    cupomInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        aplicarCupom();
+      }
+    });
+
+    // +/- e remover dentro do carrinho (delegacao)
+    listEl.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement;
+      const inc = t.closest<HTMLElement>('[data-inc]');
+      const dec = t.closest<HTMLElement>('[data-dec]');
+      const rem = t.closest<HTMLElement>('[data-remove]');
+      if (inc) cartStore.inc(inc.dataset.inc!);
+      else if (dec) cartStore.dec(dec.dataset.dec!);
+      else if (rem) cartStore.remove(rem.dataset.remove!);
+    });
+
+    // segmentos (entrega / pagamento)
+    root.querySelectorAll<HTMLElement>('[data-seg]').forEach((seg) => {
+      seg.addEventListener('click', (e) => {
+        const opt = (e.target as HTMLElement).closest<HTMLElement>('.dn-seg__opt');
+        if (!opt) return;
+        seg.querySelectorAll('.dn-seg__opt').forEach((o) => o.classList.remove('is-active'));
+        opt.classList.add('is-active');
+        const grupo = seg.dataset.seg!;
+        const valor = opt.dataset.value!;
+        if (grupo === 'fulfillment') {
+          selecionado.fulfillment = valor as Fulfillment;
+          if (addressField) addressField.hidden = valor !== 'entrega';
+          // a taxa de entrega depende do fulfillment escolhido: recalcula o total
+          atualizarTotais(cartTotal(cartStore.get(), products));
+        } else if (grupo === 'payment') {
+          selecionado.payment = valor as Payment;
+        }
+      });
+    });
+
+    // enviar pelo WhatsApp
+    root.querySelector('[data-send-whatsapp]')?.addEventListener('click', () => {
+      const cart = cartStore.get();
+      const lines = cartLines(cart, products);
+      if (lines.length === 0) {
+        setStep('cart');
+        return;
+      }
+
+      const data = new FormData(form);
+      const nome = String(data.get('nome') || '').trim();
+      const telefone = String(data.get('telefone') || '').trim();
+      const endereco = String(data.get('endereco') || '').trim();
+      const observacoes = String(data.get('observacoes') || '').trim();
+
+      // validacao minima
+      const invalido = (name: string) => {
+        const wrap = form.querySelector(`[name="${name}"]`)?.closest('.dn-field');
+        wrap?.classList.add('is-invalid');
+        form.querySelector<HTMLElement>(`[name="${name}"]`)?.focus();
+      };
+      form.querySelectorAll('.dn-field').forEach((f) => f.classList.remove('is-invalid'));
+      if (!nome) return invalido('nome');
+      if (!telefone) return invalido('telefone');
+      if (selecionado.fulfillment === 'entrega' && !endereco) return invalido('endereco');
+
+      // subtotal + desconto do cupom (revalidado) + taxa de entrega para a
+      // mensagem do WhatsApp
+      const subtotal = cartTotal(cart, products);
+      let cupom: { codigo: string; desconto: number } | undefined;
+      let subtotalComDesconto = subtotal;
+      if (cupomCodigo) {
+        const res = applyCoupon(cupons, cupomCodigo, subtotal, new Date(), getCuponsUsados());
+        if (res.ok) {
+          cupom = { codigo: res.coupon.codigo, desconto: res.desconto };
+          subtotalComDesconto = res.total;
+        }
+      }
+      const entregaEscolhida = selecionado.fulfillment === 'entrega';
+      const taxaACombinar = entregaEscolhida && checkoutConfig.taxaACombinar;
+      const taxaEntrega = entregaEscolhida && !checkoutConfig.taxaACombinar ? checkoutConfig.taxaEntrega : 0;
+      const total = subtotalComDesconto + taxaEntrega;
+
+      const order = {
+        pedido: generateOrderId(),
+        nome,
+        telefone,
+        fulfillment: selecionado.fulfillment,
+        endereco: selecionado.fulfillment === 'entrega' ? endereco : undefined,
+        payment: selecionado.payment,
+        observacoes,
+        lines,
+        subtotal,
+        cupom,
+        taxaEntrega: taxaEntrega > 0 ? taxaEntrega : undefined,
+        taxaACombinar: taxaACombinar || undefined,
+        total,
+      };
+
+      const url = buildWhatsappUrl(WHATSAPP_NUMBER, buildOrderMessage(order));
+      window.open(url, '_blank', 'noopener');
+
+      // registra o cupom como usado NESTE navegador (bloqueia reuso no proximo
+      // pedido). Ver limite em src/lib/coupon-usage.ts.
+      if (cupom) marcarCupomUsado(cupom.codigo);
+
+      orderNumberEl.textContent = order.pedido;
+      setStep('confirmed');
+      cartStore.clear();
+      form.reset();
+      // limpa o cupom para o proximo pedido
+      cupomCodigo = null;
+      if (cupomInput) cupomInput.value = '';
+      limparCupomMsg();
+    });
+  }
+</script>

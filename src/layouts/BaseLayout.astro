@@ -1,0 +1,100 @@
+---
+import '../styles/global.css';
+import { SITE_NAME } from '../config/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** imagem de preview (og:image). Absoluta é montada via Astro.site. */
+  image?: string;
+}
+
+const {
+  title = 'Doçuras da Nina · Doceria Artesanal',
+  description = 'Cardápio artesanal da Doçuras da Nina: brownies, brigadeiros, bolos de pote e cookies gourmet.',
+  image = '/og-image.png',
+} = Astro.props;
+
+// URLs ABSOLUTAS para compartilhamento. Astro.site vem de astro.config.mjs.
+// Se por algum motivo nao estiver definido, cai para caminho relativo (o site
+// continua funcionando; so o preview do link fica sem imagem ate ter dominio).
+const canonicalURL = Astro.site
+  ? new URL(Astro.url.pathname, Astro.site).href
+  : Astro.url.pathname;
+const ogImageURL = Astro.site ? new URL(image, Astro.site).href : image;
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonicalURL} />
+    <title>{title}</title>
+
+    <!-- Cor da barra do navegador (mobile), acompanhando o tema -->
+    <meta name="theme-color" content="#1F4D3A" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f1d16" media="(prefers-color-scheme: dark)" />
+
+    <!-- Open Graph (WhatsApp, Facebook, etc.) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={ogImageURL} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Doçuras da Nina — Doceria Artesanal" />
+
+    <!-- Twitter/X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageURL} />
+
+    <!-- Fontes (Google Fonts via CDN). Carregadas de forma NAO bloqueante
+         (preload + troca para stylesheet no onload): a pagina pinta na hora
+         com a fonte serifada de fallback (Georgia) e troca para as fontes da
+         marca quando chegam. Se o CDN de fontes estiver fora do ar, o site
+         continua funcionando normalmente com o fallback. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Yeseva+One&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Yeseva+One&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap"
+      />
+    </noscript>
+
+    <!-- Tema: define data-theme ANTES da pintura para nao piscar (FOUC).
+         Le a escolha salva; se nao houver, segue a preferencia do sistema. -->
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem('dn-theme');
+          var theme =
+            stored ||
+            (window.matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light');
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {
+          /* localStorage indisponivel: cai no CSS via prefers-color-scheme */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

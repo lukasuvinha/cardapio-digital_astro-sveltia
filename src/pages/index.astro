@@ -1,0 +1,58 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import CategoryNav from '../components/CategoryNav.astro';
+import ProductGrid from '../components/ProductGrid.astro';
+import Footer from '../components/Footer.astro';
+import CartDrawer from '../components/CartDrawer.astro';
+import { getProdutos, categoriasDe } from '../data/menu';
+import { slugify } from '../lib/slug';
+
+// Cardapio direto ao ponto: uma unica grade com TODOS os produtos.
+// Dados vindos da Content Collection "produtos" (editavel via Sveltia CMS).
+// A barra de categorias funciona como filtro (client-side) — ver script abaixo.
+const produtos = await getProdutos();
+const navItems = categoriasDe(produtos).map((c) => ({ label: c, slug: slugify(c) }));
+---
+
+<BaseLayout>
+  <Header />
+  <CategoryNav items={navItems} />
+
+  <main class="dn-main">
+    <ProductGrid products={produtos} />
+  </main>
+
+  <Footer />
+
+  <CartDrawer />
+</BaseLayout>
+
+<script>
+  // Filtro por categoria: mostra/esconde os cards conforme o chip ativo.
+  const chips = Array.from(document.querySelectorAll<HTMLElement>('[data-filter]'));
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('.dn-grid [data-categoria]'));
+
+  function aplicar(filtro: string) {
+    for (const card of cards) {
+      const mostra = filtro === 'all' || card.dataset.categoria === filtro;
+      card.hidden = !mostra;
+    }
+  }
+
+  for (const chip of chips) {
+    chip.addEventListener('click', () => {
+      chips.forEach((c) => c.classList.remove('is-active'));
+      chip.classList.add('is-active');
+      aplicar(chip.dataset.filter || 'all');
+    });
+  }
+</script>
+
+<style>
+  .dn-main {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: clamp(18px, 4vw, 32px) clamp(16px, 4vw, 48px) 80px;
+  }
+</style>

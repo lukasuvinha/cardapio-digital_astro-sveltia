@@ -1,0 +1,25 @@
+---
+// Painel de administracao (Sveltia CMS) — a Nina edita os produtos por aqui.
+//
+// E uma ROTA real do Astro (/admin) em vez de um arquivo estatico em public/,
+// para funcionar identico em dev e em producao (o `astro dev` nao faz
+// "directory index" de public/, entao /admin/ dava 404).
+//
+// A configuracao do CMS fica em /admin/config.yml (public/admin/config.yml),
+// carregada automaticamente pelo Sveltia.
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- painel interno: nao indexar -->
+    <meta name="robots" content="noindex" />
+    <title>Doçuras da Nina — Painel de Produtos</title>
+  </head>
+  <body>
+    <!-- Sveltia CMS via CDN. is:inline mantem a tag intacta (sem bundling). -->
+    <script is:inline type="module" src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
+  </body>
+</html>

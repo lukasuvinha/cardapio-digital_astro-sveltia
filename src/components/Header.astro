@@ -1,0 +1,154 @@
+---
+// Cabecalho da marca: nome + tagline (esquerda) e controles (direita).
+// Reutilizavel em todas as paginas. O botao "Carrinho" abre o CartDrawer
+// (via data-open-cart, tratado no script do CartDrawer) e mostra a contagem
+// de itens ao vivo no badge (data-cart-count).
+import ThemeToggle from './ThemeToggle.astro';
+---
+
+<header class="dn-header">
+  <!-- Nome + tagline levam de volta ao cardapio (home). Sem aria-label: o
+       nome acessivel vem do proprio texto visivel (evita divergencia
+       "label in name"). O <a> ja e anunciado como link pelo leitor de tela. -->
+  <a class="dn-header__brand" href="/">
+    <span class="dn-header__name">Doçuras da Nina</span>
+    <span class="dn-header__tagline">Doceria Artesanal</span>
+  </a>
+
+  <div class="dn-header__actions">
+    <ThemeToggle />
+
+    <button class="dn-header__cart" type="button" aria-label="Abrir carrinho" data-open-cart>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="9" cy="21" r="1"></circle>
+        <circle cx="20" cy="21" r="1"></circle>
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+      </svg>
+      <span class="dn-header__badge" data-cart-count hidden>0</span>
+    </button>
+  </div>
+</header>
+
+<style>
+  .dn-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    gap: 12px;
+    padding: 14px clamp(16px, 4vw, 48px);
+    min-height: 84px;
+    background: var(--brand);
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s;
+  }
+
+  /* Mobile-first: marca empilhada (nome sobre a tagline) para caber bem em
+     tela pequena sem a tagline "sobrar" ao lado dos botoes. */
+  .dn-header__brand {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 0;
+    text-decoration: none;
+    border-radius: 4px;
+  }
+  /* afordancia de link: leve realce no nome ao passar o mouse */
+  .dn-header__name {
+    transition: color 0.15s;
+  }
+  @media (hover: hover) {
+    .dn-header__brand:hover .dn-header__name {
+      color: var(--gold);
+    }
+  }
+  /* foco visivel por teclado (acessibilidade) */
+  .dn-header__brand:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 4px;
+  }
+  .dn-header__name {
+    font-family: var(--font-head);
+    font-size: clamp(20px, 5.2vw, 32px);
+    color: var(--cream);
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dn-header__tagline {
+    font-size: 10.5px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    /* creme (nao dourado): o dourado pequeno sobre o verde reprova no
+       contraste; o creme sobre o verde da marca passa com folga. */
+    color: var(--cream);
+    white-space: nowrap;
+  }
+
+  .dn-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: none;
+  }
+
+  /* A partir de tablet, marca volta a ficar na horizontal (nome + tagline) */
+  @media (min-width: 640px) {
+    .dn-header__brand {
+      flex-direction: row;
+      align-items: baseline;
+      gap: 14px;
+    }
+    .dn-header__actions {
+      gap: 14px;
+    }
+  }
+
+  /* Botao circular do carrinho — uniforme com o toggle de tema */
+  .dn-header__cart {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--cream);
+    line-height: 0;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  @media (hover: hover) {
+    .dn-header__cart:hover {
+      background: rgba(198, 161, 91, 0.15);
+    }
+  }
+  .dn-header__badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    background: var(--rust);
+    color: #f7efe1;
+    font-size: 10px;
+    border-radius: 9px;
+    border: 1px solid var(--brand);
+  }
+  .dn-header__badge[hidden] {
+    display: none;
+  }
+</style>

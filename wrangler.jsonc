@@ -1,0 +1,21 @@
+{
+  // Deploy no Cloudflare como WORKER com static assets (NAO Cloudflare Pages).
+  // O site e 100% estatico: nao ha script de Worker (sem "main"), apenas os
+  // assets gerados em ./dist sao servidos diretamente pela plataforma.
+  //
+  // Deploy: disparado por git push na branch `main` via Cloudflare Workers Builds
+  // (integracao Git nativa, configurada no painel da Cloudflare). Nenhum token
+  // fica neste repositorio.
+  //   - Build command (no painel):  npm run build
+  //   - Deploy command (no painel):  npx wrangler deploy
+  //   - Output/assets:               ./dist  (abaixo em assets.directory)
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cardapio-docuras-da-nina",
+  "compatibility_date": "2025-07-01",
+  "assets": {
+    "directory": "./dist",
+    // src/pages/404.astro gera dist/404.html, usado para rotas nao
+    // encontradas (na identidade visual da marca, nao o padrao do Cloudflare).
+    "not_found_handling": "404-page"
+  }
+}

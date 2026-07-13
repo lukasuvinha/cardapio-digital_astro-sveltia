@@ -1,0 +1,98 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import CartDrawer from '../components/CartDrawer.astro';
+import ContactButton from '../components/ContactButton.astro';
+import { WHATSAPP_NUMBER, INSTAGRAM_URL } from '../config/site';
+
+// Pagina "Contato" (estatica), estilo "linktree" simples: um botao para o
+// WhatsApp e outro para o Instagram da Nina. O link discreto "Desenvolvedor"
+// no fim leva para /desenvolvedor. Como trocar o numero/link: ver
+// docs/PAGINAS-INSTITUCIONAIS.md.
+const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}`;
+---
+
+<BaseLayout
+  title="Contato · Doçuras da Nina"
+  description="Fale com a Doçuras da Nina pelo WhatsApp ou Instagram."
+>
+  <Header />
+
+  <main class="dn-contato">
+    <div class="dn-contato__rule"></div>
+    <span class="dn-contato__eyebrow">Fale com a gente</span>
+    <h1 class="dn-contato__title">Contato</h1>
+    <p class="dn-contato__text">
+      Escolha por onde prefere falar com a Nina.
+    </p>
+
+    <div class="dn-contato__links">
+      <ContactButton href={whatsappUrl} label="WhatsApp" icon="whatsapp" external />
+      <ContactButton href={INSTAGRAM_URL} label="Instagram" icon="instagram" external />
+    </div>
+
+    <a class="dn-contato__dev" href="/desenvolvedor">Desenvolvedor</a>
+  </main>
+
+  <Footer />
+
+  <CartDrawer />
+</BaseLayout>
+
+<style>
+  .dn-contato {
+    max-width: 460px;
+    margin: 0 auto;
+    padding: clamp(40px, 10vh, 90px) clamp(20px, 6vw, 32px) 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .dn-contato__rule {
+    width: 40px;
+    height: 1px;
+    background: var(--gold);
+    margin-bottom: 18px;
+  }
+  .dn-contato__eyebrow {
+    font-size: 11px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .dn-contato__title {
+    margin: 10px 0 0;
+    font-family: var(--font-head);
+    font-weight: 400;
+    font-size: clamp(26px, 6vw, 36px);
+    line-height: 1.2;
+    color: var(--ink);
+  }
+  .dn-contato__text {
+    margin: 12px 0 0;
+    font-size: 15px;
+    color: var(--muted-text);
+  }
+  .dn-contato__links {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 34px;
+  }
+  .dn-contato__dev {
+    margin-top: 46px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    opacity: 0.75;
+  }
+  @media (hover: hover) {
+    .dn-contato__dev:hover {
+      color: var(--ink);
+      opacity: 1;
+    }
+  }
+</style>

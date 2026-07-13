@@ -1,0 +1,247 @@
+# Configuracao do Sveltia CMS (painel da Nina).
+# Os campos abaixo correspondem 1:1 ao schema Zod da Content Collection do Astro
+# em src/content/config.ts (via src/content/produto-schema.ts).
+
+backend:
+  name: github
+  repo: seu_usuario/seu-repo  # TROQUE para o seu usuario/repo no GitHub
+  branch: main
+  # URL do Worker de autenticacao (sveltia-cms-auth) ja deployado.
+  # E ele que faz o login OAuth da conta GitHub de quem for editar o conteudo.
+  base_url: https://sveltia-cms-auth.SEU_USUARIO.workers.dev  # TROQUE apos deployar seu proprio worker de auth
+
+# Idioma do painel
+locale: pt
+
+# ---- FOTOS: pasta publica + otimizacao no UPLOAD ----
+# As fotos vao para public/uploads/ e sao referenciadas por URL publica
+# (ex.: /uploads/foo.webp). Ficam em /public (servidas como estao), entao o
+# BUILD NUNCA processa a imagem — um upload ruim nao tem como quebrar o deploy.
+# (Ja quebrou 3x quando a foto passava pelo image() do Astro, que hard-faila.)
+media_folder: "public/uploads"
+public_folder: "/uploads"
+
+# Otimizacao feita no NAVEGADOR, no momento do upload (recurso do Sveltia):
+# toda foto enviada e convertida para WebP e redimensionada. Assim a foto de
+# 4000px / 4 MB do celular da Nina vira ~1 MP / poucos KB automaticamente,
+# antes mesmo de ir para o repositorio.
+media_libraries:
+  default:
+    config:
+      # bloqueia arquivos absurdamente grandes (antes da otimizacao). 12 MB.
+      max_file_size: 12582912
+      transformations:
+        raster_image:
+          format: webp
+          quality: 82
+          width: 1400
+          height: 1400
+
+collections:
+  - name: produtos
+    label: "Produtos"
+    label_singular: "Produto"
+    description: "Cadastro de doces do cardapio. Edite nome, preco, foto e disponibilidade."
+    # Entradas PLANAS: cada produto e um arquivo unico src/content/produtos/<slug>.md
+    # (formato padrao de folder collection — o Sveltia LISTA estas entradas).
+    # NAO use subpastas por produto (path: "{{slug}}/index") nem coloque imagens
+    # dentro desta pasta: ja causou o painel parar de listar e/ou o build quebrar.
+    folder: "src/content/produtos"
+    create: true
+    # o arquivo de cada produto e nomeado a partir do nome
+    identifier_field: nome
+    slug: "{{slug}}"
+    fields:
+      - { name: nome, label: "Nome", widget: string }
+      - { name: descricao, label: "Descrição", widget: text, required: false }
+      - {
+          name: preco,
+          label: "Preço (R$)",
+          widget: number,
+          value_type: float,
+          min: 0,
+          step: 0.5,
+          hint: "Use ponto para centavos. Ex.: 14 ou 4.5",
+        }
+      # Categoria vem da collection "categorias" (widget relation), para a Nina
+      # poder CADASTRAR novas categorias pelo painel (secao "Categorias") sem
+      # mexer no codigo. O valor gravado continua sendo o texto do nome
+      # (ex.: "Brownie"), igual ao que o select fazia — o schema nao muda.
+      - {
+          name: categoria,
+          label: "Categoria",
+          widget: relation,
+          collection: categorias,
+          value_field: nome,
+          search_fields: [nome],
+          display_fields: [nome],
+          hint: "Escolha a categoria. Para criar novas, use a seção Categorias no menu lateral.",
+        }
+      # --- ANTES: lista fixa de categorias (substituida pelo relation acima).
+      #     Mantido comentado para referencia / rollback rapido.
+      # - {
+      #     name: categoria,
+      #     label: "Categoria",
+      #     widget: select,
+      #     options: ["Brownie", "Brigadeiro", "Bolo de Pote", "Cookies"],
+      #   }
+      - {
+          name: disponivel,
+          label: "Disponível",
+          widget: boolean,
+          default: true,
+          hint: "Desligue para mostrar o produto como Esgotado.",
+        }
+      # "Esconder do Cardápio": esconde o produto do site (grade e página de
+      # detalhe) sem apagar nada — nome, descrição, preço e foto continuam
+      # aqui, só não aparecem para o cliente. Diferente de "Disponível": um
+      # produto indisponível ainda aparece no site com o selo "Esgotado"; um
+      # produto escondido SOME completamente até você desmarcar esta opção.
+      # (Campo se chamava "arquivado"/"Arquivado" antes; renomeado para
+      # refletir melhor o que a opção faz.)
+      - {
+          name: escondido,
+          label: "Esconder do Cardápio",
+          widget: boolean,
+          default: false,
+          hint: "Ligue para esconder este produto do site. Ele continua aqui, editável — é só reativar desligando esta opção depois.",
+        }
+      - {
+          name: foto,
+          label: "Foto",
+          widget: image,
+          required: false,
+          # PROTECAO: so aceita formatos que o navegador exibe e que a
+          # otimizacao consegue processar. Bloqueia HEIC (iPhone), etc.
+          accept: ["image/jpeg", "image/png", "image/webp"],
+          hint: "Foto do doce (JPG, PNG ou WebP). Dica: proporção 4:3 na horizontal (ex.: 1200×900 px) fica certinha no molde do cardápio. Não é obrigatório — o sistema ajusta o tamanho e recorta o que passar. Fotos muito verticais ou quadradas podem ser cortadas nas bordas.",
+        }
+
+  # Categorias dos doces. A Nina cria aqui as categorias que aparecem no campo
+  # "Categoria" de cada produto (widget relation). Assim ela pode adicionar
+  # novos tipos de doce sem depender de alteracao no codigo.
+  - name: categorias
+    label: "Categorias"
+    label_singular: "Categoria"
+    description: "Categorias dos doces (ex.: Brownie, Brigadeiro). Crie novas conforme for vendendo outros tipos."
+    folder: "src/content/categorias"
+    create: true
+    identifier_field: nome
+    slug: "{{slug}}"
+    fields:
+      - { name: nome, label: "Nome", widget: string, hint: "Ex.: Bolo de Pote. É este texto que aparece na lista de categorias do produto." }
+
+  # Cupons de desconto. A Nina cria um codigo, escolhe o tipo (percentual ou
+  # valor fixo), o valor e a validade. O cliente digita o codigo no carrinho.
+  - name: cupons
+    label: "Cupons"
+    label_singular: "Cupom"
+    description: "Cupons de desconto que o cliente digita no carrinho."
+    folder: "src/content/cupons"
+    create: true
+    identifier_field: codigo
+    slug: "{{codigo}}"
+    fields:
+      - { name: codigo, label: "Código", widget: string, hint: "Ex.: BEMVINDO10. O cliente digita este código no carrinho (não diferencia maiúsculas/minúsculas)." }
+      # ATENCAO: campo em estilo BLOCO (sem as chaves { }). Uma lista em bloco
+      # (options com "-") NAO pode ficar dentro de um mapping em fluxo { } —
+      # isso quebra o parse do YAML e derruba o painel inteiro. Cada opcao pode
+      # continuar em fluxo, pois um { } e valido como ITEM de uma lista.
+      - name: tipo
+        label: "Tipo de desconto"
+        widget: select
+        default: percentual
+        options:
+          - { label: "Percentual (%)", value: percentual }
+          - { label: "Valor fixo (R$)", value: valor_fixo }
+      - {
+          name: valor,
+          label: "Valor do desconto",
+          widget: number,
+          value_type: float,
+          min: 0,
+          step: 0.5,
+          hint: "Percentual: 10 = 10% de desconto. Valor fixo: 5 = R$ 5,00 de desconto.",
+        }
+      # Data de validade. O widget "date" foi DEPRECADO/removido no Sveltia CMS
+      # (e no Decap 3.0) — usar "date" derruba o painel. A forma suportada e o
+      # widget "datetime" com "type: date" (data pura, sem horario). O "format"
+      # garante que o valor gravado seja a string "YYYY-MM-DD".
+      - name: validade
+        label: "Validade"
+        widget: datetime
+        type: date
+        format: "YYYY-MM-DD"
+        hint: "O cupom vale até o fim deste dia (ou até a hora exata, se preencher o campo abaixo)."
+      # Hora exata de expiracao (OPCIONAL). Usamos um campo de TEXTO simples
+      # (widget string) DE PROPOSITO: e o widget mais a prova de falhas do CMS
+      # (nao arrisca quebrar o painel como ja aconteceu com widgets de data). O
+      # "pattern" valida o formato HH:MM na hora de salvar. Se ficar em branco, o
+      # cupom vale o dia todo; se preenchida, expira nesse horario.
+      - {
+          name: hora,
+          label: "Hora de expiração (opcional)",
+          widget: string,
+          required: false,
+          pattern: ["^([01]?[0-9]|2[0-3]):[0-5][0-9]$", "Use o formato HH:MM, ex.: 14:30"],
+          hint: "Opcional. Ex.: 14:30 → o cupom expira às 14h30 do dia da validade. Deixe em branco para valer o dia todo.",
+        }
+      # --- ANTES (quebrava o painel): widget: date depreciado. Mantido
+      #     comentado para referencia.
+      # - {
+      #     name: validade,
+      #     label: "Validade",
+      #     widget: date,
+      #     date_format: "DD/MM/YYYY",
+      #     format: "YYYY-MM-DD",
+      #     hint: "O cupom vale até o fim deste dia.",
+      #   }
+
+  # Configuracoes operacionais do site, editaveis pela Nina. Collection do
+  # tipo "files" do Sveltia/Decap: cada item aqui e um arquivo singular (nao
+  # uma lista que a Nina cria/apaga, como produtos/cupons).
+  - name: configuracoes
+    label: "Configurações"
+    description: "Ajustes operacionais do site."
+    files:
+      # Entrega e retirada: ligar/desligar cada opcao e definir a taxa de
+      # entrega. Ver docs/CUPONS-E-PEDIDOS.md, secao "Entrega e retirada".
+      - name: entrega
+        label: "Entrega e Retirada"
+        file: "src/content/configuracoes/entrega.json"
+        description: "Ligue/desligue Entrega e Retirada e defina a taxa. As duas opções não podem ficar desligadas ao mesmo tempo — se isso acontecer, o site reativa a Retirada sozinho."
+        fields:
+          - { name: entrega_habilitada, label: "Entrega disponível", widget: boolean, default: true, hint: "Desligue para tirar a opção \"Entrega\" do carrinho do cliente." }
+          - { name: retirada_habilitada, label: "Retirada disponível", widget: boolean, default: true, hint: "Desligue para tirar a opção \"Retirada\" do carrinho do cliente." }
+          - {
+              name: taxa_entrega,
+              label: "Taxa de entrega (R$)",
+              widget: number,
+              value_type: float,
+              min: 0,
+              step: 0.5,
+              default: 0,
+              hint: "Somada ao total do pedido quando o cliente escolhe Entrega. Use 0 para entrega grátis. Ignorado se \"Taxa a combinar\" (abaixo) estiver ligado.",
+            }
+          - {
+              name: taxa_a_combinar,
+              label: "Taxa a combinar (em vez de um valor fixo)",
+              widget: boolean,
+              default: false,
+              hint: "Ligue quando ainda não souber o valor do frete: mostra \"Taxa de entrega: A combinar\" para o cliente e na mensagem do WhatsApp, em vez de somar um valor ao total. Com isso ligado, o campo \"Taxa de entrega (R$)\" acima é ignorado.",
+            }
+
+      # --- DESATIVADO a pedido do cliente: edicao do texto do WhatsApp pela
+      #     Nina no painel. O texto agora so muda direto no codigo
+      #     (src/lib/whatsapp.ts, constantes TITULO/MENSAGEM_FINAL) — ver
+      #     docs/CUPONS-E-PEDIDOS.md, secao "Editar o texto do WhatsApp
+      #     manualmente". Mantido comentado para referencia/reativacao rapida:
+      #     o arquivo src/content/configuracoes/whatsapp.json continua
+      #     existindo, mas fora desta collection (ver src/content/config.ts).
+      # - name: whatsapp
+      #   label: "Mensagem do WhatsApp"
+      #   file: "src/content/configuracoes/whatsapp.json"
+      #   description: "Personalize o texto do pedido que abre no WhatsApp."
+      #   fields:
+      #     - { name: titulo, label: "Título da mensagem", widget: string, default: "Novo pedido — Doçuras da Nina", hint: "Primeira linha (em negrito) da mensagem. Ex.: Novo pedido — Doçuras da Nina" }
+      #     - { name: mensagem_final, label: "Mensagem final (opcional)", widget: text, required: false, hint: "Texto opcional no fim da mensagem, ex.: Obrigada pela preferência! 💛 — deixe em branco para não incluir." }
