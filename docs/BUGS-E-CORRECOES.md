@@ -135,6 +135,71 @@ No toque, o hover simplesmente não existe.
 
 ---
 
+## 8. Painel do CMS recusava salvar o cupom com o campo "Hora" vazio
+
+**Sintoma:** em produção, ao deixar o campo opcional "Hora de expiração" em
+branco (para o cupom valer o dia todo), o painel **não deixava salvar** —
+mostrava "Use o formato HH:MM, ex.: 14:30" mesmo sem nada digitado.
+
+**Causa:** bug conhecido, herdado do Decap CMS (mesma família do Sveltia):
+quando um campo tem `pattern` **e** `required: false`, o painel ainda assim
+valida o `pattern` contra o valor vazio — e como o regex antigo
+(`^([01]?[0-9]|2[0-3]):[0-5][0-9]$`) não casa com string vazia, o campo
+"opcional" virava obrigatório na prática. `required: false` só torna o valor
+opcional na hora de checar se o campo foi preenchido; não isenta o `pattern`
+de rodar em cima de uma string vazia.
+
+**Correção:** o regex passou a aceitar string vazia também, com uma
+alternância no início: `^$|^([01]?[0-9]|2[0-3]):[0-5][0-9]$`. Isso resolve o
+bug **na raiz** (sem mudar o comportamento documentado: campo em branco
+continua significando "vale o dia todo") — o formato `HH:MM` continua sendo
+exigido normalmente quando algo é digitado.
+
+**Blindagem:** `tests/cms-config.test.ts` tem um teste dedicado que aplica o
+regex do `pattern` (lido direto do `config.yml`) contra `''`, formatos
+válidos e inválidos — falha se alguém tirar o `^$|` sem querer.
+
+**Onde ver:** `public/admin/config.yml`, campo `hora` da collection `cupons`.
+
+---
+
+## 9. Painel fora do ar em produção: "The `accept` option must be a string"
+
+**Sintoma:** o painel parou de abrir (nem a tela de login aparecia), mostrando
+"Há um erro na configuração do CMS" com o detalhe **"coleção Produto, campo
+`foto`: The `accept` option must be a string"**.
+
+**Causa:** o campo `foto` usava `accept` como **lista**
+(`accept: ["image/jpeg", "image/png", "image/webp"]`). O Sveltia espera uma
+**string separada por vírgulas**, igual ao atributo `accept` do
+`<input type="file">` do HTML.
+
+**O detalhe importante:** essa linha estava assim **desde a integração do CMS** e
+funcionava. Ninguém mexeu nela — o painel quebrou sozinho, sem nenhum commit
+no repositório. O motivo é que o Sveltia é carregado da CDN **sem versão fixa**
+(`https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js`), ou seja, o site sempre
+pega a **última versão**. Uma release nova apertou a validação desse campo, e o
+que antes passava virou erro fatal de config da noite para o dia.
+
+**Correção:** `accept: "image/jpeg,image/png,image/webp"` (string). A proteção
+continua a mesma — segue bloqueando HEIC do iPhone e outros formatos que a
+otimização não processa.
+
+**Blindagem:** `tests/cms-config.test.ts` tem um teste que lê o `config.yml`
+real e falha se o `accept` voltar a ser uma lista (`typeof === 'string'`).
+
+> ⚠️ **Risco que continua em aberto (decisão do dono do projeto):** enquanto o
+> `<script>` de `src/pages/admin/index.astro` apontar para a CDN **sem número
+> de versão**, esse tipo de quebra pode acontecer de novo a qualquer momento,
+> sem aviso e sem commit. Fixar a versão (ex.:
+> `https://unpkg.com/@sveltia/cms@X.Y.Z/dist/sveltia-cms.js`) elimina a
+> surpresa, com o custo de precisar atualizar à mão para receber correções.
+> **Não fixei um número aqui de propósito:** este ambiente não alcança a CDN
+> para conferir qual é a versão boa mais recente, e chutar uma versão que não
+> existe derrubaria o painel por completo — pior que o problema original.
+
+---
+
 ## Padrão que se repetiu
 
 O CMS **só valida a config no próprio painel** (que roda no navegador, carregando

@@ -113,7 +113,13 @@ collections:
           required: false,
           # PROTECAO: so aceita formatos que o navegador exibe e que a
           # otimizacao consegue processar. Bloqueia HEIC (iPhone), etc.
-          accept: ["image/jpeg", "image/png", "image/webp"],
+          #
+          # ATENCAO: "accept" e uma STRING separada por virgulas (igual ao
+          # atributo accept do <input type="file"> do HTML), NAO uma lista.
+          # Ja esteve como lista aqui e o painel parou de abrir em producao
+          # com "The `accept` option must be a string" — ver
+          # docs/BUGS-E-CORRECOES.md, item 9.
+          accept: "image/jpeg,image/png,image/webp",
           hint: "Foto do doce (JPG, PNG ou WebP). Dica: proporção 4:3 na horizontal (ex.: 1200×900 px) fica certinha no molde do cardápio. Não é obrigatório — o sistema ajusta o tamanho e recorta o que passar. Fotos muito verticais ou quadradas podem ser cortadas nas bordas.",
         }
 
@@ -178,12 +184,19 @@ collections:
       # (nao arrisca quebrar o painel como ja aconteceu com widgets de data). O
       # "pattern" valida o formato HH:MM na hora de salvar. Se ficar em branco, o
       # cupom vale o dia todo; se preenchida, expira nesse horario.
+      #
+      # ATENCAO: o "^$|" no INICIO do pattern e proposital. Sem ele, o painel
+      # (Sveltia/Decap) valida o pattern MESMO em campo opcional vazio e
+      # recusa salvar com "Use o formato HH:MM..." mesmo sem digitar nada —
+      # bug conhecido herdado do Decap CMS. O "^$|" faz string vazia bater no
+      # pattern tambem, sem enfraquecer a validacao do formato quando
+      # preenchido. Ver docs/BUGS-E-CORRECOES.md, item 8.
       - {
           name: hora,
           label: "Hora de expiração (opcional)",
           widget: string,
           required: false,
-          pattern: ["^([01]?[0-9]|2[0-3]):[0-5][0-9]$", "Use o formato HH:MM, ex.: 14:30"],
+          pattern: ["^$|^([01]?[0-9]|2[0-3]):[0-5][0-9]$", "Use o formato HH:MM, ex.: 14:30"],
           hint: "Opcional. Ex.: 14:30 → o cupom expira às 14h30 do dia da validade. Deixe em branco para valer o dia todo.",
         }
       # --- ANTES (quebrava o painel): widget: date depreciado. Mantido
@@ -229,6 +242,57 @@ collections:
               widget: boolean,
               default: false,
               hint: "Ligue quando ainda não souber o valor do frete: mostra \"Taxa de entrega: A combinar\" para o cliente e na mensagem do WhatsApp, em vez de somar um valor ao total. Com isso ligado, o campo \"Taxa de entrega (R$)\" acima é ignorado.",
+            }
+
+      # Proxima fornada: banner opcional no topo do cardapio avisando quando
+      # sera a proxima fornada. Ver docs/CUPONS-E-PEDIDOS.md, secao
+      # "Proxima fornada".
+      - name: fornada
+        label: "Próxima Fornada"
+        file: "src/content/configuracoes/fornada.json"
+        description: "Banner no topo do cardápio avisando quando será a próxima fornada. A chave \"Mostrar banner\" abaixo desliga tudo de uma vez."
+        fields:
+          - {
+              name: banner_habilitado,
+              label: "Mostrar banner no site",
+              widget: boolean,
+              default: false,
+              hint: "Chave geral: desligada, o banner some do site inteiro, não importa o que estiver preenchido abaixo.",
+            }
+          # ATENCAO: campo em estilo BLOCO (sem chaves { }), igual ao campo
+          # "tipo" do cupom acima — uma lista em bloco (options com "-") NAO
+          # pode ficar dentro de um mapping em fluxo { }, isso quebra o YAML
+          # e derruba o painel inteiro (ver docs/BUGS-E-CORRECOES.md, item 2).
+          - name: modo
+            label: "O que mostrar"
+            widget: select
+            default: em_breve
+            options:
+              - { label: "Data e hora exatas", value: data }
+              - { label: "Aviso genérico (\"em preparação\")", value: em_breve }
+            hint: "Escolha \"Data e hora exatas\" quando já souber quando será a próxima fornada, ou \"Aviso genérico\" quando ainda não tiver uma data definida."
+          # Mesma forma segura usada na validade do cupom acima: "datetime"
+          # com "type: date" (o widget "date" foi removido do Sveltia/Decap
+          # e derruba o painel — ver docs/BUGS-E-CORRECOES.md, item 3).
+          - name: data
+            label: "Data da próxima fornada"
+            widget: datetime
+            type: date
+            format: "YYYY-MM-DD"
+            required: false
+            hint: "Só é usada quando \"O que mostrar\" (acima) está em \"Data e hora exatas\". Se ficar em branco nesse modo, o site mostra o aviso genérico em vez de uma data quebrada."
+          # Hora opcional, mesmo campo de texto a prova de falhas do cupom
+          # (widget: date/time teria o mesmo risco do item 3 acima). O "^$|"
+          # no inicio do pattern deixa salvar em branco — sem ele, o painel
+          # recusa o campo vazio mesmo sendo opcional (ver
+          # docs/BUGS-E-CORRECOES.md, item 8).
+          - {
+              name: hora,
+              label: "Hora (opcional)",
+              widget: string,
+              required: false,
+              pattern: ["^$|^([01]?[0-9]|2[0-3]):[0-5][0-9]$", "Use o formato HH:MM, ex.: 14:30"],
+              hint: "Opcional. Ex.: 14:30. Deixe em branco para mostrar só o dia, sem horário.",
             }
 
       # --- DESATIVADO a pedido do cliente: edicao do texto do WhatsApp pela

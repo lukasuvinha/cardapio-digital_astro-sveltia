@@ -1,0 +1,52 @@
+---
+// Banner opcional no topo do cardápio avisando quando será a próxima
+// fornada. Renderizado só quando quem administra o site liga a chave geral no CMS (ver
+// src/lib/fornada-banner.ts e src/data/fornada.ts) — este componente é
+// "burro" de propósito: só recebe o texto já pronto.
+interface Props {
+  texto: string;
+}
+const { texto } = Astro.props;
+---
+
+<div class="dn-fornada" role="status">
+  <svg
+    class="dn-fornada__icon"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.6"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="12" r="9"></circle>
+    <path d="M12 7v5l3.3 2"></path>
+  </svg>
+  <span class="dn-fornada__texto">{texto}</span>
+</div>
+
+<style>
+  .dn-fornada {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--card-alt);
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+  }
+  .dn-fornada__icon {
+    flex: none;
+    color: var(--gold-text);
+  }
+  .dn-fornada__texto {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.4;
+  }
+</style>

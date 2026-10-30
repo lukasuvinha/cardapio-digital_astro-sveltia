@@ -1,11 +1,13 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
+import FornadaBanner from '../components/FornadaBanner.astro';
 import CategoryNav from '../components/CategoryNav.astro';
 import ProductGrid from '../components/ProductGrid.astro';
 import Footer from '../components/Footer.astro';
 import CartDrawer from '../components/CartDrawer.astro';
 import { getProdutos, categoriasDe } from '../data/menu';
+import { getFornadaBanner } from '../data/fornada';
 import { slugify } from '../lib/slug';
 
 // Cardapio direto ao ponto: uma unica grade com TODOS os produtos.
@@ -13,10 +15,15 @@ import { slugify } from '../lib/slug';
 // A barra de categorias funciona como filtro (client-side) — ver script abaixo.
 const produtos = await getProdutos();
 const navItems = categoriasDe(produtos).map((c) => ({ label: c, slug: slugify(c) }));
+
+// Banner "Proxima fornada": o dono do site liga/desliga e configura pelo CMS (ver
+// src/data/fornada.ts). So renderiza quando ela ligou a chave geral.
+const fornada = await getFornadaBanner();
 ---
 
 <BaseLayout>
   <Header />
+  {fornada.visivel && <FornadaBanner texto={fornada.texto} />}
   <CategoryNav items={navItems} />
 
   <main class="dn-main">

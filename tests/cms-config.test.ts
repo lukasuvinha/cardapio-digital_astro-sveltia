@@ -85,6 +85,21 @@ describe('public/admin/config.yml — parse e estrutura', () => {
     expect(hora.required).toBe(false);
   });
 
+  it('pattern da hora aceita string vazia (bug do Decap/Sveltia: campo opcional vazio nao pode ser recusado pelo pattern)', () => {
+    // Incidente real em producao: com required:false mas sem "^$|" no pattern,
+    // o painel recusava salvar o cupom com "Use o formato HH:MM..." mesmo com
+    // o campo vazio. Ver docs/BUGS-E-CORRECOES.md, item 8.
+    const hora = fieldsOf(bySame(config.collections, 'cupons')).find((f) => f.name === 'hora');
+    const [regexStr] = hora.pattern as [string, string];
+    const re = new RegExp(regexStr);
+    expect(re.test('')).toBe(true);
+    // continua validando o formato quando preenchido
+    expect(re.test('14:30')).toBe(true);
+    expect(re.test('23:59')).toBe(true);
+    expect(re.test('14h30')).toBe(false);
+    expect(re.test('24:00')).toBe(false);
+  });
+
   it('collection "configuracoes" tem o arquivo "entrega", mas "whatsapp" continua DESATIVADO', () => {
     // O arquivo "whatsapp" (edicao do texto do WhatsApp pela Nina) foi
     // desativado a pedido do cliente — o texto so muda no codigo
@@ -117,6 +132,57 @@ describe('public/admin/config.yml — parse e estrutura', () => {
     const taxaCombinar = fields.find((f) => f.name === 'taxa_a_combinar');
     expect(taxaCombinar?.widget).toBe('boolean');
     expect(taxaCombinar?.default).toBe(false);
+  });
+
+  it('o "accept" da foto e uma STRING separada por virgulas, nao uma lista', () => {
+    // Incidente real em producao: com accept como LISTA, o painel parou de
+    // abrir com "coleção Produto, campo foto: The `accept` option must be a
+    // string". O Sveltia espera o mesmo formato do atributo accept do
+    // <input type="file"> do HTML. Ver docs/BUGS-E-CORRECOES.md, item 9.
+    const foto = fieldsOf(bySame(config.collections, 'produtos')).find((f) => f.name === 'foto');
+    expect(foto).toBeTruthy();
+    expect(typeof foto.accept).toBe('string');
+    expect(Array.isArray(foto.accept)).toBe(false);
+    // continua restringindo os mesmos formatos de antes (bloqueia HEIC etc.)
+    expect(foto.accept).toContain('image/jpeg');
+    expect(foto.accept).toContain('image/png');
+    expect(foto.accept).toContain('image/webp');
+  });
+
+  it('collection "configuracoes" tambem tem o arquivo "fornada"', () => {
+    const cfg = bySame(config.collections, 'configuracoes');
+    const nomes = (cfg.files ?? []).map((f: any) => f.name);
+    expect(nomes).toContain('fornada');
+  });
+
+  it('arquivo "fornada" tem banner_habilitado, modo (select) e hora com pattern seguro', () => {
+    const cfg = bySame(config.collections, 'configuracoes');
+    const fornadaFile = (cfg.files ?? []).find((f: any) => f.name === 'fornada');
+    const fields = (fornadaFile?.fields ?? []) as any[];
+
+    const habilitado = fields.find((f) => f.name === 'banner_habilitado');
+    expect(habilitado?.widget).toBe('boolean');
+    expect(habilitado?.default).toBe(false);
+
+    const modo = fields.find((f) => f.name === 'modo');
+    expect(modo?.widget).toBe('select');
+    const modoValues = (modo?.options ?? []).map((o: any) => (typeof o === 'string' ? o : o.value));
+    expect(modoValues).toContain('data');
+    expect(modoValues).toContain('em_breve');
+
+    // data: mesma forma segura do cupom (datetime + type:date, nao "date" depreciado)
+    const data = fields.find((f) => f.name === 'data');
+    expect(data?.widget).toBe('datetime');
+    expect(data?.type).toBe('date');
+    expect(data?.required).toBe(false);
+
+    // hora: mesmo campo de texto a prova de falhas do cupom, com o pattern
+    // aceitando string vazia (mesmo bug do item 8 do BUGS-E-CORRECOES)
+    const hora = fields.find((f) => f.name === 'hora');
+    expect(hora?.widget).toBe('string');
+    expect(hora?.required).toBe(false);
+    const [regexStr] = hora.pattern as [string, string];
+    expect(new RegExp(regexStr).test('')).toBe(true);
   });
 
   it('o arquivo de configuracao do WhatsApp (nao usado no CMS) continua existindo', () => {
