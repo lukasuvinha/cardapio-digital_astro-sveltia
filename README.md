@@ -14,7 +14,7 @@ A Nina gerencia produtos, categorias e cupons sozinha por um painel visual
 - **[Astro](https://astro.build)** com saída estática (`output: 'static'`, sem adapter — não há SSR).
 - **Cloudflare Worker com static assets** (não Cloudflare Pages), configurado em `wrangler.jsonc`.
 - **[Sveltia CMS](https://github.com/sveltia/sveltia-cms)** (compatível com Decap/Netlify CMS) para a Nina editar o conteúdo.
-- **[Vitest](https://vitest.dev)** para os testes (123 no total — ver [docs/TESTES.md](docs/TESTES.md)).
+- **[Vitest](https://vitest.dev)** para os testes (139 no total — ver [docs/TESTES.md](docs/TESTES.md)).
 
 ## Scripts
 
@@ -45,6 +45,10 @@ npm test          # roda a suíte de testes (Vitest)
   Entrega) — ou marca **"Taxa a combinar"** quando ainda não sabe o valor do
   frete. As duas opções nunca ficam desligadas ao mesmo tempo — ver
   [docs/CUPONS-E-PEDIDOS.md](docs/CUPONS-E-PEDIDOS.md#entrega-e-retirada).
+- **Banner "Próxima fornada"** (opcional) no topo do cardápio: liga/desliga
+  pelo CMS, escolhe entre uma **data e hora exatas** ou um aviso genérico
+  **"Em preparação"** para quando ainda não há data definida — ver
+  [docs/CUPONS-E-PEDIDOS.md](docs/CUPONS-E-PEDIDOS.md#próxima-fornada).
 - **Número de pedido aleatório** (ex.: `DN4821`) — existe uma versão sequencial
   no código (desativada de propósito; ver [docs/CUPONS-E-PEDIDOS.md](docs/CUPONS-E-PEDIDOS.md)).
 - **Pedido via WhatsApp**: abre o WhatsApp da Nina com itens, subtotal, desconto,
@@ -74,7 +78,8 @@ src/
     desenvolvedor.astro  # página "Desenvolvedor" (link discreto em /contato)
     admin/index.astro    # painel do CMS (carrega o Sveltia)
   components/            # Header, Footer, ThemeToggle, ProductCard, ProductGrid,
-                         # ProductImage, CategoryNav, CartDrawer, ContactButton
+                         # ProductImage, CategoryNav, CartDrawer, ContactButton,
+                         # FornadaBanner
   config/
     site.ts              # WHATSAPP_NUMBER, INSTAGRAM_URL, dados do dev, nome do site
   layouts/
@@ -84,11 +89,13 @@ src/
     produto-schema.ts    # schema Zod dos produtos (testável)
     cupom-schema.ts      # schema Zod dos cupons (testável)
     configuracoes-schema.ts # schema Zod da config de entrega/retirada (testável)
+    fornada-schema.ts    # schema Zod do banner "Próxima fornada" (testável)
     produtos/*.md        # 1 arquivo por produto (editado pela Nina)
     categorias/*.md      # categorias (editadas pela Nina)
     cupons/*.md          # cupons de desconto (editados pela Nina)
     configuracoes/
       entrega.json        # entrega/retirada + taxa (editado pela Nina no CMS)
+      fornada.json         # banner "Próxima fornada" (editado no CMS)
       whatsapp.json        # NÃO usado atualmente (edição pelo CMS desativada;
                            # ver docs/CUPONS-E-PEDIDOS.md)
   data/
@@ -96,6 +103,7 @@ src/
     menu-helpers.ts      # helpers puros e testáveis (agrupar/filtrar/ordenar)
     cupons.ts            # leitura dos cupons (build time)
     checkout-config.ts   # leitura da config de entrega/retirada (build time)
+    fornada.ts            # leitura do banner "Próxima fornada" (build time)
     products.json        # fonte de dados ANTIGA (pré-CMS), mantida para referência
   lib/
     cart-core.ts         # lógica pura do carrinho
@@ -103,6 +111,7 @@ src/
     coupon.ts            # lógica pura dos cupons (validação/desconto)
     coupon-usage.ts      # uso único de cupom por navegador (localStorage)
     checkout-config.ts   # regras puras de entrega/retirada (nunca as duas desligadas)
+    fornada-banner.ts    # regras puras do banner (texto/visibilidade, formata a data)
     order-number.ts      # numeração sequencial — NÃO usada atualmente (ver
                          # docs/CUPONS-E-PEDIDOS.md)
     whatsapp.ts          # montagem da mensagem e do link do WhatsApp
@@ -133,6 +142,9 @@ conta do GitHub autorizada e pode:
   uma **hora de expiração opcional** (`HH:MM`).
 - **Configurações → Entrega e Retirada** — liga/desliga cada opção do checkout e
   define a taxa de entrega (ver [docs/CUPONS-E-PEDIDOS.md](docs/CUPONS-E-PEDIDOS.md#entrega-e-retirada)).
+- **Configurações → Próxima Fornada** — liga/desliga o banner do topo do
+  cardápio e escolhe entre data/hora exatas ou o aviso genérico "em
+  preparação" (ver [docs/CUPONS-E-PEDIDOS.md](docs/CUPONS-E-PEDIDOS.md#próxima-fornada)).
 
 A configuração do painel está em [`public/admin/config.yml`](public/admin/config.yml)
 e corresponde 1:1 aos schemas das Content Collections em `src/content/`.

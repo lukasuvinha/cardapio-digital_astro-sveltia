@@ -1,10 +1,11 @@
-# Cupons, entrega/retirada, número de pedido e texto do WhatsApp
+# Cupons, entrega/retirada, próxima fornada, número de pedido e texto do WhatsApp
 
 Cupons e número de pedido são duas funcionalidades que dependem do
 **navegador do cliente** (o site é 100% estático, sem servidor/banco); entrega
-e retirada é sobre o que aparece pro cliente escolher no checkout; o texto do
-WhatsApp é sobre como customizar a mensagem do pedido. Aqui ficam as regras e
-os limites de cada um.
+e retirada é sobre o que aparece pro cliente escolher no checkout; próxima
+fornada é sobre o banner de aviso no topo do cardápio; o texto do WhatsApp é
+sobre como customizar a mensagem do pedido. Aqui ficam as regras e os limites
+de cada um.
 
 ## Cupons de desconto
 
@@ -83,13 +84,58 @@ outra ação. Essa regra fica em `src/lib/checkout-config.ts`
 
 | O quê | Arquivo |
 |---|---|
-| Valores configurados pela Nina (CMS) | `src/content/configuracoes/entrega.json` |
+| Valores configurados no painel (CMS) | `src/content/configuracoes/entrega.json` |
 | Campos do painel (liga/desliga + taxa) | `public/admin/config.yml`, collection "configuracoes" → arquivo "entrega" |
 | Schema (validação dos valores) | `src/content/configuracoes-schema.ts` |
 | Regra "nunca as duas desligadas" | `src/lib/checkout-config.ts` |
 | Leitura em build time | `src/data/checkout-config.ts` |
 | Seletor no carrinho + soma da taxa ao total | `src/components/CartDrawer.astro` |
 | Linha da taxa na mensagem do WhatsApp | `src/lib/whatsapp.ts` |
+
+## Próxima fornada
+
+Banner opcional no topo do cardápio (logo abaixo do cabeçalho) avisando
+quando será a próxima fornada. Quem administra o site controla tudo pelo painel do Sveltia
+(**`/admin`** → **Configurações** → **Próxima Fornada**), sem mexer em
+código:
+
+- **Mostrar banner no site** (liga/desliga): a **chave geral**. Desligada, o
+  banner some do site inteiro — não importa o que estiver preenchido nos
+  outros campos. É a forma de "deixar o site como é, sem o aviso" (ex.:
+  durante uma pausa maior, ou pra não confundir o cliente num momento
+  específico).
+- **O que mostrar**: escolha entre
+  - **Data e hora exatas** — usa os campos "Data da próxima fornada" e
+    "Hora (opcional)" abaixo. Sem hora preenchida, o banner mostra só o dia
+    (ex.: "Próxima fornada: Sábado, 1 de Agosto"); com hora, mostra também o
+    horário (ex.: "...às 14h30").
+  - **Aviso genérico ("Em preparação")** — para quando ainda não há uma data
+    definida. Mostra **"Próxima fornada: Em preparação"**, sem prometer uma
+    data específica.
+- **Data da próxima fornada** / **Hora (opcional)**: só valem quando "O que
+  mostrar" está em "Data e hora exatas". Se esse modo estiver selecionado mas
+  a data ficar em branco, o site **cai automaticamente no aviso genérico**
+  em vez de mostrar um banner quebrado — não precisa se preocupar em
+  "esquecer" de preencher a data depois de trocar o modo.
+
+> O texto do aviso genérico ("Em preparação") é fixo no código, não editável
+> pelo painel — mesmo raciocínio do texto da mensagem do WhatsApp: um texto
+> fixo garante que a frase sempre soe profissional e consistente, sem risco
+> de alguém digitar algo por engano num campo livre. Se um dia quiser trocar
+> a frase, é só editar a constante `TEXTO_EM_PREPARACAO` em
+> `src/lib/fornada-banner.ts`.
+
+### Onde fica cada coisa
+
+| O quê | Arquivo |
+|---|---|
+| Valores configurados no painel (CMS) | `src/content/configuracoes/fornada.json` |
+| Campos do painel (chave geral + modo + data + hora) | `public/admin/config.yml`, collection "configuracoes" → arquivo "fornada" |
+| Schema (validação dos valores) | `src/content/fornada-schema.ts` |
+| Lógica de qual texto mostrar (e o fallback "sem data → aviso genérico") | `src/lib/fornada-banner.ts` |
+| Leitura em build time | `src/data/fornada.ts` |
+| Componente do banner | `src/components/FornadaBanner.astro` |
+| Onde o banner aparece no site | `src/pages/index.astro` (logo após o `<Header />`) |
 
 ## Número do pedido (ex.: DN4821)
 

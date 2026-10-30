@@ -1,6 +1,6 @@
 # Testes — Doçuras da Nina
 
-`npm test` roda a suíte completa (Vitest). **123 testes, 15 arquivos — todos
+`npm test` roda a suíte completa (Vitest). **139 testes, 17 arquivos — todos
 passando.**
 
 ## O que é coberto
@@ -17,11 +17,13 @@ passando.**
 | `product-card.test.ts` | 4 | Render (Container API): `<img>` com foto, placeholder sem foto, formato incompatível cai no placeholder, contagem de cards. |
 | `ui-fase-final.test.ts` | 5 | Estado vazio do cardápio, link do cabeçalho para a home, meta tags de compartilhamento. |
 | `logo-oficial.test.ts` | 3 | Selos de confirmação e 404 usam o logo oficial (imagem), não o monograma antigo. |
-| `cms-config.test.ts` | 11 | **Guarda do `config.yml`**: parse do YAML, collections presentes, sem widget `date` depreciado, `validade` = datetime+`type: date`, `hora` = string opcional, opções do cupom, categoria = relation, campo `escondido` do produto, arquivo **"entrega"** (entrega/retirada/taxa/**taxa a combinar**) presente, e que o arquivo **"whatsapp" (edição do texto do WhatsApp) permanece desativado**. |
+| `cms-config.test.ts` | 15 | **Guarda do `config.yml`**: parse do YAML, collections presentes, sem widget `date` depreciado, `validade` = datetime+`type: date`, `hora` = string opcional **cujo pattern aceita string vazia** (bug do Decap/Sveltia com campo opcional + pattern), opções do cupom, categoria = relation, campo `escondido` do produto, **`accept` da foto como string** (não lista), arquivo **"entrega"** (entrega/retirada/taxa/**taxa a combinar**) presente, arquivo **"fornada"** (chave geral, modo, data e hora com pattern seguro), e que o arquivo **"whatsapp" (edição do texto do WhatsApp) permanece desativado**. |
 | `produtos-structure.test.ts` | 3 | **Guarda de conteúdo**: fotos são URLs públicas válidas, entradas planas, fotos referenciadas existem. |
 | `paginas-institucionais.test.ts` | 8 | Render (Container API) das páginas `/sobre`, `/contato`, `/desenvolvedor` e do rodapé: links do rodapé, `ContactButton` (href/rótulo/nova aba), texto do Sobre, botões de Contato usando as constantes de `site.ts` (não hardcoded), link discreto para `/desenvolvedor`, card do desenvolvedor com nome/GitHub/LinkedIn configurados. |
 | `checkout-config.test.ts` | 8 | Regras puras de `normalizeCheckoutConfig`: valores padrão, cada opção desligada isoladamente, **as duas desligadas ao mesmo tempo reativam a Retirada**, a taxa de entrega é repassada (ou `0` por padrão), e a flag "a combinar" é repassada (ou `false` por padrão). |
 | `cart-drawer.test.ts` | 1 | Render (Container API) do `CartDrawer` com a config padrão (ambas habilitadas): confere que o seletor Retirada/Entrega chega até o HTML — guarda de fiação entre `checkout-config.ts` e o template. |
+| `fornada-banner.test.ts` | 10 | Regras puras de `resolveFornadaBanner`/`formatFornadaData`: banner desligado (chave geral) fica invisível mesmo com data preenchida, modo "em_breve" mostra o aviso genérico, modo "data" formata dia/hora em português, e **modo "data" sem data preenchida cai no aviso genérico** (nunca mostra banner quebrado). |
+| `fornada-render.test.ts` | 2 | Render (Container API): `FornadaBanner` mostra o texto recebido; a home (`index.astro`), com a config padrão (banner desligado), não renderiza o banner — guarda de fiação entre `fornada.ts` e o template. |
 
 Os arquivos em **negrito** são guardas de regressão criadas a partir de
 incidentes reais de produção (ver [BUGS-E-CORRECOES.md](BUGS-E-CORRECOES.md)).
@@ -37,6 +39,15 @@ incidentes reais de produção (ver [BUGS-E-CORRECOES.md](BUGS-E-CORRECOES.md)).
   catálogo encolher abaixo disso, revisar o limite.
 - Os testes de render (`product-card`, `ui-fase-final`) comparam **trechos de
   HTML/classes**. Renomear uma classe ou atributo pode exigir ajuste no teste.
+- **Cache do Astro (`.astro/`) desatualizado**: se você rodar `astro dev`/`astro build`
+  várias vezes trocando à mão o conteúdo de um arquivo de Content Collection
+  (ex.: testando manualmente `src/content/configuracoes/*.json`) e depois um
+  teste que lê essa collection (`cart-drawer.test.ts`, `fornada-render.test.ts`)
+  falhar com um valor "antigo" mesmo o arquivo já estando correto, apague a
+  pasta `.astro/` (`rm -rf .astro`, está no `.gitignore`) antes de rodar
+  `npm test` de novo — o content layer do Astro pode cachear uma sincronização
+  anterior. Isso não afeta o CI/deploy normal (checkout novo nunca tem `.astro/`
+  antigo).
 
 ## Cobertura que ainda falta
 

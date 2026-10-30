@@ -9,6 +9,7 @@ import { glob } from 'astro/loaders';
 import { produtoBaseSchema } from './produto-schema';
 import { cupomBaseSchema } from './cupom-schema';
 import { entregaConfigBaseSchema } from './configuracoes-schema';
+import { fornadaConfigBaseSchema } from './fornada-schema';
 import { z } from 'astro/zod';
 
 const produtos = defineCollection({
@@ -42,4 +43,14 @@ const configuracoes = defineCollection({
   schema: entregaConfigBaseSchema,
 });
 
-export const collections = { produtos, cupons, categorias, configuracoes };
+// Banner "Proxima fornada" (mesma pasta de configuracoes, arquivo singular
+// proprio). Collection separada da "configuracoes" acima porque cada
+// collection do Astro so aceita UM schema — mais simples do que unir os dois
+// formatos num schema so. No painel do CMS, porem, os dois arquivos aparecem
+// juntos, dentro da mesma secao "Configuracoes" (ver config.yml).
+const fornada = defineCollection({
+  loader: glob({ pattern: 'fornada.json', base: './src/content/configuracoes' }),
+  schema: fornadaConfigBaseSchema,
+});
+
+export const collections = { produtos, cupons, categorias, configuracoes, fornada };
