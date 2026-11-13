@@ -141,6 +141,3 @@ e a conta usada no painel só tem acesso ao repositório da própria loja.
 ## Autor
 
 Desenvolvido por **Lukas** · [GitHub](https://github.com/lukasuvinha)
-
-Quer um cardápio como este para o seu negócio, com a sua marca e os seus
-produtos? Entre em contato.
