@@ -6,6 +6,7 @@ import {
   type Order,
 } from '../src/lib/whatsapp';
 import type { CartLine } from '../src/lib/cart-core';
+import { ORDER_PREFIX, WHATSAPP_ORDER_TITLE } from '../src/config/site';
 
 const lines: CartLine[] = [
   { id: 'p1', nome: 'Brownie Trufado', preco: 14, qty: 2, foto: '/img/products/p1.svg', lineTotal: 28 },
@@ -13,7 +14,7 @@ const lines: CartLine[] = [
 ];
 
 const baseOrder: Order = {
-  pedido: 'DN1234',
+  pedido: `${ORDER_PREFIX}1234`,
   nome: 'Maria Silva',
   telefone: '(11) 91234-5678',
   fulfillment: 'retirada',
@@ -37,7 +38,7 @@ describe('buildOrderMessage', () => {
     expect(msg).toContain('Nome: Maria Silva');
     expect(msg).toContain('Telefone: (11) 91234-5678');
     expect(msg).toContain('*Pagamento:* Pix');
-    expect(msg).toContain('Pedido: DN1234');
+    expect(msg).toContain(`Pedido: ${ORDER_PREFIX}1234`);
   });
 
   it('na retirada nao mostra endereco', () => {
@@ -151,9 +152,9 @@ describe('buildOrderMessage', () => {
     expect(msg).not.toContain('R$ 6,00');
   });
 
-  it('usa o titulo fixo do codigo (edicao pelo CMS foi desativada)', () => {
+  it('usa o titulo configurado em site.ts (edicao pelo CMS foi desativada)', () => {
     const msg = buildOrderMessage(baseOrder);
-    expect(msg).toContain('*Novo pedido — Doçuras da Nina*');
+    expect(msg.split('\n')[0]).toBe(`*${WHATSAPP_ORDER_TITLE}*`);
   });
 
   it('sem mensagem final configurada, a mensagem termina no pagamento', () => {
@@ -170,9 +171,9 @@ describe('buildWhatsappUrl', () => {
 });
 
 describe('generateOrderId', () => {
-  it('gera no formato DN + 4 digitos', () => {
-    expect(generateOrderId(() => 0)).toBe('DN1000');
-    expect(generateOrderId(() => 0.9999)).toBe('DN9999');
-    expect(generateOrderId()).toMatch(/^DN\d{4}$/);
+  it('gera no formato ORDER_PREFIX + 4 digitos', () => {
+    expect(generateOrderId(() => 0)).toBe(`${ORDER_PREFIX}1000`);
+    expect(generateOrderId(() => 0.9999)).toBe(`${ORDER_PREFIX}9999`);
+    expect(generateOrderId()).toMatch(new RegExp(`^${ORDER_PREFIX}\\d{4}$`));
   });
 });

@@ -6,7 +6,7 @@
 // ou limpar o navegador. Para um controle de uso realmente unico seria preciso
 // um backend (fora do escopo atual). Ver docs/CUPONS-E-PEDIDOS.md.
 
-const KEY = 'dn-cupons-usados';
+const KEY = 'cd-cupons-usados';
 
 const norm = (s: string) => (s || '').trim().toUpperCase();
 

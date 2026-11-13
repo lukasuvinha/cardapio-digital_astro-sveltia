@@ -1,7 +1,7 @@
 // Camada de dados do cardapio (fonte unica da verdade).
 //
 // A partir da fase do CMS, os produtos vem da Content Collection "produtos"
-// (arquivos .md em src/content/produtos/, editaveis pela Nina via Sveltia CMS).
+// (arquivos .md em src/content/produtos/, editaveis pelo dono da loja via Sveltia CMS).
 // Ver src/content/config.ts. Os helpers puros (agrupar, filtrar, etc.) ficam
 // em ./menu-helpers.ts (testaveis) e sao reexportados aqui.
 //

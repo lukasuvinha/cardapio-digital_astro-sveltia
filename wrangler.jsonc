@@ -10,7 +10,7 @@
   //   - Deploy command (no painel):  npx wrangler deploy
   //   - Output/assets:               ./dist  (abaixo em assets.directory)
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "cardapio-docuras-da-nina",
+  "name": "cardapio-digital",
   "compatibility_date": "2025-07-01",
   "assets": {
     "directory": "./dist",

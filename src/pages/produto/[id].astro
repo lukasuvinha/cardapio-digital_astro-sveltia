@@ -6,6 +6,7 @@ import CartDrawer from '../../components/CartDrawer.astro';
 import ProductImage from '../../components/ProductImage.astro';
 import { getProdutos, productHasPhoto } from '../../data/menu';
 import { formatPrice } from '../../lib/format';
+import { SITE_NAME } from '../../config/site';
 
 // Gera uma pagina estatica para cada produto (site 100% estatico).
 // Le da Content Collection "produtos".
@@ -24,21 +25,21 @@ const temFoto = productHasPhoto(product);
 ---
 
 <BaseLayout
-  title={`${product.nome} · Doçuras da Nina`}
+  title={`${product.nome} · ${SITE_NAME}`}
   description={product.descricao ?? product.nome}
 >
   <Header />
 
-  <main class="dn-detail">
-    <a class="dn-detail__back" href="/">‹ Voltar ao cardápio</a>
+  <main class="cd-detail">
+    <a class="cd-detail__back" href="/">‹ Voltar ao cardápio</a>
 
-    <div class="dn-detail__grid">
-      <div class="dn-detail__media">
+    <div class="cd-detail__grid">
+      <div class="cd-detail__media">
         <ProductImage foto={product.foto} alt={`Foto de ${product.nome}`} loading="eager">
-          {!product.disponivel && <span class="dn-detail__soldout">Esgotado</span>}
+          {!product.disponivel && <span class="cd-detail__soldout">Esgotado</span>}
           {
             temFoto && (
-              <button class="dn-detail__zoom" type="button" data-zoom aria-label="Ampliar foto">
+              <button class="cd-detail__zoom" type="button" data-zoom aria-label="Ampliar foto">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <circle cx="11" cy="11" r="7" />
                   <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -51,26 +52,26 @@ const temFoto = productHasPhoto(product);
         </ProductImage>
       </div>
 
-      <div class="dn-detail__info">
-        <span class="dn-detail__cat">{product.categoria}</span>
-        <h1 class="dn-detail__name">{product.nome}</h1>
-        {product.descricao && <p class="dn-detail__desc">{product.descricao}</p>}
+      <div class="cd-detail__info">
+        <span class="cd-detail__cat">{product.categoria}</span>
+        <h1 class="cd-detail__name">{product.nome}</h1>
+        {product.descricao && <p class="cd-detail__desc">{product.descricao}</p>}
 
-        <div class="dn-detail__rule"></div>
+        <div class="cd-detail__rule"></div>
 
-        <div class="dn-detail__priceLabel">Valor unitário</div>
-        <div class="dn-detail__price">{formatPrice(product.preco)}</div>
+        <div class="cd-detail__priceLabel">Valor unitário</div>
+        <div class="cd-detail__price">{formatPrice(product.preco)}</div>
 
         {
           product.disponivel ? (
-            <div class="dn-detail__actions">
-              <div class="dn-qty" data-qty>
+            <div class="cd-detail__actions">
+              <div class="cd-qty" data-qty>
                 <button type="button" data-qty-dec aria-label="Diminuir quantidade">−</button>
                 <span data-qty-value>1</span>
                 <button type="button" data-qty-inc aria-label="Aumentar quantidade">+</button>
               </div>
               <button
-                class="dn-detail__add"
+                class="cd-detail__add"
                 type="button"
                 data-add-detail={product.id}
                 data-preco={product.preco}
@@ -80,7 +81,7 @@ const temFoto = productHasPhoto(product);
               </button>
             </div>
           ) : (
-            <div class="dn-detail__off">Este produto está esgotado no momento.</div>
+            <div class="cd-detail__off">Este produto está esgotado no momento.</div>
           )
         }
       </div>
@@ -89,9 +90,9 @@ const temFoto = productHasPhoto(product);
 
   {
     temFoto && (
-      <div class="dn-lightbox" data-lightbox hidden role="dialog" aria-modal="true" aria-label={`Foto de ${product.nome}`}>
-        <button class="dn-lightbox__close" type="button" data-lightbox-close aria-label="Fechar imagem">✕</button>
-        <img class="dn-lightbox__img" src={product.foto} alt={`Foto de ${product.nome}`} />
+      <div class="cd-lightbox" data-lightbox hidden role="dialog" aria-modal="true" aria-label={`Foto de ${product.nome}`}>
+        <button class="cd-lightbox__close" type="button" data-lightbox-close aria-label="Fechar imagem">✕</button>
+        <img class="cd-lightbox__img" src={product.foto} alt={`Foto de ${product.nome}`} />
       </div>
     )
   }
@@ -104,6 +105,7 @@ const temFoto = productHasPhoto(product);
 <script>
   import { cartStore } from '../../lib/cart-store';
   import { formatPrice } from '../../lib/format';
+import { SITE_NAME } from '../../config/site';
 
   const qtyWrap = document.querySelector<HTMLElement>('[data-qty]');
   const addBtn = document.querySelector<HTMLElement>('[data-add-detail]');
@@ -165,13 +167,13 @@ const temFoto = productHasPhoto(product);
 </script>
 
 <style>
-  .dn-detail {
+  .cd-detail {
     max-width: 960px;
     margin: 0 auto;
     padding: clamp(16px, 4vw, 32px) clamp(16px, 4vw, 48px) 80px;
   }
 
-  .dn-detail__back {
+  .cd-detail__back {
     display: inline-block;
     margin-bottom: 18px;
     font-size: 12.5px;
@@ -180,13 +182,13 @@ const temFoto = productHasPhoto(product);
     color: var(--muted);
   }
   @media (hover: hover) {
-    .dn-detail__back:hover {
+    .cd-detail__back:hover {
       color: var(--ink);
     }
   }
 
   /* Mobile-first: media em cima, info embaixo */
-  .dn-detail__grid {
+  .cd-detail__grid {
     display: flex;
     flex-direction: column;
     gap: 22px;
@@ -194,29 +196,29 @@ const temFoto = productHasPhoto(product);
 
   /* A imagem 4:3 e o placeholder vivem no componente ProductImage.
      Aqui so a borda, o arredondamento e o recorte. */
-  .dn-detail__media {
+  .cd-detail__media {
     position: relative;
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: var(--radius-xl);
     overflow: hidden;
   }
-  .dn-detail__soldout {
+  .cd-detail__soldout {
     position: absolute;
     top: 12px;
     right: 12px;
     padding: 5px 10px;
     background: var(--rust);
-    color: #f7efe1;
+    color: var(--on-accent);
     font-size: 10px;
     letter-spacing: 0.8px;
     text-transform: uppercase;
-    border-radius: 2px;
+    border-radius: var(--radius-xs);
     z-index: 2;
   }
 
   /* botao que cobre a foto toda: um toque/clique em qualquer ponto amplia.
      Fica transparente, com so um icone de lupa no canto como afordancia. */
-  .dn-detail__zoom {
+  .cd-detail__zoom {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -230,21 +232,21 @@ const temFoto = productHasPhoto(product);
     cursor: zoom-in;
     color: var(--cream);
   }
-  .dn-detail__zoom svg {
-    background: rgba(31, 77, 58, 0.72);
+  .cd-detail__zoom svg {
+    background: var(--brand-translucent);
     border: 1px solid var(--gold);
-    border-radius: 50%;
+    border-radius: var(--radius-round);
     padding: 7px;
     width: 32px;
     height: 32px;
   }
-  .dn-detail__zoom:focus-visible {
+  .cd-detail__zoom:focus-visible {
     outline: 2px solid var(--gold);
     outline-offset: -4px;
   }
 
   /* Lightbox: sobreposicao em tela cheia com a foto ampliada. */
-  .dn-lightbox {
+  .cd-lightbox {
     position: fixed;
     inset: 0;
     z-index: 60;
@@ -252,50 +254,50 @@ const temFoto = productHasPhoto(product);
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background: rgba(15, 22, 16, 0.9);
+    background: var(--overlay-strong);
   }
-  .dn-lightbox[hidden] {
+  .cd-lightbox[hidden] {
     display: none;
   }
-  .dn-lightbox__img {
+  .cd-lightbox__img {
     max-width: min(92vw, 900px);
     max-height: 88vh;
     width: auto;
     height: auto;
     object-fit: contain;
-    border-radius: 8px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-lightbox);
   }
-  .dn-lightbox__close {
+  .cd-lightbox__close {
     position: absolute;
     top: 16px;
     right: 18px;
     width: 44px;
     height: 44px;
-    border-radius: 50%;
+    border-radius: var(--radius-round);
     border: 1px solid var(--gold);
-    background: rgba(15, 22, 16, 0.6);
+    background: var(--overlay-soft);
     color: var(--cream);
     font-size: 20px;
     line-height: 1;
     cursor: pointer;
   }
-  .dn-lightbox__close:focus-visible {
+  .cd-lightbox__close:focus-visible {
     outline: 2px solid var(--gold);
     outline-offset: 2px;
   }
 
-  .dn-detail__info {
+  .cd-detail__info {
     display: flex;
     flex-direction: column;
   }
-  .dn-detail__cat {
+  .cd-detail__cat {
     font-size: 10.5px;
     letter-spacing: 1.8px;
     text-transform: uppercase;
     color: var(--muted);
   }
-  .dn-detail__name {
+  .cd-detail__name {
     margin: 8px 0 0;
     font-family: var(--font-head);
     font-weight: 400;
@@ -303,48 +305,48 @@ const temFoto = productHasPhoto(product);
     line-height: 1.2;
     color: var(--ink);
   }
-  .dn-detail__desc {
+  .cd-detail__desc {
     margin: 12px 0 0;
     font-style: italic;
     font-size: 15px;
     line-height: 1.6;
     color: var(--muted-text);
   }
-  .dn-detail__rule {
+  .cd-detail__rule {
     height: 1px;
     background: var(--border);
     margin: 22px 0;
   }
-  .dn-detail__priceLabel {
+  .cd-detail__priceLabel {
     font-size: 10.5px;
     letter-spacing: 1.5px;
     text-transform: uppercase;
     color: var(--muted-text);
   }
-  .dn-detail__price {
+  .cd-detail__price {
     margin-top: 4px;
     font-family: var(--font-head);
     font-size: 26px;
     color: var(--gold-text);
   }
 
-  .dn-detail__actions {
+  .cd-detail__actions {
     display: flex;
     align-items: center;
     gap: 12px;
     margin-top: 22px;
     flex-wrap: wrap;
   }
-  .dn-qty {
+  .cd-qty {
     display: flex;
     align-items: center;
     gap: 16px;
     border: 1px solid var(--brand-border);
-    border-radius: 22px;
+    border-radius: var(--radius-pill-lg);
     padding: 9px 16px;
     flex: none;
   }
-  .dn-qty button {
+  .cd-qty button {
     background: transparent;
     border: none;
     color: var(--ink);
@@ -356,14 +358,14 @@ const temFoto = productHasPhoto(product);
     padding: 0;
     font-family: var(--font-body);
   }
-  .dn-qty span {
+  .cd-qty span {
     font-family: var(--font-head);
     font-size: 16px;
     color: var(--ink);
     min-width: 16px;
     text-align: center;
   }
-  .dn-detail__add {
+  .cd-detail__add {
     flex: 1;
     min-width: 220px;
     display: flex;
@@ -374,22 +376,22 @@ const temFoto = productHasPhoto(product);
     background: var(--brand);
     color: var(--cream);
     border: none;
-    border-radius: 4px;
+    border-radius: var(--radius-md);
     font-size: 13px;
     letter-spacing: 1.5px;
     text-transform: uppercase;
     cursor: pointer;
   }
-  .dn-detail__add [data-line-total] {
+  .cd-detail__add [data-line-total] {
     font-family: var(--font-head);
     font-size: 15px;
     letter-spacing: 0.5px;
   }
-  .dn-detail__off {
+  .cd-detail__off {
     margin-top: 22px;
     padding: 14px 16px;
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: var(--radius-lg);
     background: var(--card-alt);
     color: var(--muted-text);
     font-size: 14px;
@@ -397,7 +399,7 @@ const temFoto = productHasPhoto(product);
 
   /* Desktop: media e info lado a lado */
   @media (min-width: 760px) {
-    .dn-detail__grid {
+    .cd-detail__grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 40px;

@@ -9,6 +9,10 @@ de cada um.
 
 ## Cupons de desconto
 
+O template vem com um **cupom de exemplo**, `BEMVINDO10` (10% de desconto,
+válido até 31/12/2099), em `src/content/cupons/bemvindo10.md`. Apague ou edite
+pelo painel antes de publicar a loja real.
+
 ### Validade: dia inteiro OU hora exata (opcional)
 
 No CMS, cada cupom tem:
@@ -29,7 +33,7 @@ A lógica está em `src/lib/coupon.ts` (`isExpired`) e o schema em
 ### Uso único por navegador
 
 Quando o cliente finaliza um pedido com um cupom aplicado, o código do cupom é
-guardado no `localStorage` (`dn-cupons-usados`). Se ele tentar usar o **mesmo
+guardado no `localStorage` (`cd-cupons-usados`). Se ele tentar usar o **mesmo
 cupom** de novo, recebe o aviso **"Você já usou este cupom."** e o pedido segue
 sem o desconto (nunca trava).
 
@@ -46,7 +50,7 @@ estático atual. O código fica em `src/lib/coupon-usage.ts`.
 ## Entrega e retirada
 
 No checkout, o cliente escolhe entre **Retirada** e **Entrega** (com uma
-**taxa de entrega** opcional somada ao total). A Nina controla os três pelo
+**taxa de entrega** opcional somada ao total). O dono da loja controla os três pelo
 painel do Sveltia (**`/admin`** → **Configurações** → **Entrega e Retirada**),
 sem mexer em código:
 
@@ -59,16 +63,16 @@ sem mexer em código:
   escolhe "Entrega". Use `0` para entrega grátis. A taxa aparece como uma
   linha separada ("Taxa de entrega: R$ X,XX") no carrinho e na mensagem do
   WhatsApp — nunca é somada quando o cliente escolhe "Retirada".
-- **Taxa a combinar** (liga/desliga): para quando a Nina ainda não sabe o
+- **Taxa a combinar** (liga/desliga): para quando o dono da loja ainda não sabe o
   valor do frete (ex.: depende da distância/bairro). Ligado, o cliente vê
   **"Taxa de entrega: A combinar"** em vez de um valor — e esse aviso **não
   soma nada ao total** nem à mensagem do WhatsApp (o valor é combinado depois,
-  direto com a Nina). O campo "Taxa de entrega (R$)" continua salvo, mas é
+  direto com a loja). O campo "Taxa de entrega (R$)" continua salvo, mas é
   **ignorado** enquanto esta opção estiver ligada.
 
 ### As duas nunca podem ficar desligadas ao mesmo tempo
 
-Se a Nina desmarcar **Entrega disponível** e **Retirada disponível** juntas
+Se o dono da loja desmarcar **Entrega disponível** e **Retirada disponível** juntas
 (o cliente ficaria sem nenhuma forma de receber o pedido), o site **reativa a
 Retirada sozinho** — automaticamente, sem quebrar o build nem precisar de
 outra ação. Essa regra fica em `src/lib/checkout-config.ts`
@@ -137,23 +141,25 @@ código:
 | Componente do banner | `src/components/FornadaBanner.astro` |
 | Onde o banner aparece no site | `src/pages/index.astro` (logo após o `<Header />`) |
 
-## Número do pedido (ex.: DN4821)
+## Número do pedido (ex.: DE4821)
 
-Cada pedido recebe um número **aleatório** no formato `DN` + 4 dígitos (ex.:
-`DN4821`), gerado por `generateOrderId()` em `src/lib/whatsapp.ts`. É só uma
-referência para a Nina e o cliente se falarem sobre aquele pedido específico
+Cada pedido recebe um número **aleatório** no formato prefixo + 4 dígitos
+(ex.: `DE4821`), gerado por `generateOrderId()` em `src/lib/whatsapp.ts`. O
+prefixo é a constante `ORDER_PREFIX` em `src/config/site.ts` (na loja de
+exemplo, `DE`, de "Doceria Exemplo"). É só uma
+referência para a loja e o cliente se falarem sobre aquele pedido específico
 **naquela conversa** do WhatsApp — a identificação real de qual pedido é qual
 continua sendo pelo **nome do cliente e os itens** na mensagem, não pelo
 número.
 
-### Por que não é sequencial (DN0001, DN0002...)
+### Por que não é sequencial (DE0001, DE0002...)
 
 Já existiu uma versão com numeração **sequencial e crescente**
-(`DN0001`, `DN0002`...), mas foi **desativada a pedido do cliente**. O motivo:
+(`DE0001`, `DE0002`...), mas foi **desativada a pedido do cliente**. O motivo:
 como o site é 100% estático (sem servidor/banco), um contador sequencial só
 pode viver no `localStorage` **de cada navegador**. Na prática isso significa
 que **todo cliente novo (ou todo aparelho diferente) começaria sempre do zero
-em `DN0001`** — não existe uma contagem única compartilhada por todos os
+em `DE0001`** — não existe uma contagem única compartilhada por todos os
 clientes da loja. Isso confundia mais do que ajudava, então o site voltou ao
 número aleatório de sempre.
 
@@ -168,7 +174,7 @@ sentido (ver "Se um dia quiser controle global" abaixo).
 
 O texto que abre no WhatsApp (título, itens, total, dados do cliente etc.) é
 montado por `buildOrderMessage()` em `src/lib/whatsapp.ts`. Já existiu uma
-versão em que a Nina podia editar o **título** e uma **mensagem final**
+versão em que o dono da loja podia editar o **título** e uma **mensagem final**
 (agradecimento) direto pelo painel do Sveltia — essa opção foi **desativada a
 pedido do cliente** (a seção "Configurações" não aparece mais no `/admin`; o
 bloco correspondente ficou comentado em `public/admin/config.yml` para
@@ -177,10 +183,17 @@ referência).
 ### Editar o texto do WhatsApp manualmente
 
 Como a edição pelo CMS está desligada, para mudar o texto é preciso editar o
-código-fonte. Duas constantes no topo de `src/lib/whatsapp.ts` controlam isso:
+código-fonte. O **título** vem de `WHATSAPP_ORDER_TITLE` em
+`src/config/site.ts` (por padrão, "Novo pedido — " + o nome da loja):
 
 ```ts
-const TITULO = 'Novo pedido — Doçuras da Nina';
+export const WHATSAPP_ORDER_TITLE = `Novo pedido — ${SITE_NAME}`;
+```
+
+A **mensagem final** é a constante `MENSAGEM_FINAL` no topo de
+`src/lib/whatsapp.ts`:
+
+```ts
 // mensagem extra no fim do pedido (ex.: um agradecimento). Deixe '' (vazio)
 // para nao incluir nenhuma linha a mais.
 const MENSAGEM_FINAL = '';
@@ -188,10 +201,11 @@ const MENSAGEM_FINAL = '';
 
 Passo a passo (pelo GitHub, sem precisar instalar nada):
 
-1. Abra o arquivo `src/lib/whatsapp.ts` no repositório do GitHub
-   (`https://github.com/lukasuvinha/Cardapio_Docuras-da-Nina/blob/main/src/lib/whatsapp.ts`).
+1. Abra o arquivo (`src/config/site.ts` para o título, `src/lib/whatsapp.ts`
+   para a mensagem final) no repositório do GitHub
+   (ex.: `https://github.com/SEU_USUARIO/SEU_REPO/blob/main/src/lib/whatsapp.ts`).
 2. Clique no ícone de **lápis** (✏️) para editar.
-3. Troque o texto dentro das aspas de `TITULO` (aparece em negrito, como
+3. Troque o texto de `WHATSAPP_ORDER_TITLE` (aparece em negrito, como
    primeira linha da mensagem) e/ou de `MENSAGEM_FINAL` (aparece no fim da
    mensagem, só se não estiver vazio — ex.: `'Obrigada pela preferência! 💛'`).
 4. Role até o final, escreva uma mensagem de commit curta (ex.: "Atualiza

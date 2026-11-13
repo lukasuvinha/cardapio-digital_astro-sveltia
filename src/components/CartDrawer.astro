@@ -2,15 +2,16 @@
 // Drawer do carrinho (reutilizavel): abre a partir do botao "Carrinho" do
 // header em qualquer pagina. Contem tres passos — carrinho, checkout e
 // confirmacao — dirigidos pelo store (src/lib/cart-store.ts). Ao confirmar,
-// abre o WhatsApp da Nina com a mensagem do pedido pronta.
+// abre o WhatsApp da loja com a mensagem do pedido pronta.
 // Mobile-first: no celular ocupa a largura toda; em telas maiores vira um
 // painel lateral. Compatibilidade clara/escura via variaveis de tema.
 import { getProdutos, productHasPhoto } from '../data/menu';
 import { getCupons } from '../data/cupons';
 import { getCheckoutConfig } from '../data/checkout-config';
+import { SITE_NAME, SITE_LOGO } from '../config/site';
 
 // Catalogo enxuto para o carrinho CLIENT-SIDE (embutido como JSON inline em
-// #dn-catalog, a partir da Content Collection). A foto e a URL publica direta
+// #cd-catalog, a partir da Content Collection). A foto e a URL publica direta
 // (ex.: /uploads/foo.webp); so entra se for um formato suportado.
 const produtos = await getProdutos();
 const catalogo = produtos.map((p) => ({
@@ -25,17 +26,17 @@ const catalogo = produtos.map((p) => ({
 const catalogoJson = JSON.stringify(catalogo).replace(/</g, '\\u003c');
 
 // Cupons de desconto (da Content Collection), embutidos como JSON inline em
-// #dn-cupons para a validacao acontecer no navegador, no carrinho.
+// #cd-cupons para a validacao acontecer no navegador, no carrinho.
 const cupons = await getCupons();
 const cuponsJson = JSON.stringify(cupons).replace(/</g, '\\u003c');
 
 // Config de Entrega/Retirada (da Content Collection "configuracoes", editada
-// pela Nina no CMS), embutida como JSON inline em #dn-checkout-config para o
+// pelo dono da loja no CMS), embutida como JSON inline em #cd-checkout-config para o
 // carrinho client-side saber quais opcoes mostrar e qual taxa somar.
 const checkoutConfig = await getCheckoutConfig();
 const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c');
 
-// ---- ANTES: texto da mensagem do WhatsApp editavel pela Nina no CMS
+// ---- ANTES: texto da mensagem do WhatsApp editavel pelo dono da loja no CMS
 //      (singleton src/content/configuracoes/whatsapp.json). Desativado a
 //      pedido do cliente — ver src/lib/whatsapp.ts (TITULO/MENSAGEM_FINAL) e
 //      docs/CUPONS-E-PEDIDOS.md ("Editar o texto do WhatsApp manualmente").
@@ -48,82 +49,82 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
 // const waConfigJson = JSON.stringify(waConfig).replace(/</g, '\\u003c');
 ---
 
-<div class="dn-drawer-root" data-open="false" aria-hidden="true">
-  <div class="dn-drawer__backdrop" data-close></div>
+<div class="cd-drawer-root" data-open="false" aria-hidden="true">
+  <div class="cd-drawer__backdrop" data-close></div>
 
   <aside
-    class="dn-drawer"
+    class="cd-drawer"
     role="dialog"
     aria-modal="true"
     aria-label="Carrinho"
     data-step="cart"
   >
     <!-- PASSO: CARRINHO -->
-    <section class="dn-step dn-step--cart">
-      <header class="dn-drawer__bar">
-        <span class="dn-drawer__title">Seu Carrinho</span>
-        <button class="dn-drawer__close" type="button" data-close aria-label="Fechar carrinho">✕</button>
+    <section class="cd-step cd-step--cart">
+      <header class="cd-drawer__bar">
+        <span class="cd-drawer__title">Seu Carrinho</span>
+        <button class="cd-drawer__close" type="button" data-close aria-label="Fechar carrinho">✕</button>
       </header>
 
-      <div class="dn-drawer__body" data-cart-list>
+      <div class="cd-drawer__body" data-cart-list>
         <!-- itens renderizados pelo script -->
       </div>
 
-      <footer class="dn-drawer__foot" data-cart-foot hidden>
+      <footer class="cd-drawer__foot" data-cart-foot hidden>
         <!-- Cupom de desconto: o cliente digita o codigo e clica em Aplicar.
              Cupom invalido/expirado NAO trava o pedido; so mostra o aviso. -->
-        <div class="dn-cupom">
+        <div class="cd-cupom">
           <input
             type="text"
-            class="dn-cupom__input"
+            class="cd-cupom__input"
             data-cupom-input
             placeholder="Cupom de desconto"
             autocomplete="off"
             aria-label="Código do cupom de desconto"
           />
-          <button class="dn-cupom__apply" type="button" data-cupom-apply>Aplicar</button>
+          <button class="cd-cupom__apply" type="button" data-cupom-apply>Aplicar</button>
         </div>
-        <div class="dn-cupom__msg" data-cupom-msg hidden></div>
+        <div class="cd-cupom__msg" data-cupom-msg hidden></div>
 
-        <div class="dn-drawer__line">
+        <div class="cd-drawer__line">
           <span>Subtotal</span>
           <span data-cart-subtotal>R$ 0,00</span>
         </div>
-        <div class="dn-drawer__line dn-drawer__line--desc" data-desconto-row hidden>
+        <div class="cd-drawer__line cd-drawer__line--desc" data-desconto-row hidden>
           <span data-desconto-label>Desconto</span>
           <span data-desconto-valor>−R$ 0,00</span>
         </div>
-        <div class="dn-drawer__line" data-taxa-row hidden>
+        <div class="cd-drawer__line" data-taxa-row hidden>
           <span>Taxa de entrega</span>
           <span data-taxa-valor>R$ 0,00</span>
         </div>
-        <div class="dn-drawer__subtotal">
+        <div class="cd-drawer__subtotal">
           <span>Total</span>
           <span data-cart-total>R$ 0,00</span>
         </div>
-        <button class="dn-btn dn-btn--brand" type="button" data-go-checkout>Finalizar Pedido</button>
+        <button class="cd-btn cd-btn--brand" type="button" data-go-checkout>Finalizar Pedido</button>
       </footer>
     </section>
 
     <!-- PASSO: CHECKOUT -->
-    <section class="dn-step dn-step--checkout">
-      <header class="dn-drawer__bar">
-        <button class="dn-drawer__back" type="button" data-back-cart aria-label="Voltar ao carrinho">‹</button>
-        <span class="dn-drawer__title">Finalizar Pedido</span>
-        <button class="dn-drawer__close" type="button" data-close aria-label="Fechar carrinho">✕</button>
+    <section class="cd-step cd-step--checkout">
+      <header class="cd-drawer__bar">
+        <button class="cd-drawer__back" type="button" data-back-cart aria-label="Voltar ao carrinho">‹</button>
+        <span class="cd-drawer__title">Finalizar Pedido</span>
+        <button class="cd-drawer__close" type="button" data-close aria-label="Fechar carrinho">✕</button>
       </header>
 
-      <div class="dn-drawer__body">
-        <form class="dn-form" data-checkout-form novalidate>
-          <label class="dn-field__label">Seus Dados</label>
-          <div class="dn-field">
+      <div class="cd-drawer__body">
+        <form class="cd-form" data-checkout-form novalidate>
+          <label class="cd-field__label">Seus Dados</label>
+          <div class="cd-field">
             <input type="text" name="nome" placeholder="Nome completo" autocomplete="name" required />
           </div>
-          <div class="dn-field">
+          <div class="cd-field">
             <input type="tel" name="telefone" placeholder="Telefone / WhatsApp" autocomplete="tel" required />
           </div>
 
-          <!-- Entrega/Retirada: a Nina liga/desliga cada opcao pelo CMS
+          <!-- Entrega/Retirada: o dono da loja liga/desliga cada opcao pelo CMS
                (collection "configuracoes", arquivo entrega.json). As duas
                nunca ficam desligadas ao mesmo tempo (ver
                src/lib/checkout-config.ts). Com as duas ligadas (padrao),
@@ -131,47 +132,47 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
                o seletor nem aparece. -->
           {checkoutConfig.entregaHabilitada && checkoutConfig.retiradaHabilitada && (
             <>
-              <label class="dn-field__label">Entrega</label>
-              <div class="dn-seg" data-seg="fulfillment">
-                <button type="button" class="dn-seg__opt is-active" data-value="retirada">Retirada</button>
-                <button type="button" class="dn-seg__opt" data-value="entrega">Entrega</button>
+              <label class="cd-field__label">Entrega</label>
+              <div class="cd-seg" data-seg="fulfillment">
+                <button type="button" class="cd-seg__opt is-active" data-value="retirada">Retirada</button>
+                <button type="button" class="cd-seg__opt" data-value="entrega">Entrega</button>
               </div>
             </>
           )}
           {checkoutConfig.entregaHabilitada && !checkoutConfig.retiradaHabilitada && (
-            <label class="dn-field__label">Endereço de Entrega</label>
+            <label class="cd-field__label">Endereço de Entrega</label>
           )}
           {checkoutConfig.entregaHabilitada && (
-            <div class="dn-field" data-address hidden={checkoutConfig.retiradaHabilitada}>
+            <div class="cd-field" data-address hidden={checkoutConfig.retiradaHabilitada}>
               <input type="text" name="endereco" placeholder="Endereço completo" autocomplete="street-address" />
             </div>
           )}
 
-          <label class="dn-field__label">Pagamento</label>
-          <div class="dn-seg" data-seg="payment">
-            <button type="button" class="dn-seg__opt is-active" data-value="pix">Pix</button>
-            <button type="button" class="dn-seg__opt" data-value="cartao">Cartão</button>
-            <button type="button" class="dn-seg__opt" data-value="dinheiro">Dinheiro</button>
+          <label class="cd-field__label">Pagamento</label>
+          <div class="cd-seg" data-seg="payment">
+            <button type="button" class="cd-seg__opt is-active" data-value="pix">Pix</button>
+            <button type="button" class="cd-seg__opt" data-value="cartao">Cartão</button>
+            <button type="button" class="cd-seg__opt" data-value="dinheiro">Dinheiro</button>
           </div>
 
-          <label class="dn-field__label">Observações (opcional)</label>
-          <div class="dn-field">
+          <label class="cd-field__label">Observações (opcional)</label>
+          <div class="cd-field">
             <textarea name="observacoes" rows="2" placeholder="Alguma preferência ou observação..."></textarea>
           </div>
 
-          <div class="dn-summary">
-            <div class="dn-summary__title">Resumo do Pedido</div>
+          <div class="cd-summary">
+            <div class="cd-summary__title">Resumo do Pedido</div>
             <div data-summary-lines></div>
-            <div class="dn-summary__rule"></div>
-            <div class="dn-summary__row dn-summary__row--desc" data-desconto-row hidden>
+            <div class="cd-summary__rule"></div>
+            <div class="cd-summary__row cd-summary__row--desc" data-desconto-row hidden>
               <span data-desconto-label>Desconto</span>
               <span data-desconto-valor>−R$ 0,00</span>
             </div>
-            <div class="dn-summary__row" data-taxa-row hidden>
+            <div class="cd-summary__row" data-taxa-row hidden>
               <span>Taxa de entrega</span>
               <span data-taxa-valor>R$ 0,00</span>
             </div>
-            <div class="dn-summary__total">
+            <div class="cd-summary__total">
               <span>Total</span>
               <span data-cart-total>R$ 0,00</span>
             </div>
@@ -179,60 +180,60 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
         </form>
       </div>
 
-      <footer class="dn-drawer__foot">
-        <button class="dn-btn dn-btn--brand" type="button" data-send-whatsapp>Enviar pedido pelo WhatsApp</button>
+      <footer class="cd-drawer__foot">
+        <button class="cd-btn cd-btn--brand" type="button" data-send-whatsapp>Enviar pedido pelo WhatsApp</button>
       </footer>
     </section>
 
     <!-- PASSO: CONFIRMADO -->
-    <section class="dn-step dn-step--confirmed">
-      <div class="dn-confirm">
-        <div class="dn-confirm__ring">
+    <section class="cd-step cd-step--confirmed">
+      <div class="cd-confirm">
+        <div class="cd-confirm__ring">
           <img
-            class="dn-confirm__ring-img"
-            src="/logo-medalhao.png"
-            alt="Doçuras da Nina"
+            class="cd-confirm__ring-img"
+            src={SITE_LOGO}
+            alt={SITE_NAME}
             width="112"
             height="112"
             loading="eager"
           />
         </div>
-        <div class="dn-confirm__title">Pedido enviado!</div>
-        <p class="dn-confirm__text">
+        <div class="cd-confirm__title">Pedido enviado!</div>
+        <p class="cd-confirm__text">
           Abrimos o WhatsApp com o seu pedido <strong data-order-number></strong>.
-          É só enviar a mensagem para a Nina confirmar. 💛
+          É só enviar a mensagem para a gente confirmar. 💛
         </p>
-        <button class="dn-btn dn-btn--brand" type="button" data-close>Voltar ao Cardápio</button>
+        <button class="cd-btn cd-btn--brand" type="button" data-close>Voltar ao Cardápio</button>
       </div>
     </section>
   </aside>
 </div>
 
 <style>
-  .dn-drawer-root {
+  .cd-drawer-root {
     position: fixed;
     inset: 0;
     z-index: 50;
     visibility: hidden;
     pointer-events: none;
   }
-  .dn-drawer-root[data-open='true'] {
+  .cd-drawer-root[data-open='true'] {
     visibility: visible;
     pointer-events: auto;
   }
 
-  .dn-drawer__backdrop {
+  .cd-drawer__backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(20, 30, 20, 0.5);
+    background: var(--backdrop);
     opacity: 0;
     transition: opacity 0.2s ease;
   }
-  .dn-drawer-root[data-open='true'] .dn-drawer__backdrop {
+  .cd-drawer-root[data-open='true'] .cd-drawer__backdrop {
     opacity: 1;
   }
 
-  .dn-drawer {
+  .cd-drawer {
     position: absolute;
     top: 0;
     right: 0;
@@ -241,37 +242,37 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     max-width: 420px;
     background: var(--bg);
     border-left: 1px solid var(--border);
-    box-shadow: -20px 0 50px rgba(0, 0, 0, 0.25);
+    box-shadow: var(--shadow-drawer);
     display: flex;
     flex-direction: column;
     transform: translateX(100%);
     transition: transform 0.25s ease;
   }
-  .dn-drawer-root[data-open='true'] .dn-drawer {
+  .cd-drawer-root[data-open='true'] .cd-drawer {
     transform: translateX(0);
   }
 
   /* Passos: mostra apenas o passo ativo */
-  .dn-step {
+  .cd-step {
     display: none;
     flex-direction: column;
     flex: 1;
     min-height: 0;
   }
-  .dn-drawer[data-step='cart'] .dn-step--cart,
-  .dn-drawer[data-step='checkout'] .dn-step--checkout,
-  .dn-drawer[data-step='confirmed'] .dn-step--confirmed {
+  .cd-drawer[data-step='cart'] .cd-step--cart,
+  .cd-drawer[data-step='checkout'] .cd-step--checkout,
+  .cd-drawer[data-step='confirmed'] .cd-step--confirmed {
     display: flex;
   }
 
-  .dn-drawer__bar {
+  .cd-drawer__bar {
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 18px 20px;
     background: var(--brand);
   }
-  .dn-drawer__title {
+  .cd-drawer__title {
     flex: 1;
     color: var(--cream);
     font-size: 13px;
@@ -279,8 +280,8 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     letter-spacing: 1.8px;
     text-transform: uppercase;
   }
-  .dn-drawer__close,
-  .dn-drawer__back {
+  .cd-drawer__close,
+  .cd-drawer__back {
     background: transparent;
     border: none;
     color: var(--cream);
@@ -289,52 +290,52 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     cursor: pointer;
     padding: 0;
   }
-  .dn-drawer__back {
+  .cd-drawer__back {
     font-size: 26px;
   }
 
-  .dn-drawer__body {
+  .cd-drawer__body {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
     padding: 18px 20px;
   }
 
-  .dn-drawer__foot {
+  .cd-drawer__foot {
     padding: 16px 20px 22px;
     border-top: 1px solid var(--border);
     background: var(--bg);
   }
-  .dn-drawer__subtotal {
+  .cd-drawer__subtotal {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
     margin-bottom: 14px;
   }
-  .dn-drawer__subtotal span:first-child {
+  .cd-drawer__subtotal span:first-child {
     font-size: 13.5px;
     font-weight: 600;
     letter-spacing: 1.3px;
     text-transform: uppercase;
     color: var(--muted-text);
   }
-  .dn-drawer__subtotal span:last-child {
+  .cd-drawer__subtotal span:last-child {
     font-family: var(--font-head);
     font-size: 22px;
     color: var(--ink);
   }
 
   /* ---- Cupom de desconto (rodape do carrinho) ---- */
-  .dn-cupom {
+  .cd-cupom {
     display: flex;
     gap: 8px;
     margin-bottom: 10px;
   }
-  .dn-cupom__input {
+  .cd-cupom__input {
     flex: 1;
     min-width: 0;
     border: 1px solid var(--brand-border);
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
     background: transparent;
     color: var(--ink);
     font-family: var(--font-body);
@@ -344,18 +345,18 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     outline: none;
     text-transform: uppercase;
   }
-  .dn-cupom__input::placeholder {
+  .cd-cupom__input::placeholder {
     color: var(--muted-text);
     font-weight: 400;
     text-transform: none;
   }
-  .dn-cupom__apply {
+  .cd-cupom__apply {
     flex: none;
     padding: 10px 16px;
     background: transparent;
     color: var(--ink);
     border: 1px solid var(--brand-border);
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
     font-family: var(--font-body);
     font-size: 13px;
     font-weight: 600;
@@ -364,26 +365,26 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     cursor: pointer;
   }
   @media (hover: hover) {
-    .dn-cupom__apply:hover {
+    .cd-cupom__apply:hover {
       background: var(--brand);
       color: var(--cream);
       border-color: var(--brand);
     }
   }
-  .dn-cupom__msg {
+  .cd-cupom__msg {
     font-size: 13px;
     font-weight: 500;
     margin-bottom: 12px;
     line-height: 1.4;
   }
-  .dn-cupom__msg[data-state='ok'] {
+  .cd-cupom__msg[data-state='ok'] {
     color: var(--gold-text);
   }
-  .dn-cupom__msg[data-state='err'] {
+  .cd-cupom__msg[data-state='err'] {
     color: var(--rust);
   }
   /* linha de subtotal/desconto no rodape (antes do Total) */
-  .dn-drawer__line {
+  .cd-drawer__line {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
@@ -392,27 +393,27 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     color: var(--muted-text);
     margin-bottom: 8px;
   }
-  .dn-drawer__line--desc span:last-child {
+  .cd-drawer__line--desc span:last-child {
     color: var(--gold-text);
   }
   /* o atributo [hidden] precisa vencer o display:flex acima, senao a linha de
      desconto continuaria visivel (mostrando "−R$ 0,00") quando nao ha cupom. */
-  .dn-drawer__line[hidden] {
+  .cd-drawer__line[hidden] {
     display: none;
   }
 
-  .dn-btn {
+  .cd-btn {
     width: 100%;
     padding: 16px;
     font-size: 14.5px;
     font-weight: 600;
     letter-spacing: 1.3px;
     text-transform: uppercase;
-    border-radius: 4px;
+    border-radius: var(--radius-md);
     border: none;
     cursor: pointer;
   }
-  .dn-btn--brand {
+  .cd-btn--brand {
     background: var(--brand);
     color: var(--cream);
   }
@@ -420,10 +421,10 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
   /* Obs.: os estilos dos itens do carrinho, do estado vazio e das linhas do
      resumo ficam no bloco <style is:global> abaixo, porque esse HTML e
      injetado via innerHTML em runtime e nao recebe o atributo de escopo do
-     Astro. Estao namespaced sob .dn-drawer-root para nao vazar. */
+     Astro. Estao namespaced sob .cd-drawer-root para nao vazar. */
 
   /* ---- Formulario de checkout ---- */
-  .dn-field__label {
+  .cd-field__label {
     display: block;
     font-size: 12px;
     font-weight: 600;
@@ -432,15 +433,15 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     color: var(--muted);
     margin: 20px 0 10px;
   }
-  .dn-field__label:first-child {
+  .cd-field__label:first-child {
     margin-top: 0;
   }
-  .dn-field {
+  .cd-field {
     border-bottom: 1px solid var(--brand-border);
     padding-bottom: 9px;
   }
-  .dn-field input,
-  .dn-field textarea {
+  .cd-field input,
+  .cd-field textarea {
     width: 100%;
     border: none;
     outline: none;
@@ -452,76 +453,76 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     padding: 5px 0;
     resize: none;
   }
-  .dn-field input::placeholder,
-  .dn-field textarea::placeholder {
+  .cd-field input::placeholder,
+  .cd-field textarea::placeholder {
     color: var(--muted-text);
     font-weight: 400;
   }
-  .dn-field.is-invalid {
+  .cd-field.is-invalid {
     border-bottom-color: var(--rust);
   }
 
-  .dn-seg {
+  .cd-seg {
     display: flex;
     gap: 8px;
   }
-  .dn-seg__opt {
+  .cd-seg__opt {
     flex: 1;
     padding: 10px 4px;
     background: transparent;
     color: var(--ink);
     border: 1px solid var(--brand-border);
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
   }
-  .dn-seg__opt.is-active {
+  .cd-seg__opt.is-active {
     background: var(--brand);
     color: var(--cream);
     border-color: var(--brand);
   }
 
-  .dn-summary {
+  .cd-summary {
     background: var(--card-alt);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: var(--radius-lg);
     padding: 14px 16px;
     margin-top: 22px;
   }
-  .dn-summary__title {
+  .cd-summary__title {
     font-family: var(--font-head);
     font-size: 15px;
     color: var(--ink);
     margin-bottom: 10px;
   }
-  /* .dn-summary__row esta no bloco is:global (injetado via innerHTML) */
-  .dn-summary__rule {
+  /* .cd-summary__row esta no bloco is:global (injetado via innerHTML) */
+  .cd-summary__rule {
     width: 100%;
     height: 1px;
     background: var(--border);
     margin: 8px 0;
   }
-  .dn-summary__total {
+  .cd-summary__total {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
   }
-  .dn-summary__total span:first-child {
+  .cd-summary__total span:first-child {
     font-size: 13.5px;
     font-weight: 600;
     letter-spacing: 0.8px;
     text-transform: uppercase;
     color: var(--muted-text);
   }
-  .dn-summary__total span:last-child {
+  .cd-summary__total span:last-child {
     font-family: var(--font-head);
     font-size: 19px;
     color: var(--gold-text);
   }
 
   /* ---- Confirmacao ---- */
-  .dn-confirm {
+  .cd-confirm {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -530,35 +531,34 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     text-align: center;
     padding: 40px 34px;
   }
-  /* Medalhao: logo oficial (public/Logo-Nina.jpeg, recortado em circulo em
-     public/logo-medalhao.png) dentro de um anel dourado. O verde de fundo do
-     logo e fixo (nao segue --brand do tema) — e proposital: recolorir a arte
-     por tema e impraticavel sem degradar as linhas douradas finas, entao a
-     adaptacao e via moldura (anel + sombra), nao via cor. Ver docs/LOGO.md. */
-  .dn-confirm__ring {
+  /* Medalhao: logo da loja (SITE_LOGO em src/config/site.ts) recortado em
+     circulo, dentro de um anel com a cor de acento do tema. A arte do logo
+     tem cores proprias (nao segue o tema claro/escuro); a adaptacao ao tema
+     e via moldura (anel + sombra). Ver docs/LOGO.md. */
+  .cd-confirm__ring {
     width: 112px;
     height: 112px;
-    border-radius: 50%;
+    border-radius: var(--radius-round);
     border: 2px solid var(--gold);
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 22px;
-    box-shadow: 0 4px 16px rgba(198, 161, 91, 0.35);
+    box-shadow: var(--shadow-seal);
   }
-  .dn-confirm__ring-img {
+  .cd-confirm__ring-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 50%;
+    border-radius: var(--radius-round);
   }
-  /* ---- ANTES: monograma de texto no lugar do logo oficial (substituido).
-     Markup antigo: <div class="dn-confirm__ring-inner">Doçuras<br />da Nina</div>
-  .dn-confirm__ring-inner {
+  /* ---- ANTES: monograma de texto no lugar do logo (substituido pela imagem).
+     Markup antigo: <div class="cd-confirm__ring-inner">Nome<br />da Loja</div>
+  .cd-confirm__ring-inner {
     width: 80px;
     height: 80px;
-    border-radius: 50%;
+    border-radius: var(--radius-round);
     border: 1px solid var(--gold);
     display: flex;
     align-items: center;
@@ -569,12 +569,12 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     line-height: 1.3;
   }
   */
-  .dn-confirm__title {
+  .cd-confirm__title {
     font-family: var(--font-head);
     font-size: 23px;
     color: var(--ink);
   }
-  .dn-confirm__text {
+  .cd-confirm__text {
     font-size: 15px;
     font-weight: 500;
     color: var(--muted-text);
@@ -582,15 +582,15 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     line-height: 1.65;
     max-width: 34ch;
   }
-  .dn-confirm__text strong {
+  .cd-confirm__text strong {
     color: var(--ink);
   }
 </style>
 
 <!-- Estilos do conteudo injetado via innerHTML (itens, vazio, linhas do
-     resumo). Global, mas namespaced sob .dn-drawer-root para nao vazar. -->
+     resumo). Global, mas namespaced sob .cd-drawer-root para nao vazar. -->
 <style is:global>
-  .dn-drawer-root .dn-ci {
+  .cd-drawer-root .cd-ci {
     display: flex;
     gap: 12px;
     align-items: center;
@@ -598,46 +598,46 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     padding-bottom: 12px;
     margin-bottom: 12px;
   }
-  .dn-drawer-root .dn-ci__thumb {
+  .cd-drawer-root .cd-ci__thumb {
     width: 52px;
     height: 52px;
     flex: none;
     background: var(--card-alt);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: var(--radius-md);
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
   }
-  .dn-drawer-root .dn-ci__thumb img {
+  .cd-drawer-root .cd-ci__thumb img {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
-  .dn-drawer-root .dn-ci__mono {
+  .cd-drawer-root .cd-ci__mono {
     font-family: var(--font-head);
     font-size: 20px;
     color: var(--ink);
     opacity: 0.35;
   }
-  .dn-drawer-root .dn-ci__info {
+  .cd-drawer-root .cd-ci__info {
     flex: 1;
     min-width: 0;
   }
-  .dn-drawer-root .dn-ci__name {
+  .cd-drawer-root .cd-ci__name {
     font-family: var(--font-head);
     font-size: 15.5px;
     color: var(--ink);
     line-height: 1.32;
   }
-  .dn-drawer-root .dn-ci__line {
+  .cd-drawer-root .cd-ci__line {
     font-size: 14px;
     font-weight: 500;
     color: var(--muted-text);
     margin-top: 4px;
   }
-  .dn-drawer-root .dn-ci__remove {
+  .cd-drawer-root .cd-ci__remove {
     margin-top: 7px;
     padding: 0;
     background: transparent;
@@ -651,20 +651,20 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     cursor: pointer;
   }
   @media (hover: hover) {
-    .dn-drawer-root .dn-ci__remove:hover {
+    .cd-drawer-root .cd-ci__remove:hover {
       color: var(--rust);
     }
   }
-  .dn-drawer-root .dn-ci__qty {
+  .cd-drawer-root .cd-ci__qty {
     display: flex;
     align-items: center;
     gap: 12px;
     border: 1px solid var(--brand-border);
-    border-radius: 16px;
+    border-radius: var(--radius-pill);
     padding: 5px 12px;
     flex: none;
   }
-  .dn-drawer-root .dn-ci__qty button {
+  .cd-drawer-root .cd-ci__qty button {
     background: transparent;
     border: none;
     color: var(--ink);
@@ -675,7 +675,7 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     padding: 0;
     font-family: var(--font-body);
   }
-  .dn-drawer-root .dn-ci__qty span {
+  .cd-drawer-root .cd-ci__qty span {
     font-size: 15px;
     font-weight: 600;
     color: var(--ink);
@@ -683,7 +683,7 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     text-align: center;
   }
 
-  .dn-drawer-root .dn-empty {
+  .cd-drawer-root .cd-empty {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -692,18 +692,18 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     text-align: center;
     padding: 30px;
   }
-  .dn-drawer-root .dn-empty__rule {
+  .cd-drawer-root .cd-empty__rule {
     width: 30px;
     height: 1px;
     background: var(--gold);
     margin-bottom: 14px;
   }
-  .dn-drawer-root .dn-empty__title {
+  .cd-drawer-root .cd-empty__title {
     font-family: var(--font-head);
     font-size: 19px;
     color: var(--ink);
   }
-  .dn-drawer-root .dn-empty__text {
+  .cd-drawer-root .cd-empty__text {
     font-size: 14.5px;
     font-weight: 500;
     color: var(--muted-text);
@@ -711,7 +711,7 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     line-height: 1.55;
   }
 
-  .dn-drawer-root .dn-summary__row {
+  .cd-drawer-root .cd-summary__row {
     display: flex;
     justify-content: space-between;
     font-size: 14px;
@@ -720,25 +720,25 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     margin-bottom: 6px;
     gap: 12px;
   }
-  .dn-drawer-root .dn-summary__row--desc span:last-child {
+  .cd-drawer-root .cd-summary__row--desc span:last-child {
     color: var(--gold-text);
   }
-  /* [hidden] precisa vencer o display:flex de .dn-summary__row (mesmo motivo
+  /* [hidden] precisa vencer o display:flex de .cd-summary__row (mesmo motivo
      do rodape): sem cupom, a linha de desconto do resumo fica oculta. */
-  .dn-drawer-root .dn-summary__row[hidden] {
+  .cd-drawer-root .cd-summary__row[hidden] {
     display: none;
   }
 </style>
 
 <!-- Catalogo de produtos (da Content Collection) para o carrinho client-side -->
-<script type="application/json" id="dn-catalog" set:html={catalogoJson}></script>
+<script type="application/json" id="cd-catalog" set:html={catalogoJson}></script>
 <!-- Cupons de desconto (da Content Collection) para validacao client-side -->
-<script type="application/json" id="dn-cupons" set:html={cuponsJson}></script>
+<script type="application/json" id="cd-cupons" set:html={cuponsJson}></script>
 <!-- Config de Entrega/Retirada e taxa (da Content Collection "configuracoes") -->
-<script type="application/json" id="dn-checkout-config" set:html={checkoutConfigJson}></script>
-<!-- ANTES: data island com o texto do WhatsApp editavel pela Nina (ver nota
+<script type="application/json" id="cd-checkout-config" set:html={checkoutConfigJson}></script>
+<!-- ANTES: data island com o texto do WhatsApp editavel pelo dono da loja (ver nota
      de reativacao na frontmatter acima).
-<script type="application/json" id="dn-wa-config" set:html={waConfigJson}></script>
+<script type="application/json" id="cd-wa-config" set:html={waConfigJson}></script>
 -->
 
 <script>
@@ -761,15 +761,15 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
   import { WHATSAPP_NUMBER } from '../config/site';
 
   // catalogo embutido pelo servidor a partir da Content Collection
-  const catalogEl = document.getElementById('dn-catalog');
+  const catalogEl = document.getElementById('cd-catalog');
   const products: CatalogItem[] = catalogEl ? JSON.parse(catalogEl.textContent || '[]') : [];
 
   // cupons embutidos pelo servidor a partir da Content Collection
-  const cuponsEl = document.getElementById('dn-cupons');
+  const cuponsEl = document.getElementById('cd-cupons');
   const cupons: Coupon[] = cuponsEl ? JSON.parse(cuponsEl.textContent || '[]') : [];
 
-  // config de Entrega/Retirada (Nina edita no CMS) embutida pelo servidor
-  const checkoutConfigEl = document.getElementById('dn-checkout-config');
+  // config de Entrega/Retirada (editada no CMS) embutida pelo servidor
+  const checkoutConfigEl = document.getElementById('cd-checkout-config');
   const checkoutConfig: {
     entregaHabilitada: boolean;
     retiradaHabilitada: boolean;
@@ -779,15 +779,15 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     ? JSON.parse(checkoutConfigEl.textContent || '{}')
     : { entregaHabilitada: true, retiradaHabilitada: true, taxaEntrega: 0, taxaACombinar: false };
 
-  // ---- ANTES: texto da mensagem do WhatsApp editavel pela Nina no CMS.
+  // ---- ANTES: texto da mensagem do WhatsApp editavel pelo dono da loja no CMS.
   //      Desativado — ver nota de reativacao na frontmatter acima.
-  // const waCfgEl = document.getElementById('dn-wa-config');
+  // const waCfgEl = document.getElementById('cd-wa-config');
   // const waConfig: { titulo?: string; mensagemFinal?: string } = waCfgEl
   //   ? JSON.parse(waCfgEl.textContent || '{}')
   //   : {};
 
-  const root = document.querySelector<HTMLElement>('.dn-drawer-root');
-  const drawer = document.querySelector<HTMLElement>('.dn-drawer');
+  const root = document.querySelector<HTMLElement>('.cd-drawer-root');
+  const drawer = document.querySelector<HTMLElement>('.cd-drawer');
   if (root && drawer) {
     const listEl = root.querySelector<HTMLElement>('[data-cart-list]')!;
     const footEl = root.querySelector<HTMLElement>('[data-cart-foot]')!;
@@ -890,10 +890,10 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
 
       if (lines.length === 0) {
         listEl.innerHTML = `
-          <div class="dn-empty">
-            <div class="dn-empty__rule"></div>
-            <div class="dn-empty__title">Seu carrinho está vazio</div>
-            <div class="dn-empty__text">Escolha alguma doçura no cardápio para começar.</div>
+          <div class="cd-empty">
+            <div class="cd-empty__rule"></div>
+            <div class="cd-empty__title">Seu carrinho está vazio</div>
+            <div class="cd-empty__text">Escolha alguma delícia no cardápio para começar.</div>
           </div>`;
         footEl.hidden = true;
         summaryLinesEl.innerHTML = '';
@@ -909,16 +909,16 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
         .map((l) => {
           const thumb = l.foto
             ? `<img src="${esc(l.foto)}" alt="" />`
-            : `<span class="dn-ci__mono">${esc(l.nome.charAt(0))}</span>`;
+            : `<span class="cd-ci__mono">${esc(l.nome.charAt(0))}</span>`;
           return `
-          <div class="dn-ci">
-            <div class="dn-ci__thumb">${thumb}</div>
-            <div class="dn-ci__info">
-              <div class="dn-ci__name">${esc(l.nome)}</div>
-              <div class="dn-ci__line">${l.qty} × ${formatPrice(l.preco)} = ${formatPrice(l.lineTotal)}</div>
-              <button type="button" class="dn-ci__remove" data-remove="${l.id}">Remover</button>
+          <div class="cd-ci">
+            <div class="cd-ci__thumb">${thumb}</div>
+            <div class="cd-ci__info">
+              <div class="cd-ci__name">${esc(l.nome)}</div>
+              <div class="cd-ci__line">${l.qty} × ${formatPrice(l.preco)} = ${formatPrice(l.lineTotal)}</div>
+              <button type="button" class="cd-ci__remove" data-remove="${l.id}">Remover</button>
             </div>
-            <div class="dn-ci__qty">
+            <div class="cd-ci__qty">
               <button type="button" data-dec="${l.id}" aria-label="Diminuir">−</button>
               <span>${l.qty}</span>
               <button type="button" data-inc="${l.id}" aria-label="Aumentar">+</button>
@@ -929,7 +929,7 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
 
       summaryLinesEl.innerHTML = lines
         .map(
-          (l) => `<div class="dn-summary__row"><span>${l.qty}× ${esc(l.nome)}</span><span>${formatPrice(l.lineTotal)}</span></div>`,
+          (l) => `<div class="cd-summary__row"><span>${l.qty}× ${esc(l.nome)}</span><span>${formatPrice(l.lineTotal)}</span></div>`,
         )
         .join('');
 
@@ -1029,9 +1029,9 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     // segmentos (entrega / pagamento)
     root.querySelectorAll<HTMLElement>('[data-seg]').forEach((seg) => {
       seg.addEventListener('click', (e) => {
-        const opt = (e.target as HTMLElement).closest<HTMLElement>('.dn-seg__opt');
+        const opt = (e.target as HTMLElement).closest<HTMLElement>('.cd-seg__opt');
         if (!opt) return;
-        seg.querySelectorAll('.dn-seg__opt').forEach((o) => o.classList.remove('is-active'));
+        seg.querySelectorAll('.cd-seg__opt').forEach((o) => o.classList.remove('is-active'));
         opt.classList.add('is-active');
         const grupo = seg.dataset.seg!;
         const valor = opt.dataset.value!;
@@ -1063,11 +1063,11 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
 
       // validacao minima
       const invalido = (name: string) => {
-        const wrap = form.querySelector(`[name="${name}"]`)?.closest('.dn-field');
+        const wrap = form.querySelector(`[name="${name}"]`)?.closest('.cd-field');
         wrap?.classList.add('is-invalid');
         form.querySelector<HTMLElement>(`[name="${name}"]`)?.focus();
       };
-      form.querySelectorAll('.dn-field').forEach((f) => f.classList.remove('is-invalid'));
+      form.querySelectorAll('.cd-field').forEach((f) => f.classList.remove('is-invalid'));
       if (!nome) return invalido('nome');
       if (!telefone) return invalido('telefone');
       if (selecionado.fulfillment === 'entrega' && !endereco) return invalido('endereco');

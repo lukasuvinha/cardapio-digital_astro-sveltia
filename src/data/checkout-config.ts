@@ -1,4 +1,4 @@
-// Leitura (build time) da configuracao de Entrega/Retirada, editada pela Nina
+// Leitura (build time) da configuracao de Entrega/Retirada, editada pelo dono da loja
 // no CMS. Mesmo padrao de src/data/menu.ts e src/data/cupons.ts: le a Content
 // Collection e devolve um tipo de dominio simples via a funcao pura de
 // src/lib/checkout-config.ts.

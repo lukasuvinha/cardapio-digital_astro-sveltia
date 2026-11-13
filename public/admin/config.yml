@@ -1,4 +1,4 @@
-# Configuracao do Sveltia CMS (painel da Nina).
+# Configuracao do Sveltia CMS (painel do dono da loja).
 # Os campos abaixo correspondem 1:1 ao schema Zod da Content Collection do Astro
 # em src/content/config.ts (via src/content/produto-schema.ts).
 
@@ -23,7 +23,7 @@ public_folder: "/uploads"
 
 # Otimizacao feita no NAVEGADOR, no momento do upload (recurso do Sveltia):
 # toda foto enviada e convertida para WebP e redimensionada. Assim a foto de
-# 4000px / 4 MB do celular da Nina vira ~1 MP / poucos KB automaticamente,
+# 4000px / 4 MB do celular do dono da loja vira ~1 MP / poucos KB automaticamente,
 # antes mesmo de ir para o repositorio.
 media_libraries:
   default:
@@ -63,7 +63,7 @@ collections:
           step: 0.5,
           hint: "Use ponto para centavos. Ex.: 14 ou 4.5",
         }
-      # Categoria vem da collection "categorias" (widget relation), para a Nina
+      # Categoria vem da collection "categorias" (widget relation), para o dono da loja
       # poder CADASTRAR novas categorias pelo painel (secao "Categorias") sem
       # mexer no codigo. O valor gravado continua sendo o texto do nome
       # (ex.: "Brownie"), igual ao que o select fazia — o schema nao muda.
@@ -123,7 +123,7 @@ collections:
           hint: "Foto do doce (JPG, PNG ou WebP). Dica: proporção 4:3 na horizontal (ex.: 1200×900 px) fica certinha no molde do cardápio. Não é obrigatório — o sistema ajusta o tamanho e recorta o que passar. Fotos muito verticais ou quadradas podem ser cortadas nas bordas.",
         }
 
-  # Categorias dos doces. A Nina cria aqui as categorias que aparecem no campo
+  # Categorias dos doces. O dono da loja cria aqui as categorias que aparecem no campo
   # "Categoria" de cada produto (widget relation). Assim ela pode adicionar
   # novos tipos de doce sem depender de alteracao no codigo.
   - name: categorias
@@ -137,7 +137,7 @@ collections:
     fields:
       - { name: nome, label: "Nome", widget: string, hint: "Ex.: Bolo de Pote. É este texto que aparece na lista de categorias do produto." }
 
-  # Cupons de desconto. A Nina cria um codigo, escolhe o tipo (percentual ou
+  # Cupons de desconto. O dono da loja cria um codigo, escolhe o tipo (percentual ou
   # valor fixo), o valor e a validade. O cliente digita o codigo no carrinho.
   - name: cupons
     label: "Cupons"
@@ -210,9 +210,9 @@ collections:
       #     hint: "O cupom vale até o fim deste dia.",
       #   }
 
-  # Configuracoes operacionais do site, editaveis pela Nina. Collection do
+  # Configuracoes operacionais do site, editaveis pelo dono da loja. Collection do
   # tipo "files" do Sveltia/Decap: cada item aqui e um arquivo singular (nao
-  # uma lista que a Nina cria/apaga, como produtos/cupons).
+  # uma lista que o dono da loja cria/apaga, como produtos/cupons).
   - name: configuracoes
     label: "Configurações"
     description: "Ajustes operacionais do site."
@@ -295,9 +295,10 @@ collections:
               hint: "Opcional. Ex.: 14:30. Deixe em branco para mostrar só o dia, sem horário.",
             }
 
-      # --- DESATIVADO a pedido do cliente: edicao do texto do WhatsApp pela
-      #     Nina no painel. O texto agora so muda direto no codigo
-      #     (src/lib/whatsapp.ts, constantes TITULO/MENSAGEM_FINAL) — ver
+      # --- DESATIVADO a pedido do cliente: edicao do texto do WhatsApp pelo
+      #     dono da loja no painel. O texto agora so muda direto no codigo
+      #     (titulo: WHATSAPP_ORDER_TITLE em src/config/site.ts; mensagem
+      #     final: MENSAGEM_FINAL em src/lib/whatsapp.ts) — ver
       #     docs/CUPONS-E-PEDIDOS.md, secao "Editar o texto do WhatsApp
       #     manualmente". Mantido comentado para referencia/reativacao rapida:
       #     o arquivo src/content/configuracoes/whatsapp.json continua
@@ -307,5 +308,5 @@ collections:
       #   file: "src/content/configuracoes/whatsapp.json"
       #   description: "Personalize o texto do pedido que abre no WhatsApp."
       #   fields:
-      #     - { name: titulo, label: "Título da mensagem", widget: string, default: "Novo pedido — Doçuras da Nina", hint: "Primeira linha (em negrito) da mensagem. Ex.: Novo pedido — Doçuras da Nina" }
+      #     - { name: titulo, label: "Título da mensagem", widget: string, default: "Novo pedido — Doceria Exemplo", hint: "Primeira linha (em negrito) da mensagem. Ex.: Novo pedido — Doceria Exemplo" }
       #     - { name: mensagem_final, label: "Mensagem final (opcional)", widget: text, required: false, hint: "Texto opcional no fim da mensagem, ex.: Obrigada pela preferência! 💛 — deixe em branco para não incluir." }

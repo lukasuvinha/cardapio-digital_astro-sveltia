@@ -20,6 +20,6 @@ describe('Home — banner de fornada', () => {
   it('com a config padrao (banner desligado), o banner nao aparece', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Index, {});
-    expect(html).not.toContain('dn-fornada');
+    expect(html).not.toContain('cd-fornada');
   });
 });
