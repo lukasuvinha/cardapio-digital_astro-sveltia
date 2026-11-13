@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" width="320" height="320">
+  <!-- Logo da loja ficticia "Doceria Exemplo" (template). Troque pelo logo real: ver docs/LOGO.md -->
+  <rect width="320" height="320" fill="#1F4D3A"/>
+  <circle cx="160" cy="160" r="128" fill="none" stroke="#C6A15B" stroke-width="3"/>
+  <circle cx="160" cy="160" r="116" fill="none" stroke="#C6A15B" stroke-width="1.2" stroke-dasharray="2 7" stroke-linecap="round"/>
+  <!-- cupcake -->
+  <path d="M112 168 L124 236 Q126 244 134 244 L186 244 Q194 244 196 236 L208 168 Z" fill="#E4C989"/>
+  <g stroke="#1F4D3A" stroke-width="3" stroke-linecap="round" opacity="0.55">
+    <line x1="136" y1="176" x2="142" y2="238"/>
+    <line x1="160" y1="176" x2="160" y2="238"/>
+    <line x1="184" y1="176" x2="178" y2="238"/>
+  </g>
+  <path d="M104 170 Q98 146 122 140 Q120 112 150 110 Q160 92 178 104 Q206 104 202 132 Q224 140 214 166 Q160 182 104 170 Z" fill="#F7EFE1"/>
+  <path d="M122 140 Q150 150 176 136 M150 110 Q166 124 192 118" fill="none" stroke="#C6A15B" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="168" cy="90" r="12" fill="#A8532E"/>
+  <path d="M168 78 Q172 64 182 60" fill="none" stroke="#3F6B52" stroke-width="3" stroke-linecap="round"/>
+</svg>

@@ -1,5 +1,5 @@
 // Regras puras da configuracao de Entrega/Retirada (testaveis sem Content
-// Collections). A Nina edita os valores brutos pelo painel do Sveltia CMS
+// Collections). O dono da loja edita os valores brutos pelo painel do Sveltia CMS
 // (collection "configuracoes", arquivo entrega.json); esta funcao normaliza
 // esse valor bruto para o formato usado pelo carrinho. Ver
 // docs/CUPONS-E-PEDIDOS.md, secao "Entrega e retirada".

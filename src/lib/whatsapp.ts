@@ -1,12 +1,13 @@
 // Montagem da mensagem de pedido e do link do WhatsApp (funcoes puras).
 import type { CartLine } from './cart-core';
 import { formatPrice } from './format';
+import { ORDER_PREFIX, WHATSAPP_ORDER_TITLE } from '../config/site';
 
 export type Fulfillment = 'retirada' | 'entrega';
 export type Payment = 'pix' | 'cartao' | 'dinheiro';
 
 export interface Order {
-  pedido: string; // ex.: "DN1234"
+  pedido: string; // ex.: "DE1234" (prefixo = ORDER_PREFIX)
   nome: string;
   telefone: string;
   fulfillment: Fulfillment;
@@ -37,21 +38,22 @@ const PAYMENT_LABEL: Record<Payment, string> = {
   dinheiro: 'Dinheiro',
 };
 
-// Titulo e mensagem final da mensagem do pedido. ANTES eram editaveis pela
-// Nina direto no painel do Sveltia (CMS) via um arquivo de configuracao
-// (OrderMessageConfig); a pedido do cliente, essa opcao foi DESATIVADA no CMS
-// (ver o bloco comentado "configuracoes" em public/admin/config.yml) porque a
-// Nina prefere que o texto so mude por pedido direto ao desenvolvedor.
+// Titulo e mensagem final da mensagem do pedido. ANTES eram editaveis pelo
+// dono da loja direto no painel do Sveltia (CMS) via um arquivo de
+// configuracao (OrderMessageConfig); essa opcao foi DESATIVADA no CMS (ver o
+// bloco comentado "configuracoes" em public/admin/config.yml) para o texto so
+// mudar por pedido direto ao desenvolvedor.
 //
-// Para trocar o texto agora, edite as duas constantes abaixo, direto no
-// codigo. Passo a passo em docs/CUPONS-E-PEDIDOS.md, secao
+// Para trocar o titulo agora, edite WHATSAPP_ORDER_TITLE em
+// src/config/site.ts; a mensagem final fica na constante abaixo. Passo a
+// passo em docs/CUPONS-E-PEDIDOS.md, secao
 // "Editar o texto do WhatsApp manualmente".
-const TITULO = 'Novo pedido — Doçuras da Nina';
+const TITULO = WHATSAPP_ORDER_TITLE;
 // mensagem extra no fim do pedido (ex.: um agradecimento). Deixe '' (vazio)
 // para nao incluir nenhuma linha a mais.
 const MENSAGEM_FINAL = '';
 
-// ---- ANTES: titulo/mensagem final editaveis pela Nina no CMS (singleton
+// ---- ANTES: titulo/mensagem final editaveis no CMS (singleton
 //      src/content/configuracoes/whatsapp.json). Mantido comentado para
 //      referencia e reativacao rapida, se um dia for reativado no CMS.
 // export interface OrderMessageConfig {
@@ -135,16 +137,16 @@ export function buildWhatsappUrl(phone: string, message: string): string {
 }
 
 /**
- * Gera um numero de pedido ALEATORIO, ex.: "DN1234". E o gerador ATIVO
- * (usado pelo CartDrawer).
+ * Gera um numero de pedido ALEATORIO: ORDER_PREFIX (src/config/site.ts) + 4
+ * digitos, ex.: "DE1234". E o gerador ATIVO (usado pelo CartDrawer).
  *
- * Existe tambem uma numeracao SEQUENCIAL (DN0001, DN0002...) em
+ * Existe tambem uma numeracao SEQUENCIAL (DE0001, DE0002...) em
  * src/lib/order-number.ts, mas ela foi DESATIVADA a pedido do cliente: como
  * o site nao tem servidor, o contador sequencial e por navegador — cada
- * cliente novo comecaria do zero em DN0001, o que confundia mais do que
+ * cliente novo comecaria do zero em DE0001, o que confundia mais do que
  * ajudava. O codigo sequencial continua no repo (nao usado) para o caso de
  * um dia ganhar um backend e virar um contador global de verdade.
  */
 export function generateOrderId(rand: () => number = Math.random): string {
-  return 'DN' + Math.floor(1000 + rand() * 9000);
+  return ORDER_PREFIX + Math.floor(1000 + rand() * 9000);
 }

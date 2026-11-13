@@ -5,12 +5,14 @@ Três páginas estáticas, alcançadas por links discretos no **rodapé** do sit
 detalhe de produto e 404):
 
 ```
-Doçuras da Nina · Doceria Artesanal
+Doceria Exemplo · Doceria Artesanal
         Sobre  ·  Contato
 ```
 
-- **`/sobre`** — um texto sobre a doceria.
-- **`/contato`** — botões para falar com a Nina (WhatsApp e Instagram) e, no
+(Nome e slogan vêm de `SITE_NAME` e `SITE_TAGLINE` em `src/config/site.ts`.)
+
+- **`/sobre`** — um texto sobre a loja.
+- **`/contato`** — botões para falar com a loja (WhatsApp e Instagram) e, no
   fim da página, um link **discreto** "Desenvolvedor".
 - **`/desenvolvedor`** — só alcançada pelo link acima; card com o nome de
   quem fez o site e botões para GitHub e LinkedIn. Não aparece no rodapé.
@@ -22,18 +24,19 @@ GitHub**, do mesmo jeito que a troca do número do WhatsApp (ver
 
 ## Editar o texto da página "Sobre"
 
-O texto é **genérico de propósito** — foi escrito para o site ir ao ar, mas a
-Nina deve trocar por um texto próprio quando quiser.
+O texto é **genérico de propósito** — foi escrito para o site ir ao ar, mas o
+dono da loja deve trocar por um texto próprio. O nome da loja no título e
+no primeiro parágrafo vem de `SITE_NAME` (`src/config/site.ts`).
 
 1. Abra `src/pages/sobre.astro` no repositório do GitHub
-   (`https://github.com/lukasuvinha/Cardapio_Docuras-da-Nina/blob/main/src/pages/sobre.astro`).
+   (`https://github.com/SEU_USUARIO/SEU_REPO/blob/main/src/pages/sobre.astro`).
 2. Clique no ícone de **lápis** (✏️) para editar.
-3. O texto fica dentro da `<div class="dn-sobre__body">`, em parágrafos
+3. O texto fica dentro da `<div class="cd-sobre__body">`, em parágrafos
    `<p>...</p>`. Pode:
    - Editar o texto de cada parágrafo (o que está entre `<p>` e `</p>`);
    - Apagar ou adicionar parágrafos inteiros (copie o padrão `<p>...</p>`);
-   - Trocar o título, que fica em `<h1 class="dn-sobre__title">...</h1>`.
-   - **Não precisa mexer em nada fora dessas tags** — o `<div class="dn-sobre__rule">`,
+   - Trocar o título, que fica em `<h1 class="cd-sobre__title">...</h1>`.
+   - **Não precisa mexer em nada fora dessas tags** — o `<div class="cd-sobre__rule">`,
      o `<Header />`, o `<Footer />` etc. são o layout da página, deixe como
      estão.
 4. Role até o final, escreva uma mensagem de commit curta (ex.: "Atualiza
@@ -58,12 +61,12 @@ o número do WhatsApp usado nos pedidos.
 Passo a passo para o Instagram:
 
 1. Abra `src/config/site.ts` no GitHub
-   (`https://github.com/lukasuvinha/Cardapio_Docuras-da-Nina/blob/main/src/config/site.ts`).
+   (`https://github.com/SEU_USUARIO/SEU_REPO/blob/main/src/config/site.ts`).
 2. Clique no ícone de **lápis** (✏️) para editar.
 3. Troque o valor de `INSTAGRAM_URL` pelo link completo do perfil, por
    exemplo:
    ```ts
-   export const INSTAGRAM_URL = 'https://instagram.com/docurasdanina';
+   export const INSTAGRAM_URL = 'https://instagram.com/doceriaexemplo';
    ```
 4. Commit (ex.: "Atualiza link do Instagram") → confirme na `main`. Deploy
    automático em 1–2 minutos.
@@ -74,13 +77,13 @@ Passo a passo para o Instagram:
 Também em [`src/config/site.ts`](../src/config/site.ts), três constantes:
 
 ```ts
-export const DEV_NAME = 'Lukas Uvinha';
-export const DEV_GITHUB_URL = 'https://github.com/lukasuvinha';
-export const DEV_LINKEDIN_URL = 'https://linkedin.com/in/SEU_USUARIO_AQUI'; // placeholder
+export const DEV_NAME = 'Seu Nome';
+export const DEV_GITHUB_URL = 'https://github.com/seu_usuario';
+export const DEV_LINKEDIN_URL = 'https://www.linkedin.com/in/seu_usuario/';
 ```
 
-`DEV_LINKEDIN_URL` está com um **link de exemplo** — troque pela URL real do
-perfil do LinkedIn seguindo os mesmos passos do Instagram acima (editar o
+Os três estão com **valores de exemplo** — troque pelos dados reais de quem
+desenvolveu o site seguindo os mesmos passos do Instagram acima (editar o
 arquivo, trocar o valor entre aspas, commit na `main`).
 
 ## Onde fica cada coisa no código
@@ -92,7 +95,7 @@ arquivo, trocar o valor entre aspas, commit na `main`).
 | Página Sobre | `src/pages/sobre.astro` |
 | Página Contato | `src/pages/contato.astro` |
 | Página Desenvolvedor | `src/pages/desenvolvedor.astro` |
-| Número do WhatsApp, link do Instagram, dados do desenvolvedor | `src/config/site.ts` |
+| Nome, slogan, número do WhatsApp, link do Instagram, dados do desenvolvedor | `src/config/site.ts` |
 
 ## Sobre os ícones dos botões
 

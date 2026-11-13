@@ -4,7 +4,7 @@
 // IMPORTANTE — por que `foto` e uma STRING (URL) e NAO o image() do Astro:
 // O image() otimiza no build, mas HARD-FAILA o build inteiro se a imagem nao
 // resolver (caminho errado, formato estranho, etc.). Como as fotos vem de
-// uploads da Nina pelo CMS, isso ja quebrou o deploy 3 vezes. Agora a foto e
+// uploads do dono da loja pelo CMS, isso ja quebrou o deploy 3 vezes. Agora a foto e
 // uma URL de /public (servida como esta, o build NUNCA a processa, entao nao
 // tem como quebrar), e a otimizacao acontece no UPLOAD (o Sveltia converte
 // para WebP e redimensiona no navegador antes de commitar) — ver
@@ -20,8 +20,8 @@ export const produtoBaseSchema = z.object({
   // se omitido no CMS, assume disponivel
   disponivel: z.boolean().default(true),
   // "Esconder do Cardápio": some do site (grade e pagina de detalhe) mas o
-  // produto continua no CMS, com nome/descricao/preco preservados, para a
-  // Nina poder reativar depois. Diferente de "disponivel: false" (que ainda
+  // produto continua no CMS, com nome/descricao/preco preservados, para o
+  // dono da loja poder reativar depois. Diferente de "disponivel: false" (que ainda
   // mostra o produto com o selo "Esgotado"). Se omitido no CMS, assume NAO
   // escondido (produtos existentes continuam aparecendo normalmente).
   escondido: z.boolean().default(false),

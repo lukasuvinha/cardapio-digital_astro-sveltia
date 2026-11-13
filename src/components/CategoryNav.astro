@@ -15,11 +15,11 @@ interface Props {
 const { items } = Astro.props;
 ---
 
-<nav class="dn-cats" aria-label="Filtrar por categoria">
-  <button class="dn-cats__chip is-active" type="button" data-filter="all">Todos</button>
+<nav class="cd-cats" aria-label="Filtrar por categoria">
+  <button class="cd-cats__chip is-active" type="button" data-filter="all">Todos</button>
   {
     items.map((item) => (
-      <button class="dn-cats__chip" type="button" data-filter={item.slug}>
+      <button class="cd-cats__chip" type="button" data-filter={item.slug}>
         {item.label}
       </button>
     ))
@@ -28,7 +28,7 @@ const { items } = Astro.props;
 
 <style>
   /* Fica grudada no topo (abaixo do header) para filtrar de qualquer ponto */
-  .dn-cats {
+  .cd-cats {
     position: sticky;
     top: 0;
     z-index: 20;
@@ -41,15 +41,15 @@ const { items } = Astro.props;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
-  .dn-cats::-webkit-scrollbar {
+  .cd-cats::-webkit-scrollbar {
     display: none;
   }
 
-  .dn-cats__chip {
+  .cd-cats__chip {
     flex: none;
     padding: 8px 15px;
     border: 1px solid var(--brand-border);
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
     background: transparent;
     color: var(--ink);
     font-family: var(--font-body);
@@ -61,18 +61,18 @@ const { items } = Astro.props;
     transition: background 0.15s, color 0.15s, border-color 0.15s;
   }
   @media (hover: hover) {
-    .dn-cats__chip:hover {
-      background: rgba(198, 161, 91, 0.15);
+    .cd-cats__chip:hover {
+      background: var(--gold-tint);
     }
   }
-  .dn-cats__chip.is-active {
+  .cd-cats__chip.is-active {
     background: var(--brand);
     border-color: var(--brand);
     color: var(--cream);
   }
 
   @media (min-width: 640px) {
-    .dn-cats {
+    .cd-cats {
       padding: 14px clamp(18px, 4vw, 48px);
     }
   }

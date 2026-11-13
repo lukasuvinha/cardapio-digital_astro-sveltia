@@ -13,8 +13,8 @@ export interface Product {
   disponivel: boolean;
   /**
    * "Esconder do Cardápio": produto some do site (grade e pagina de
-   * detalhe), mas continua no CMS com todos os dados preservados, para a
-   * Nina reativar quando quiser. Diferente de disponivel=false (que ainda
+   * detalhe), mas continua no CMS com todos os dados preservados, para o
+   * dono da loja reativar quando quiser. Diferente de disponivel=false (que ainda
    * aparece, com o selo "Esgotado"). Ausente/undefined = NAO escondido
    * (compatibilidade com produtos existentes).
    */

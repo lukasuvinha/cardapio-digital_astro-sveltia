@@ -8,7 +8,7 @@ import { defineConfig } from 'astro/config';
 // og:image). Sem uma URL absoluta, o preview do link NAO aparece bonito no
 // WhatsApp / redes sociais.
 //
-// >>> QUANDO COMPRAR O DOMINIO DA NINA, TROQUE A LINHA `SITE_URL` ABAIXO <<<
+// >>> QUANDO COMPRAR O DOMINIO DA LOJA, TROQUE A LINHA `SITE_URL` ABAIXO <<<
 //   Ex.: const SITE_URL = 'https://seu-dominio-aqui.com.br';
 //   (sem barra no final). Depois: `npm run build` e deploy.
 //   Nao precisa mexer em mais nada — BaseLayout.astro usa Astro.site

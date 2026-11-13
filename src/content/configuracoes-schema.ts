@@ -14,7 +14,7 @@ export const entregaConfigBaseSchema = z.object({
   // Ignorada quando taxa_a_combinar for true.
   taxa_entrega: z.number().min(0).default(0),
   // quando true, mostra "A combinar" no lugar de um valor fixo (nao soma
-  // nada ao total) — para quando a Nina ainda nao sabe o preco do frete.
+  // nada ao total) — para quando o dono da loja ainda nao sabe o preco do frete.
   taxa_a_combinar: z.boolean().default(false),
 });
 

@@ -10,7 +10,7 @@ import {
   totalCount,
 } from './cart-core';
 
-const KEY = 'dn-cart';
+const KEY = 'cd-cart';
 type Listener = (cart: Cart) => void;
 
 function read(): Cart {

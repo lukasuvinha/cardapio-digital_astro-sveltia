@@ -1,0 +1,125 @@
+/* =========================================================================
+   TEMA: "confeitaria" (tema padrao do template)
+   -------------------------------------------------------------------------
+   Este arquivo e a UNICA fonte de cores, fontes, raios de borda e sombras do
+   site. Componentes e paginas usam apenas var(--token) — nenhum deles tem
+   cor, fonte, raio ou sombra escritos direto no CSS.
+
+   COMO CRIAR UM TEMA NOVO
+   1. Copie este arquivo (ex.: src/styles/theme-bistro.css) e troque os
+      VALORES dos tokens. Nao renomeie nem apague tokens: todos sao usados
+      pelos componentes. Mantenha os tres blocos de cores do tema escuro
+      iguais entre si (o [data-theme='dark'] e o fallback @media).
+   2. Em src/layouts/BaseLayout.astro, troque o import
+      `../styles/theme.css` pelo arquivo novo.
+   3. Em src/config/theme.ts, ajuste o que o HTML precisa e o CSS nao
+      alcanca: a URL das fontes (Google Fonts) e as cores da barra do
+      navegador (meta theme-color). Elas devem bater com --brand (claro) e
+      --bg (escuro) daqui — o teste tests/theme.test.ts confere isso.
+   4. Arquivos estaticos tambem tem cor propria e nao leem tokens:
+      public/favicon.svg, public/logo.svg, public/og-image.png e as
+      ilustracoes em public/img/produtos/. Troque-os se a paleta mudar muito.
+   5. Contraste: os tokens de TEXTO (--ink, --muted, --muted-text,
+      --gold-text, --cream sobre --brand) foram escolhidos para passar no
+      contraste AA. Ao trocar, confira com um verificador de contraste.
+
+   Os nomes dos tokens descrevem o PAPEL (ex.: --brand, --accent-strong),
+   mesmo quando o nome historico lembra uma cor (--gold, --cream, --rust):
+   num tema novo, --gold pode muito bem ser azul.
+   ========================================================================= */
+
+/* ---- Tokens fixos (iguais nos dois modos, claro e escuro) --------------- */
+:root {
+  /* Cores de acento */
+  --gold: #C6A15B;          /* acento principal: bordas, detalhes, foco */
+  --cream: #E4C989;         /* texto/icones sobre a cor da marca (--brand) */
+  --rust: #A8532E;          /* acento forte: badges ("Mais pedido", contador) */
+  --green-soft: #3F6B52;    /* acento alternativo */
+  --on-accent: #f7efe1;     /* texto sobre --rust (badges) */
+  --brand-hover: #1a4231;   /* fundo de botao da marca no hover */
+  --gold-tint: rgba(198, 161, 91, 0.15);     /* hover de botoes contornados */
+  --brand-translucent: rgba(31, 77, 58, 0.72); /* botao sobre foto (lupa) */
+
+  /* Sobreposicoes */
+  --backdrop: rgba(20, 30, 20, 0.5);         /* fundo atras do carrinho */
+  --overlay-strong: rgba(15, 22, 16, 0.9);   /* fundo do lightbox da foto */
+  --overlay-soft: rgba(15, 22, 16, 0.6);     /* botao fechar do lightbox */
+
+  /* Fontes */
+  --font-head: 'Yeseva One', Georgia, serif;  /* titulos, nome da loja, precos */
+  --font-body: 'EB Garamond', Georgia, serif; /* texto corrido e botoes */
+
+  /* Raios de borda */
+  --radius-xs: 2px;       /* badges retangulares, contorno de foco */
+  --radius-sm: 3px;       /* chips de categoria, campos do carrinho */
+  --radius-md: 4px;       /* botoes */
+  --radius-lg: 6px;       /* caixas de resumo */
+  --radius-card: 8px;     /* cards, botoes de contato, foto ampliada */
+  --radius-xl: 10px;      /* foto do detalhe do produto */
+  --radius-badge: 9px;    /* contador do carrinho (pilula de 18px) */
+  --radius-pill: 16px;    /* seletor de quantidade do carrinho */
+  --radius-pill-lg: 22px; /* seletor de quantidade do detalhe */
+  --radius-round: 50%;    /* botoes redondos, selos, avatar */
+
+  /* Sombras */
+  --shadow-card-hover: 0 14px 28px rgba(31, 77, 58, 0.16);
+  --shadow-button-hover: 0 10px 24px rgba(31, 77, 58, 0.14);
+  --shadow-seal: 0 4px 16px rgba(198, 161, 91, 0.35); /* selo do logo */
+  --shadow-drawer: -20px 0 50px rgba(0, 0, 0, 0.25);
+  --shadow-lightbox: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --shadow-placeholder: inset 0 0 0 2px var(--border); /* moldura do "Foto em breve" */
+
+  --maxw: 1180px;
+}
+
+/* ---- Modo CLARO (padrao) ------------------------------------------------ */
+:root {
+  --bg: #F7EFE1;
+  --card: #FFFDF7;
+  --card-alt: #EFE3CB;
+  --ink: #3B2A1E;
+  --muted: #6f5730;            /* escurecido p/ contraste AA em rotulos pequenos */
+  --muted-text: rgba(59, 42, 30, 0.72);
+  --border: rgba(198, 161, 91, 0.4);
+  --brand: #1F4D3A;
+  --brand-border: rgba(31, 77, 58, 0.32);
+  /* acento LEGIVEL para TEXTO sobre fundos claros (preco, total). O --gold
+     puro e usado so em bordas/acentos; como texto no claro reprova no
+     contraste, entao aqui usamos um tom mais escuro. */
+  --gold-text: #836420;
+}
+
+/* ---- Modo ESCURO -------------------------------------------------------- */
+/* Aplicado quando o usuario escolhe explicitamente (data-theme="dark")...  */
+:root[data-theme='dark'] {
+  --bg: #0f1d16;
+  --card: #1a3327;
+  --card-alt: #21402f;
+  --ink: #F1E6D2;
+  --muted: #c9a15e;
+  --muted-text: rgba(233, 214, 175, 0.72);
+  --border: rgba(198, 161, 91, 0.28);
+  --brand: #142a1f;
+  --brand-border: rgba(198, 161, 91, 0.28);
+  /* no escuro o acento puro ja tem contraste bom sobre o fundo escuro */
+  --gold-text: #C6A15B;
+}
+
+/* ...e como fallback sem JS: segue a preferencia do sistema, a menos que o
+   usuario tenha escolhido o tema claro explicitamente. O script inline no
+   layout normalmente ja define data-theme antes da pintura, evitando flash.
+   MANTENHA IGUAL ao bloco [data-theme='dark'] acima. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']):not([data-theme='dark']) {
+    --bg: #0f1d16;
+    --card: #1a3327;
+    --card-alt: #21402f;
+    --ink: #F1E6D2;
+    --muted: #c9a15e;
+    --muted-text: rgba(233, 214, 175, 0.72);
+    --border: rgba(198, 161, 91, 0.28);
+    --brand: #142a1f;
+    --brand-border: rgba(198, 161, 91, 0.28);
+    --gold-text: #C6A15B;
+  }
+}

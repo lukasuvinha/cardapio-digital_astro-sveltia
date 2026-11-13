@@ -1,3 +1,0 @@
----
-nome: Copo da Felicidade
----

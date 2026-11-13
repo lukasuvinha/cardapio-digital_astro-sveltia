@@ -1,6 +1,7 @@
-# Bugs e correções — Doçuras da Nina
+# Bugs e correções
 
-Registro dos problemas encontrados ao longo do projeto e como cada um foi
+Registro dos problemas encontrados ao longo do projeto (ainda no cardápio
+real que deu origem a este template) e como cada um foi
 resolvido. A maioria apareceu **em produção** (o CMS só dá para testar de verdade
 no ar), então cada correção veio junto de uma blindagem para não repetir.
 
@@ -8,7 +9,7 @@ no ar), então cada correção veio junto de uma blindagem para não repetir.
 
 ## 1. Build quebrava por causa das fotos (`image()` do Astro) — 3 incidentes
 
-**Sintoma:** o deploy falhava sempre que a Nina subia uma foto pelo CMS.
+**Sintoma:** o deploy falhava sempre que o dono da loja subia uma foto pelo CMS.
 
 **Causa:** as fotos passavam pelo `image()`/`<Picture>` do Astro, que otimiza a
 imagem **no build**. Se qualquer imagem não resolvesse (caminho, formato estranho,
@@ -73,7 +74,7 @@ tolera qualquer forma que o CMS venha a gravar a data:
 **Sintoma:** sem cupom aplicado, aparecia uma linha "Desconto −R$ 0,00".
 
 **Causa:** o atributo `[hidden]` das linhas de desconto era **vencido** pelo
-`display:flex` das classes (`.dn-drawer__line` / `.dn-summary__row`), então o
+`display:flex` das classes (`.cd-drawer__line` / `.cd-summary__row`), então o
 elemento "escondido" continuava visível.
 
 **Correção:** regra `[hidden] { display: none }` mais específica para essas classes.
@@ -85,7 +86,7 @@ navegador real, não pelos testes.
 
 ## 5. Guarda de produtos falhava com produto sem foto
 
-**Sintoma:** teste `produtos-structure` falhava depois que a Nina cadastrou um
+**Sintoma:** teste `produtos-structure` falhava depois que o dono da loja cadastrou um
 produto **sem foto** (`foto: ''`).
 
 **Causa:** a guarda exigia que todo campo `foto` fosse uma URL começando com `/`,
@@ -123,7 +124,7 @@ categoria), o fundo ficava aceso (verde mais claro) **como se o cursor estivesse
 sempre ali**. No desktop não acontecia.
 
 **Causa:** telas de toque **mantêm o estado `:hover`** no último elemento tocado
-até tocar em outro lugar. Regras como `.dn-header__cart:hover { background: … }`
+até tocar em outro lugar. Regras como `.cd-header__cart:hover { background: … }`
 "grudavam" após o toque.
 
 **Correção:** todas as regras `:hover` que mudam aparência foram envolvidas em

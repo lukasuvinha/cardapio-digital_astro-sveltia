@@ -1,10 +1,11 @@
-// Numero de pedido SEQUENCIAL e crescente: DN0001, DN0002, DN0003, ...
+// Numero de pedido SEQUENCIAL e crescente: DE0001, DE0002, DE0003, ...
+// (o prefixo vem de ORDER_PREFIX em src/config/site.ts)
 //
 // ATUALMENTE NAO USADO — a pedido do cliente, o app voltou a usar o numero
 // ALEATORIO (generateOrderId em src/lib/whatsapp.ts). Motivo: como o site e
 // 100% estatico, sem servidor/banco, o contador so pode viver no localStorage
 // DE CADA NAVEGADOR — ou seja, cada cliente novo (ou cada aparelho diferente
-// da mesma pessoa) comecaria SEMPRE do zero em "DN0001", o que parecia
+// da mesma pessoa) comecaria SEMPRE do zero em "DE0001", o que parecia
 // estranho/pouco confiavel para quem recebe o pedido.
 //
 // Este arquivo fica aqui, testado e funcional, para o caso de um dia o site
@@ -17,17 +18,19 @@
 //
 // Ver docs/CUPONS-E-PEDIDOS.md.
 
-const KEY = 'dn-pedido-seq';
+import { ORDER_PREFIX } from '../config/site';
 
-/** Formata um numero sequencial como "DN0001" (minimo 4 digitos). */
+const KEY = 'cd-pedido-seq';
+
+/** Formata um numero sequencial como "DE0001" (ORDER_PREFIX + minimo 4 digitos). */
 export function formatOrderNumber(seq: number): string {
   const n = Math.max(0, Math.floor(seq));
-  return 'DN' + String(n).padStart(4, '0');
+  return ORDER_PREFIX + String(n).padStart(4, '0');
 }
 
 /**
  * Proximo numero de pedido: incrementa e persiste o contador do navegador.
- * Retorna ja formatado (ex.: "DN0007").
+ * Retorna ja formatado (ex.: "DE0007").
  */
 export function nextOrderNumber(): string {
   let seq = 1;

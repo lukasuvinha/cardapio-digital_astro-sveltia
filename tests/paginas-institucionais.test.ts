@@ -9,7 +9,7 @@ import ContactButton from '../src/components/ContactButton.astro';
 import Sobre from '../src/pages/sobre.astro';
 import Contato from '../src/pages/contato.astro';
 import Desenvolvedor from '../src/pages/desenvolvedor.astro';
-import { WHATSAPP_NUMBER, INSTAGRAM_URL, DEV_NAME, DEV_GITHUB_URL, DEV_LINKEDIN_URL } from '../src/config/site';
+import { WHATSAPP_NUMBER, INSTAGRAM_URL, DEV_NAME, DEV_GITHUB_URL, DEV_LINKEDIN_URL, SITE_NAME } from '../src/config/site';
 
 describe('Footer — links institucionais', () => {
   it('tem links para /sobre e /contato', async () => {
@@ -45,8 +45,8 @@ describe('Página Sobre', () => {
   it('renderiza um título e texto (placeholder editável depois)', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Sobre, {});
-    expect(html).toContain('Sobre a Doçuras da Nina');
-    expect(html).toContain('Doçuras da Nina nasceu');
+    expect(html).toContain(`Sobre a ${SITE_NAME}`);
+    expect(html).toContain(`${SITE_NAME} nasceu`);
     // link de volta ao cardapio
     expect(html).toMatch(/<a[^>]*href="\/"[^>]*>Ver Cardápio<\/a>/);
   });

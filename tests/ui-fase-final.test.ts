@@ -7,6 +7,7 @@ import ProductGrid from '../src/components/ProductGrid.astro';
 import Header from '../src/components/Header.astro';
 import BaseLayout from '../src/layouts/BaseLayout.astro';
 import type { Product } from '../src/data/menu-helpers';
+import { SITE_NAME } from '../src/config/site';
 
 const produto: Product = {
   id: 'p1', nome: 'Brownie', preco: 14, categoria: 'Brownie', disponivel: true,
@@ -34,8 +35,8 @@ describe('Header — marca leva para a home', () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Header, {});
     // o link da marca aponta para a raiz do site
-    expect(html).toMatch(/<a[^>]*class="dn-header__brand"[^>]*href="\/"/);
-    expect(html).toContain('Doçuras da Nina');
+    expect(html).toMatch(/<a[^>]*class="cd-header__brand"[^>]*href="\/"/);
+    expect(html).toContain(SITE_NAME);
   });
 });
 

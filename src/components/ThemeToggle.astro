@@ -1,12 +1,12 @@
 ---
 // Botao reutilizavel de alternancia de tema (claro/escuro).
 // Uso: <ThemeToggle /> em qualquer lugar. Pode haver mais de um na pagina;
-// o script sincroniza todos. A escolha e persistida em localStorage ('dn-theme')
+// o script sincroniza todos. A escolha e persistida em localStorage ('cd-theme')
 // e aplicada antes da pintura pelo script inline do BaseLayout (sem flash).
 ---
 
 <button
-  class="dn-theme-toggle"
+  class="cd-theme-toggle"
   type="button"
   aria-label="Alternar tema claro e escuro"
 >
@@ -31,7 +31,7 @@
 </button>
 
 <style>
-  .dn-theme-toggle {
+  .cd-theme-toggle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -39,7 +39,7 @@
     height: 38px;
     padding: 0;
     border: 1px solid var(--gold);
-    border-radius: 50%;
+    border-radius: var(--radius-round);
     background: transparent;
     color: var(--cream);
     line-height: 0;
@@ -49,31 +49,31 @@
      (toque), o :hover "gruda" apos o toque e o botao ficava com o fundo
      aceso como se o cursor estivesse sempre ali. */
   @media (hover: hover) {
-    .dn-theme-toggle:hover {
-      background: rgba(198, 161, 91, 0.15);
+    .cd-theme-toggle:hover {
+      background: var(--gold-tint);
     }
   }
 
   /* Troca de icone puramente via CSS conforme o tema ativo */
-  .dn-theme-toggle .icon-sun {
+  .cd-theme-toggle .icon-sun {
     display: none;
   }
-  .dn-theme-toggle .icon-moon {
+  .cd-theme-toggle .icon-moon {
     display: block;
   }
-  :global(:root[data-theme='dark']) .dn-theme-toggle .icon-sun {
+  :global(:root[data-theme='dark']) .cd-theme-toggle .icon-sun {
     display: block;
   }
-  :global(:root[data-theme='dark']) .dn-theme-toggle .icon-moon {
+  :global(:root[data-theme='dark']) .cd-theme-toggle .icon-moon {
     display: none;
   }
 
   /* Fallback sem JS: acompanha a preferencia do sistema */
   @media (prefers-color-scheme: dark) {
-    :global(:root:not([data-theme='light']):not([data-theme='dark'])) .dn-theme-toggle .icon-sun {
+    :global(:root:not([data-theme='light']):not([data-theme='dark'])) .cd-theme-toggle .icon-sun {
       display: block;
     }
-    :global(:root:not([data-theme='light']):not([data-theme='dark'])) .dn-theme-toggle .icon-moon {
+    :global(:root:not([data-theme='light']):not([data-theme='dark'])) .cd-theme-toggle .icon-moon {
       display: none;
     }
   }
@@ -89,16 +89,16 @@
   function applyTheme(theme: 'dark' | 'light') {
     document.documentElement.setAttribute('data-theme', theme);
     try {
-      localStorage.setItem('dn-theme', theme);
+      localStorage.setItem('cd-theme', theme);
     } catch (e) {
       /* localStorage indisponivel: mantem apenas na sessao atual */
     }
-    document.querySelectorAll('.dn-theme-toggle').forEach((btn) => {
+    document.querySelectorAll('.cd-theme-toggle').forEach((btn) => {
       btn.setAttribute('aria-pressed', String(theme === 'dark'));
     });
   }
 
-  document.querySelectorAll('.dn-theme-toggle').forEach((btn) => {
+  document.querySelectorAll('.cd-theme-toggle').forEach((btn) => {
     btn.setAttribute('aria-pressed', String(currentTheme() === 'dark'));
     btn.addEventListener('click', () => {
       applyTheme(currentTheme() === 'dark' ? 'light' : 'dark');

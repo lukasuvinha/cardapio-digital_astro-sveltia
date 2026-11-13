@@ -26,7 +26,7 @@ const fornada = await getFornadaBanner();
   {fornada.visivel && <FornadaBanner texto={fornada.texto} />}
   <CategoryNav items={navItems} />
 
-  <main class="dn-main">
+  <main class="cd-main">
     <ProductGrid products={produtos} />
   </main>
 
@@ -38,7 +38,7 @@ const fornada = await getFornadaBanner();
 <script>
   // Filtro por categoria: mostra/esconde os cards conforme o chip ativo.
   const chips = Array.from(document.querySelectorAll<HTMLElement>('[data-filter]'));
-  const cards = Array.from(document.querySelectorAll<HTMLElement>('.dn-grid [data-categoria]'));
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('.cd-grid [data-categoria]'));
 
   function aplicar(filtro: string) {
     for (const card of cards) {
@@ -57,7 +57,7 @@ const fornada = await getFornadaBanner();
 </script>
 
 <style>
-  .dn-main {
+  .cd-main {
     max-width: var(--maxw);
     margin: 0 auto;
     padding: clamp(18px, 4vw, 32px) clamp(16px, 4vw, 48px) 80px;

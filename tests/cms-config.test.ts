@@ -101,7 +101,7 @@ describe('public/admin/config.yml — parse e estrutura', () => {
   });
 
   it('collection "configuracoes" tem o arquivo "entrega", mas "whatsapp" continua DESATIVADO', () => {
-    // O arquivo "whatsapp" (edicao do texto do WhatsApp pela Nina) foi
+    // O arquivo "whatsapp" (edicao do texto do WhatsApp pelo dono da loja) foi
     // desativado a pedido do cliente — o texto so muda no codigo
     // (src/lib/whatsapp.ts). Este teste falha se alguem reativar esse
     // arquivo no config.yml sem querer.

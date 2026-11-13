@@ -4,7 +4,7 @@
 
 ## Collection `produtos`
 
-Fonte da verdade dos produtos do cardápio, **editável pela Nina** via Sveltia CMS
+Fonte da verdade dos produtos do cardápio, **editável pelo dono da loja** via Sveltia CMS
 (painel em `/admin`, configurado em `public/admin/config.yml`).
 
 - Cada produto é **um arquivo plano** `produtos/<id>.md` (frontmatter: `nome`,
@@ -16,7 +16,7 @@ Fonte da verdade dos produtos do cardápio, **editável pela Nina** via Sveltia 
 ### Por que a foto NÃO usa o `image()` do Astro (3 incidentes)
 
 O `image()`/`<Picture>` otimiza no build, mas **hard-faila o build inteiro** se
-a imagem não resolver — e como as fotos vêm de uploads da Nina, isso quebrou o
+a imagem não resolver — e como as fotos vêm de uploads do dono da loja, isso quebrou o
 deploy **três vezes**:
 
 1. Fotos co-locadas com os `.md` (`media_folder: ""`) → excluir 1 produto apagou
@@ -43,7 +43,7 @@ Os componentes/páginas leem via `getProdutos()` em
 
 ## Outras collections
 
-- **`categorias/`** — categorias dos doces, editáveis pela Nina no CMS (o campo
+- **`categorias/`** — categorias dos doces, editáveis pelo dono da loja no CMS (o campo
   `categoria` de cada produto é um `relation` para esta collection). Schema
   inline em `config.ts`.
 - **`cupons/`** — cupons de desconto, schema em [`cupom-schema.ts`](./cupom-schema.ts).
@@ -51,7 +51,7 @@ Os componentes/páginas leem via `getProdutos()` em
   [`docs/CUPONS-E-PEDIDOS.md`](../../docs/CUPONS-E-PEDIDOS.md).
 - **`configuracoes/`** — contém `whatsapp.json`, mas **não é uma Content
   Collection ativa** (não está em `collections` no `config.ts`, nem no painel
-  do CMS). Era usado para a Nina editar o texto do WhatsApp; essa opção foi
+  do CMS). Era usado para o dono da loja editar o texto do WhatsApp; essa opção foi
   desativada a pedido do cliente. Arquivo mantido para referência/reativação
   futura — ver `docs/CUPONS-E-PEDIDOS.md`.
 

@@ -1,9 +1,9 @@
 {
-  "name": "docuras-da-nina",
+  "name": "cardapio-digital",
   "type": "module",
   "version": "0.1.0",
   "private": true,
-  "description": "Cardapio digital da Docuras da Nina - doceria artesanal (site estatico Astro).",
+  "description": "Template de cardapio digital para pequenos negocios de alimentacao (Astro + Sveltia CMS + Cloudflare Workers).",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",

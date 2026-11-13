@@ -23,7 +23,7 @@ describe('estrutura da collection de produtos (guarda de regressao)', () => {
     expect(subpastas).toEqual([]);
     const imagens = entradas.filter((e) => IMG.test(e));
     expect(imagens).toEqual([]);
-    expect(entradas.filter((e) => e.endsWith('.md')).length).toBeGreaterThanOrEqual(6);
+    expect(entradas.filter((e) => e.endsWith('.md')).length).toBeGreaterThanOrEqual(1);
   });
 
   const mds = entradas.filter((e) => e.endsWith('.md'));
