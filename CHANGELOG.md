@@ -4,7 +4,8 @@ Novidades do template de cardápio digital (Astro + Sveltia CMS + Cloudflare Wor
 
 ## [Não lançado] — 2026-11-16
 
-Ajustes de fluidez. O visual aprovado não mudou.
+Ajustes de fluidez e de respiro dos painéis no computador. Cores, tamanhos e
+textos aprovados não mudaram.
 
 ### Melhorado
 - **Abrir e fechar o carrinho ou o detalhe do produto no computador não mexe
