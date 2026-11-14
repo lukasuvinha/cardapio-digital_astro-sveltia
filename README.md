@@ -58,9 +58,9 @@ no navegador.
 - Textos das páginas **Sobre** (com foto opcional) e **Contato** (antecedência,
   região de entrega, retirada e formas de pagamento) editados no painel; o que
   ficar em branco não aparece.
-- Horário de pedidos e redes sociais (Instagram, TikTok, Facebook, Pinterest,
-  X, YouTube, Threads) ligados e desligados no painel; cada rede só aparece
-  com o link do perfil.
+- Horário de pedidos (dias e horas escolhidos em menus) e redes sociais
+  (Instagram, TikTok, Facebook, Pinterest, X, YouTube, Threads) ligados e
+  desligados no painel; cada rede só aparece com o link do perfil.
 
 ### Confiabilidade
 - Mais de 230 testes automatizados cobrindo carrinho, cupons, mensagem do pedido,
@@ -133,7 +133,7 @@ Toda a aparência é definida por tokens de tema: trocar a identidade visual de
 uma loja não exige mexer nos componentes. Trocar de tema é mudar uma linha em
 `src/config/theme.ts`.
 
-São 238 testes automatizados; rode `npm test` depois de adaptar.
+São 244 testes automatizados; rode `npm test` depois de adaptar.
 
 O passo a passo completo está em [README-TEMPLATE.md](README-TEMPLATE.md).
 

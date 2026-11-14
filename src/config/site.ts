@@ -66,7 +66,7 @@ export const ORDER_PREFIX = 'DE';
 // deve aparecer se ele concordar (muita gente acha otimo, como indicacao; mas
 // nao e obrigatorio). Para tirar, mude DEV_CREDIT_ENABLED para false.
 export const DEV_CREDIT_ENABLED = true;
-export const DEV_NAME = 'Lukas';
+export const DEV_NAME = 'lukasuvinha'; // nick do GitHub
 export const DEV_URL = 'https://github.com/lukasuvinha';
 
 // ---- Pagina "Desenvolvedor" (/desenvolvedor) — DESATIVADA: o credito agora

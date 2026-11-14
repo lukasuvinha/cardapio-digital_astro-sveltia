@@ -11,7 +11,9 @@ Novidades do template de cardápio digital (Astro + Sveltia CMS + Cloudflare Wor
   poucas linhas. Mesmo conteúdo e mesmas cores; o rodapé ficou cerca de 35%
   mais baixo no celular e 45% no computador.
 - **Horário de pedidos e redes sociais no painel** (Configurações → Rodapé): o
-  horário pode ser alterado ou desligado, e as redes (Instagram, TikTok,
+  horário é escolhido em menus (dia inicial, dia final e horas, de meia em meia
+  hora) e vira um texto padronizado, como "Pedidos de terça a sábado, das 9h às
+  18h"; pode ser desligado a qualquer momento. As redes (Instagram, TikTok,
   Facebook, Pinterest, X, YouTube e Threads) são adicionadas, ligadas ou
   desligadas uma a uma. Cada rede só pode ser salva com o link do perfil, e
   só aparece no site com ele. As mesmas redes viram botões na página Contato.
@@ -19,6 +21,8 @@ Novidades do template de cardápio digital (Astro + Sveltia CMS + Cloudflare Wor
 ### Mudou
 - O rodapé não tem mais o atalho do WhatsApp: ele fica no botão dedicado da
   página Contato.
+- O crédito do rodapé passou a mostrar o nick do desenvolvedor no GitHub:
+  "Site feito por lukasuvinha".
 
 ## 2026-11-17
 

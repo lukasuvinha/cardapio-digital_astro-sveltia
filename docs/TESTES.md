@@ -1,6 +1,6 @@
 # Testes
 
-`npm test` roda a suíte completa (Vitest). **238 testes, 23 arquivos — todos
+`npm test` roda a suíte completa (Vitest). **244 testes, 23 arquivos — todos
 passando.**
 
 ## O que é coberto
@@ -28,7 +28,7 @@ passando.**
 | `redesign-ui.test.ts` | 15 | Estrutura do redesign Material 3: card (link + botão "+" fora do link, esgotado sem "+"), detalhe compartilhado (stepper, "Adicionar · R$ X", h1/h2), chips ("Todos" neutro e selecionado), barra superior (carrinho em pílula), carrinho (dialog modal, 3 etapas, FAB, snackbar, `aria-disabled`, Entrega/Retirada na 1ª etapa, cupom aplicado removível), reset `:where(button)` e `prefers-reduced-motion`. |
 | `sheet-drag.test.ts` | 13 | Decisão pura do **arrastar para fechar** (`decidirArrasto`): fecha com > 25% da altura ou > 0,5 px/ms para baixo, nunca para cima; posição do painel (não sobe além do aberto), opacidade do fundo e velocidade final do gesto. |
 | `interacoes.test.ts` | 19 | Guardas das correções de interação e fluidez: trava de rolagem por **compensação** (barra medida antes, `overflow` no `<html>`, `padding-right` no `<body>`, `--cd-scrollbar`; drawer e dialog do desktop a `--sheet-inset` das bordas), FAB e snackbar em **trilhos sticky** antes do rodapé (sem script de scroll), abertura dos painéis com dois `requestAnimationFrame`, foco no fim da transição e `will-change` só durante a animação, foto da sheet decodificada antes de abrir, sem realce de toque; gesto de arrastar ligado pelo mesmo `modal.close()`; troca de tema uniforme. |
-| `rodape.test.ts` | 14 | Rodapé editável no CMS: horário com chave liga/desliga (some desligado ou vazio), redes sociais que só aparecem **ligadas e com link válido** (`https://` com domínio; ordem cadastrada; rede desconhecida ou repetida ignorada), ícone para cada rede, `rodape.json` de exemplo e os campos do painel (lista com select de redes, **link obrigatório** com pattern). |
+| `rodape.test.ts` | 20 | Rodapé editável no CMS: horário com chave liga/desliga e **texto fixo** montado de dias e horas escolhidos em menus (\"de terça a sábado\", \"às terças\"/\"aos sábados\", \"todos os dias\"; some se desligado ou incompleto), redes sociais que só aparecem **ligadas e com link válido** (`https://` com domínio; ordem cadastrada; rede desconhecida ou repetida ignorada), ícone para cada rede, `rodape.json` de exemplo e os campos do painel (menus de dias e horas, lista com select de redes, **link obrigatório** com pattern). |
 | `fornada-render.test.ts` | 4 | Render (Container API): `FornadaBanner` mostra rótulo e valor em linhas separadas; a home sem configuração não renderiza o banner (nem quebra); o `fornada.json` de exemplo liga o banner com o aviso genérico. |
 
 Os arquivos em **negrito** são guardas de regressão criadas a partir de

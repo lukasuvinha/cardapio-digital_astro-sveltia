@@ -15,7 +15,7 @@ Doceria Exemplo                        Sobre · Contato        (Instagram) (TikT
 Doceria Artesanal
 Pedidos de terça a sábado, das 9h às 18h
 ─────────────────────────────────────────────────────────────────────────────────────
-© 2026 Doceria Exemplo                                              Site feito por Lukas
+© 2026 Doceria Exemplo                                              Site feito por lukasuvinha
 ```
 
 No celular, a marca e os ícones dividem a primeira linha; links e horário
@@ -27,7 +27,7 @@ Doceria Artesanal
 Sobre · Contato
 Pedidos de terça a sábado, das 9h às 18h
 ──────────────────────────────────────────────────────
-© 2026 Doceria Exemplo            Site feito por Lukas
+© 2026 Doceria Exemplo            Site feito por lukasuvinha
 ```
 
 O ano do © é o do build (o site é estático, então ele atualiza a cada
@@ -52,9 +52,16 @@ como reativar).
 
 Em **Configurações → Rodapé** (`src/content/configuracoes/rodape.json`):
 
-- **Mostrar horário de pedidos** (liga/desliga) e **Horário de pedidos**
-  (texto livre, ex.: "Pedidos de terça a sábado, das 9h às 18h"). Desligado ou
-  em branco, a linha some; o texto continua salvo para quando religar.
+- **Mostrar horário de pedidos** (liga/desliga) e quatro menus: **Pedidos a
+  partir de (dia)**, **Até (dia)**, **Das (hora)** e **Às (hora)** (de meia em
+  meia hora). O **texto é fixo**, montado a partir dessas escolhas:
+  - "Pedidos de terça a sábado, das 9h às 18h";
+  - mesmo dia no início e no fim: "Pedidos às terças, das 9h às 18h" (ou
+    "aos sábados", "aos domingos");
+  - de segunda a domingo: "Pedidos todos os dias, das 9h às 18h".
+
+  Desligado, a linha some; os dias e horas continuam salvos para quando
+  religar. A regra fica em `textoHorario` (`src/content/rodape-schema.ts`).
 - **Redes sociais** — uma lista: em cada item, escolha a **rede** (Instagram,
   TikTok, Facebook, Pinterest, X, YouTube ou Threads), cole o **link do
   perfil** e use **Mostrar no site** para ligar ou esconder sem apagar.
@@ -114,7 +121,7 @@ Em [`src/config/site.ts`](../src/config/site.ts):
 ```ts
 export const WHATSAPP_NUMBER = '5511999999999'; // só dígitos: 55 + DDD + número
 export const DEV_CREDIT_ENABLED = true;
-export const DEV_NAME = 'Lukas';
+export const DEV_NAME = 'lukasuvinha'; // nick do GitHub
 export const DEV_URL = 'https://github.com/lukasuvinha';
 ```
 

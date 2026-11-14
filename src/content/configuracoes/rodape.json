@@ -1,9 +1,24 @@
 {
   "horario_habilitado": true,
-  "horario": "Pedidos de terça a sábado, das 9h às 18h",
+  "dia_inicio": "terca",
+  "dia_fim": "sabado",
+  "hora_inicio": "09:00",
+  "hora_fim": "18:00",
   "redes": [
-    { "rede": "instagram", "url": "https://www.instagram.com/seu_usuario", "ativo": true },
-    { "rede": "tiktok", "url": "https://www.tiktok.com/@seu_usuario", "ativo": true },
-    { "rede": "facebook", "url": "https://www.facebook.com/seu_usuario", "ativo": true }
+    {
+      "rede": "instagram",
+      "url": "https://www.instagram.com/seu_usuario",
+      "ativo": true
+    },
+    {
+      "rede": "tiktok",
+      "url": "https://www.tiktok.com/@seu_usuario",
+      "ativo": true
+    },
+    {
+      "rede": "facebook",
+      "url": "https://www.facebook.com/seu_usuario",
+      "ativo": true
+    }
   ]
 }
