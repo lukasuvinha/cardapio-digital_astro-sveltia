@@ -11,6 +11,7 @@ import { cupomBaseSchema } from './cupom-schema';
 import { entregaConfigBaseSchema } from './configuracoes-schema';
 import { fornadaConfigBaseSchema } from './fornada-schema';
 import { categoriaBaseSchema } from './categoria-schema';
+import { sobrePaginaSchema, contatoPaginaSchema } from './paginas-schema';
 
 const produtos = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/produtos' }),
@@ -54,4 +55,16 @@ const fornada = defineCollection({
   schema: fornadaConfigBaseSchema,
 });
 
-export const collections = { produtos, cupons, categorias, configuracoes, fornada };
+// Conteudo editavel das paginas "Sobre" e "Contato" (arquivos singulares na
+// mesma pasta; no CMS aparecem em Configuracoes -> Pagina Sobre / Pagina
+// Contato). Mesma razao do "fornada": uma collection por formato de arquivo.
+const sobre = defineCollection({
+  loader: glob({ pattern: 'sobre.json', base: './src/content/configuracoes' }),
+  schema: sobrePaginaSchema,
+});
+const contato = defineCollection({
+  loader: glob({ pattern: 'contato.json', base: './src/content/configuracoes' }),
+  schema: contatoPaginaSchema,
+});
+
+export const collections = { produtos, cupons, categorias, configuracoes, fornada, sobre, contato };

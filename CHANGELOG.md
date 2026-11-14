@@ -2,7 +2,51 @@
 
 Novidades do template de cardápio digital (Astro + Sveltia CMS + Cloudflare Workers).
 
-## [Não lançado] — 2026-11-14
+## [Não lançado] — 2026-11-17
+
+Uma rodada de acabamento: o cardápio ficou mais fluido no celular e no
+computador, as páginas Sobre e Contato ganharam conteúdo editável e o rodapé
+ficou mais útil. Cores e textos do design aprovado não mudaram.
+
+### Novo
+- **Arraste para fechar:** no celular, o detalhe do produto e o carrinho
+  fecham ao arrastar o painel para baixo, pela alça, pelo topo ou pelo
+  conteúdo quando ele está no início. Um arrasto curto devolve o painel ao
+  lugar.
+- **Páginas Sobre e Contato editáveis no painel** (Configurações → Página
+  Sobre / Página Contato):
+  - **Sobre:** foto opcional, texto em tom pessoal e botão para o cardápio.
+  - **Contato:** botão principal do WhatsApp, Instagram e a seção "Como
+    encomendar" (antecedência, região de entrega, retirada e formas de
+    pagamento).
+  - O que ficar em branco não aparece.
+- **Rodapé mais útil:** atalhos para o WhatsApp e o Instagram da loja, linha
+  opcional com o horário de pedidos e um crédito discreto "Site feito por …",
+  que pode ser desligado em `src/config/site.ts`. Combine com o cliente antes de
+  publicar.
+
+### Melhorado
+- **Nada se mexe ao abrir o carrinho ou o detalhe no computador:** a página não
+  "salta" mais para o lado, o fundo escurecido cobre a tela inteira e os dois
+  painéis flutuam a 24px das bordas da janela.
+- **Botão flutuante do carrinho:** no celular, para logo acima do rodapé, sem
+  cobrir os links nem tremer na rolagem.
+- **Detalhe do produto abre sem engasgo:** a foto já está pronta quando a
+  animação começa, e o toque nos cards não mostra mais o realce azul do
+  celular.
+- **Troca de tema uniforme:** o claro/escuro muda a página inteira de uma vez,
+  com um leve esmaecimento nos navegadores que suportam (instantâneo nos
+  demais ou para quem prefere menos movimento).
+- **Acessibilidade:** o botão flutuante escondido (carrinho vazio) não recebe
+  mais foco pelo teclado.
+
+### Mudou
+- A página "Desenvolvedor" foi desativada; o crédito agora fica no rodapé de
+  todas as páginas.
+- Documentação revista: README, guia do template e documentos em `docs/`
+  atualizados para o visual e as funcionalidades atuais.
+
+## 2026-11-14
 
 Redesign completo no estilo **Material You (Material 3)**, com paleta quente de
 confeitaria. As regras de negócio (carrinho, cupons, entrega/retirada, fornada,

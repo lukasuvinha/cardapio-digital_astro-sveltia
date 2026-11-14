@@ -8,7 +8,9 @@ Antes de publicar para um cliente:
    (`SITE_TAGLINE`), descrição para buscadores (`SITE_DESCRIPTION`), logo (`SITE_LOGO`),
    imagem de compartilhamento (`SITE_OG_IMAGE`), WhatsApp (`WHATSAPP_NUMBER`), Instagram
    (`INSTAGRAM_URL`), título da mensagem do pedido (`WHATSAPP_ORDER_TITLE`), prefixo do número
-   do pedido (`ORDER_PREFIX`) e créditos do desenvolvedor (`DEV_*`).
+   do pedido (`ORDER_PREFIX`), horário de pedidos no rodapé (`ORDER_HOURS`) e o crédito do
+   desenvolvedor no rodapé (`DEV_CREDIT_ENABLED`, `DEV_NAME`, `DEV_URL` — combine com o cliente).
+   Textos das páginas Sobre e Contato: no painel, em Configurações → Página Sobre / Página Contato.
 2. `public/logo.svg`, `public/og-image.png` e `public/favicon.svg` — troque pelas imagens da
    loja (passo a passo em `docs/LOGO.md`).
 3. `src/styles/theme.css` + `src/config/theme.ts` — cores, fontes, raios, sombras e movimento
@@ -22,6 +24,10 @@ Antes de publicar para um cliente:
 6. `src/content/` — apague os produtos, categorias e o cupom de exemplo (`produtos/`,
    `categorias/`, `cupons/`) e cadastre os reais, ou deixe o cliente cadastrar pelo painel.
    As ilustrações de exemplo ficam em `public/img/produtos/` e podem ser apagadas junto.
+   Em `src/content/configuracoes/` (ou no painel, em **Configurações**), revise também:
+   `entrega.json` (entrega, retirada e taxa), `fornada.json` (o aviso de próxima fornada vem
+   **ligado** no exemplo), `sobre.json` (texto e foto da página Sobre; a ilustração de exemplo
+   fica em `public/img/sobre/`) e `contato.json` ("Como encomendar" da página Contato).
 7. `public/uploads/` — as fotos reais entram por aqui, via CMS.
 8. Rode `npm install && npm test && npm run build` depois das trocas. Os testes leem os
    valores de `site.ts`, então não dependem do nome da loja.

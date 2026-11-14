@@ -24,17 +24,28 @@ no navegador.
 - **Pedido que chega pronto.** A mensagem no WhatsApp já vem com itens,
   quantidades, totais, desconto, forma de entrega e dados do cliente.
 - **Rápido e leve.** Páginas estáticas carregam bem mesmo em celular com conexão fraca.
+- **Bonito no celular e no computador.** Visual no estilo Material You, com paleta
+  quente de confeitaria, modo claro e escuro e animações suaves.
 
 ## Funcionalidades
 
 ### Para o cliente
-- Cardápio em grade com filtro por categoria, sem recarregar a página.
-- Página de cada produto, com foto ampliável e seletor de quantidade.
-- Carrinho salvo no navegador, com fluxo carrinho → checkout → confirmação.
+- Cardápio em grade com filtro por categoria, sem recarregar a página. Cada
+  categoria tem a sua cor, e os produtos podem ir direto para o carrinho pelo
+  botão "+" do card.
+- Detalhe do produto numa janela sobre o cardápio, sem trocar de página, com
+  seletor de quantidade. Cada produto também tem a sua própria página, para
+  compartilhar o link.
+- Carrinho salvo no navegador, em painel lateral no computador e em painel
+  deslizante no celular, que fecha ao arrastar para baixo. Fluxo em etapas:
+  carrinho → dados → confirmação.
 - Cupons de desconto em percentual ou valor fixo.
 - Escolha entre entrega e retirada, com taxa de entrega calculada no total.
 - Envio do pedido ao WhatsApp da loja, com número de pedido.
-- Tema claro e escuro, que segue a preferência do aparelho.
+- Tema claro e escuro, que segue a preferência do aparelho e pode ser trocado
+  por um botão.
+- Páginas **Sobre** e **Contato**, e rodapé com atalhos para o WhatsApp e o
+  Instagram da loja e o horário de pedidos.
 
 ### Para quem vende
 - Painel visual em `/admin` para cadastrar produtos, categorias e fotos.
@@ -43,16 +54,21 @@ no navegador.
 - Entrega e retirada ativadas separadamente, com taxa fixa ou "a combinar".
 - Aviso opcional de **próxima fornada** no topo do cardápio, com data e hora ou
   um aviso de "em preparação".
+- Cor de cada categoria escolhida no painel (ou distribuída automaticamente).
+- Textos das páginas **Sobre** (com foto opcional) e **Contato** (antecedência,
+  região de entrega, retirada e formas de pagamento) editados no painel; o que
+  ficar em branco não aparece.
 
 ### Confiabilidade
-- Mais de 140 testes automatizados cobrindo carrinho, cupons, mensagem do pedido,
-  regras do painel e renderização das páginas.
+- Mais de 220 testes automatizados cobrindo carrinho, cupons, mensagem do pedido,
+  regras do painel, renderização das páginas, contraste de cores do tema e
+  acessibilidade das janelas (foco, teclado, leitor de tela).
 - Fotos ausentes ou quebradas são substituídas por um placeholder, e o site nunca
   deixa de ser publicado por causa de uma imagem.
 - Preview de link com imagem e descrição (Open Graph) ao compartilhar no WhatsApp
   e nas redes sociais.
 - Página 404 e estados vazios tratados com a identidade visual da loja.
-- Leve: o site inteiro carrega menos de 40 KB de JavaScript e CSS.
+- Leve: todo o JavaScript e CSS do site somam cerca de 65 KB (15 KB comprimidos).
 
 ## Como funciona
 
@@ -100,17 +116,21 @@ poucos arquivos:
 
 | Arquivo | O que define |
 |---|---|
-| `src/config/site.ts` | Nome, slogan, descrição, WhatsApp, Instagram, logo, prefixo do pedido e créditos |
-| `src/styles/theme.css` | Cores, fontes, bordas e sombras, nos modos claro e escuro |
-| `src/config/theme.ts` | Fontes carregadas e cor da barra do navegador |
+| `src/config/site.ts` | Nome, slogan, descrição, WhatsApp, Instagram, horário de pedidos, logo, imagem de compartilhamento, título da mensagem e prefixo do pedido, e o crédito do desenvolvedor no rodapé (que pode ser desligado) |
+| `src/styles/theme.css` | Tema padrão: cores (modos claro e escuro e cores das categorias), fontes, tamanhos de texto, bordas, sombras e animações |
+| `src/styles/theme-confeitaria.css` | Tema alternativo pronto, com outra paleta e outras fontes |
+| `src/config/theme.ts` | Tema ativo, fontes carregadas e cor da barra do navegador |
 | `astro.config.mjs` | Endereço do site |
 | `public/admin/config.yml` | Repositório e login do painel |
 | `wrangler.jsonc` | Nome do projeto na Cloudflare |
-| `src/content/` | Produtos, categorias, cupons e configurações iniciais |
-| `public/` | Logo, ícone e imagem de compartilhamento |
+| `src/content/` | Produtos, categorias (com cor), cupom e configurações: entrega, aviso de fornada e textos das páginas Sobre e Contato |
+| `public/` | Logo, ícone, imagem de compartilhamento e ilustrações de exemplo |
 
 Toda a aparência é definida por tokens de tema: trocar a identidade visual de
-uma loja não exige mexer nos componentes.
+uma loja não exige mexer nos componentes. Trocar de tema é mudar uma linha em
+`src/config/theme.ts`.
+
+São 221 testes automatizados; rode `npm test` depois de adaptar.
 
 O passo a passo completo está em [README-TEMPLATE.md](README-TEMPLATE.md).
 
@@ -132,7 +152,7 @@ e a conta usada no painel só tem acesso ao repositório da própria loja.
 | Documento | Conteúdo |
 |---|---|
 | [Cupons, pedidos e entrega](docs/CUPONS-E-PEDIDOS.md) | Regras de cupom, número do pedido, entrega, retirada e aviso de fornada |
-| [Páginas institucionais](docs/PAGINAS-INSTITUCIONAIS.md) | Como editar as páginas Sobre, Contato e Desenvolvedor |
+| [Páginas institucionais](docs/PAGINAS-INSTITUCIONAIS.md) | Páginas Sobre e Contato, rodapé e crédito do desenvolvedor |
 | [Logo e compartilhamento](docs/LOGO.md) | Como trocar o logo, o ícone e a imagem de preview do link |
 | [Testes](docs/TESTES.md) | O que os testes cobrem e como rodá-los |
 | [Histórico de correções](docs/BUGS-E-CORRECOES.md) | Problemas encontrados em uso e como foram resolvidos |

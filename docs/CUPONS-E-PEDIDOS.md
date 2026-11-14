@@ -2,7 +2,7 @@
 
 Cupons e número de pedido são duas funcionalidades que dependem do
 **navegador do cliente** (o site é 100% estático, sem servidor/banco); entrega
-e retirada é sobre o que aparece pro cliente escolher no checkout; próxima
+e retirada é sobre o que aparece pro cliente escolher no carrinho; próxima
 fornada é sobre o banner de aviso no topo do cardápio; o texto do WhatsApp é
 sobre como customizar a mensagem do pedido. Aqui ficam as regras e os limites
 de cada um.
@@ -29,6 +29,13 @@ No CMS, cada cupom tem:
 
 A lógica está em `src/lib/coupon.ts` (`isExpired`) e o schema em
 `src/content/cupom-schema.ts` (normaliza a hora para `HH:mm`).
+
+### No carrinho
+
+O cliente digita o código no campo **Cupom de desconto** e toca em
+**Aplicar**. Com o cupom válido, o campo vira um bloco com o código e o valor
+do desconto, e um **×** para remover o cupom. Cupom inválido ou vencido mostra
+o motivo logo abaixo do campo e o pedido continua sem desconto.
 
 ### Uso único por navegador
 
@@ -98,8 +105,10 @@ outra ação. Essa regra fica em `src/lib/checkout-config.ts`
 
 ## Próxima fornada
 
-Banner opcional no topo do cardápio (logo abaixo do cabeçalho) avisando
-quando será a próxima fornada. Quem administra o site controla tudo pelo painel do Sveltia
+Banner opcional no bloco do topo do cardápio, logo abaixo da barra superior
+(no computador, à direita do título "Cardápio"), avisando quando será a
+próxima fornada. Na loja de exemplo ele vem **ligado**, com o aviso "Em
+preparação". Quem administra o site controla tudo pelo painel do Sveltia
 (**`/admin`** → **Configurações** → **Próxima Fornada**), sem mexer em
 código:
 
@@ -139,7 +148,7 @@ código:
 | Lógica de qual texto mostrar (e o fallback "sem data → aviso genérico") | `src/lib/fornada-banner.ts` |
 | Leitura em build time | `src/data/fornada.ts` |
 | Componente do banner | `src/components/FornadaBanner.astro` |
-| Onde o banner aparece no site | `src/pages/index.astro` (logo após o `<Header />`) |
+| Onde o banner aparece no site | `src/pages/index.astro`, dentro do bloco do topo (`<PageHero>`) |
 
 ## Número do pedido (ex.: DE4821)
 
@@ -176,9 +185,10 @@ O texto que abre no WhatsApp (título, itens, total, dados do cliente etc.) é
 montado por `buildOrderMessage()` em `src/lib/whatsapp.ts`. Já existiu uma
 versão em que o dono da loja podia editar o **título** e uma **mensagem final**
 (agradecimento) direto pelo painel do Sveltia — essa opção foi **desativada a
-pedido do cliente** (a seção "Configurações" não aparece mais no `/admin`; o
-bloco correspondente ficou comentado em `public/admin/config.yml` para
-referência).
+pedido do cliente**: o arquivo de texto do WhatsApp não aparece mais em
+**Configurações** no `/admin` (que hoje tem Entrega e Retirada, Próxima
+Fornada, Página Sobre e Página Contato); o bloco correspondente ficou
+comentado em `public/admin/config.yml` para referência).
 
 ### Editar o texto do WhatsApp manualmente
 

@@ -13,6 +13,15 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* ---- ANTES (PR #4): scrollbar-gutter: stable; — reservava SEMPRE o espaco
+     da barra de rolagem para a pagina nao "saltar" quando um painel trava a
+     rolagem. Trocado pela trava por COMPENSACAO em src/lib/modal.ts
+     (overflow: hidden no <html> + padding-right no <body> com a largura da
+     barra), porque a faixa reservada aparecia na cor do tema, o scrim nao a
+     cobria e escondia a borda direita do drawer. Para reativar: volte esta
+     linha, o bloco comentado em travarRolagem (modal.ts) e o right do drawer
+     em CartDrawer.astro.
+  scrollbar-gutter: stable; */
 }
 
 body {
@@ -23,13 +32,35 @@ body {
   font-family: var(--font-body);
   font-size: var(--fs-body);
   line-height: 1.5;
-  transition: background-color var(--dur-emph) var(--ease-emph), color var(--dur-emph) var(--ease-emph);
+  /* Sem transicao de cor aqui: a troca de tema e feita de uma vez para a
+     pagina inteira (ver "Troca de tema" abaixo e ThemeToggle.astro). Uma
+     transicao propria do body fazia o fundo trocar num ritmo diferente dos
+     componentes. */
 }
 
-/* Trava a rolagem da pagina quando um sheet/drawer/dialog esta aberto
-   (ver src/lib/modal.ts). */
-body.cd-scroll-lock {
-  overflow: hidden;
+/* Trava de rolagem quando um sheet/drawer/dialog esta aberto: feita em
+   src/lib/modal.ts (overflow: hidden no <html> + padding-right no <body>
+   com a largura da barra). body.cd-scroll-lock fica so como marcador.
+   NAO coloque overflow: hidden no body: com o <html> tambem em hidden, o
+   body viraria um conteiner de rolagem proprio e o header sticky deixaria
+   de grudar no topo enquanto o painel estiver aberto. */
+
+/* ---- Troca de tema claro/escuro ----------------------------------------
+   Enquanto o tema troca (classe colocada por ThemeToggle.astro por dois
+   frames), nenhum elemento anima cor: tudo muda no MESMO instante. O giro
+   do icone sol/lua fica de fora de proposito.
+   Quando o navegador tem View Transitions (e o usuario nao pediu menos
+   movimento), a troca vira um cross-fade unico da pagina inteira. Sem View
+   Transitions, ou com movimento reduzido, a troca e instantanea. */
+.cd-theme-switching *:not(.cd-theme-toggle__spin),
+.cd-theme-switching *::before,
+.cd-theme-switching *::after {
+  transition: none !important;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 300ms;
+  animation-timing-function: var(--ease-emph);
 }
 
 a {
@@ -38,6 +69,13 @@ a {
 }
 a:hover {
   text-decoration: underline;
+}
+
+/* Sem o realce azul/cinza do toque (iOS/Android) em links e clicaveis — o
+   retorno visual do toque e a camada de estado do proprio design
+   (.cd-state). Especificidade zero, como o reset de botao abaixo. */
+:where(a, button, label, summary, [role='button'], [tabindex], [data-open-detail], [data-add-to-cart], [data-open-cart]) {
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Reset de botao com ESPECIFICIDADE ZERO (:where): qualquer classe de

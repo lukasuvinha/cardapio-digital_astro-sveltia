@@ -7,8 +7,18 @@ import ContactButton from '../components/ContactButton.astro';
 import PageHero from '../components/PageHero.astro';
 import { DEV_NAME, DEV_GITHUB_URL, DEV_LINKEDIN_URL, SITE_NAME } from '../config/site';
 
-// Pagina "Desenvolvedor" (estatica), alcancada por um link discreto no fim
-// da pagina de Contato (/contato). Como trocar nome/links: ver
+// ---- PAGINA DESATIVADA ----------------------------------------------------
+// Antes era /desenvolvedor, alcancada por um link discreto no fim da pagina de
+// Contato. Foi substituida pela linha "Site feito por {DEV_NAME}" no rodape
+// (ver DEV_CREDIT_ENABLED em src/config/site.ts).
+//
+// Como esta desativada: o nome do arquivo comeca com "_" — o Astro IGNORA
+// arquivos assim em src/pages/, entao a rota /desenvolvedor nao e gerada. O
+// codigo continua intacto abaixo.
+// COMO REATIVAR: renomeie de volta para src/pages/desenvolvedor.astro e
+// descomente o link "Desenvolvedor" em src/pages/contato.astro.
+//
+// Pagina "Desenvolvedor" (estatica). Como trocar nome/links: ver
 // docs/PAGINAS-INSTITUCIONAIS.md.
 ---
 

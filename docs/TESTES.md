@@ -1,6 +1,6 @@
 # Testes
 
-`npm test` roda a suíte completa (Vitest). **178 testes, 20 arquivos — todos
+`npm test` roda a suíte completa (Vitest). **221 testes, 22 arquivos — todos
 passando.**
 
 ## O que é coberto
@@ -17,15 +17,17 @@ passando.**
 | `product-card.test.ts` | 4 | Render (Container API): `<img>` com foto, placeholder sem foto, formato incompatível cai no placeholder, contagem de cards. |
 | `ui-fase-final.test.ts` | 5 | Estado vazio do cardápio, link do cabeçalho para a home, meta tags de compartilhamento. |
 | `logo-oficial.test.ts` | 3 | O logo configurado (`SITE_LOGO`) e a imagem de compartilhamento (`SITE_OG_IMAGE`) existem em `public/`; o selo da 404 usa esse logo (imagem); a confirmação do pedido mostra o check de sucesso. |
-| `cms-config.test.ts` | 15 | **Guarda do `config.yml`**: parse do YAML, collections presentes, sem widget `date` depreciado, `validade` = datetime+`type: date`, `hora` = string opcional **cujo pattern aceita string vazia** (bug do Decap/Sveltia com campo opcional + pattern), opções do cupom, categoria = relation, campo `escondido` do produto, **`accept` da foto como string** (não lista), arquivo **"entrega"** (entrega/retirada/taxa/**taxa a combinar**) presente, arquivo **"fornada"** (chave geral, modo, data e hora com pattern seguro), e que o arquivo **"whatsapp" (edição do texto do WhatsApp) permanece desativado**. |
+| `cms-config.test.ts` | 16 | **Guarda do `config.yml`**: parse do YAML, collections presentes, sem widget `date` depreciado, `validade` = datetime+`type: date`, `hora` = string opcional **cujo pattern aceita string vazia** (bug do Decap/Sveltia com campo opcional + pattern), opções do cupom, categoria = relation, campo `escondido` do produto, **`accept` da foto como string** (não lista), arquivo **"entrega"** (entrega/retirada/taxa/**taxa a combinar**) presente, arquivo **"fornada"** (chave geral, modo, data e hora com pattern seguro), arquivos **"sobre"** e **"contato"** (campos opcionais, foto com `accept` em string), e que o arquivo **"whatsapp" (edição do texto do WhatsApp) permanece desativado**. |
 | `produtos-structure.test.ts` | 3 | **Guarda de conteúdo**: pelo menos 1 produto, fotos são URLs públicas válidas, entradas planas, fotos referenciadas existem. |
-| `paginas-institucionais.test.ts` | 8 | Render (Container API) das páginas `/sobre`, `/contato`, `/desenvolvedor` e do rodapé: links do rodapé, `ContactButton` (href/rótulo/nova aba), texto do Sobre, botões de Contato usando as constantes de `site.ts` (não hardcoded), link discreto para `/desenvolvedor`, card do desenvolvedor com nome/GitHub/LinkedIn configurados. |
+| `paginas-institucionais.test.ts` | 18 | Render (Container API) do rodapé (links Sobre/Contato, ícones de WhatsApp/Instagram com `aria-label`, horário de pedidos, crédito "Site feito por" com `nofollow`/nova aba e tokens de texto discreto), página `/desenvolvedor` desativada (arquivo `_desenvolvedor.astro`, sem link em Contato), páginas Sobre e Contato sem conteúdo do CMS (sem cartão/seção vazios), conteúdo de exemplo de `sobre.json`/`contato.json`, `paragrafos` e itens de "Como encomendar". |
 | `checkout-config.test.ts` | 8 | Regras puras de `normalizeCheckoutConfig`: valores padrão, cada opção desligada isoladamente, **as duas desligadas ao mesmo tempo reativam a Retirada**, a taxa de entrega é repassada (ou `0` por padrão), e a flag "a combinar" é repassada (ou `false` por padrão). |
 | `cart-drawer.test.ts` | 1 | Render (Container API) do `CartDrawer` com a config padrão (ambas habilitadas): confere que o seletor Retirada/Entrega chega até o HTML — guarda de fiação entre `checkout-config.ts` e o template. |
 | `fornada-banner.test.ts` | 10 | Regras puras de `resolveFornadaBanner`/`formatFornadaData`: banner desligado (chave geral) fica invisível mesmo com data preenchida, modo "em_breve" mostra o aviso genérico, modo "data" formata dia/hora em português, e **modo "data" sem data preenchida cai no aviso genérico** (nunca mostra banner quebrado). |
 | `theme.test.ts` | 14 | **Guarda do tema**: nenhum componente/página tem cor, fonte, raio ou sombra fixos (tudo vem dos arquivos de tema); todo `var(--token)` usado existe; para **cada tema** (`material` e `confeitaria`): `theme-color` de `src/config/theme.ts` = `--hero` claro/escuro, todos os tokens de cor definidos, modo escuro e fallback `@media` iguais e **contraste AA** dos pares de texto; tema padrão com Outfit + Roboto. |
 | `categoria-cor.test.ts` | 8 | Campo opcional **`cor`** da categoria: schema (cores válidas, opcional, valor inválido cai no automático), distribuição automática pela ordem das categorias, cores das categorias de exemplo e o select do CMS. |
 | `redesign-ui.test.ts` | 15 | Estrutura do redesign Material 3: card (link + botão "+" fora do link, esgotado sem "+"), detalhe compartilhado (stepper, "Adicionar · R$ X", h1/h2), chips ("Todos" neutro e selecionado), barra superior (carrinho em pílula), carrinho (dialog modal, 3 etapas, FAB, snackbar, `aria-disabled`, Entrega/Retirada na 1ª etapa, cupom aplicado removível), reset `:where(button)` e `prefers-reduced-motion`. |
+| `sheet-drag.test.ts` | 13 | Decisão pura do **arrastar para fechar** (`decidirArrasto`): fecha com > 25% da altura ou > 0,5 px/ms para baixo, nunca para cima; posição do painel (não sobe além do aberto), opacidade do fundo e velocidade final do gesto. |
+| `interacoes.test.ts` | 19 | Guardas das correções de interação e fluidez: trava de rolagem por **compensação** (barra medida antes, `overflow` no `<html>`, `padding-right` no `<body>`, `--cd-scrollbar`; drawer e dialog do desktop a `--sheet-inset` das bordas), FAB e snackbar em **trilhos sticky** antes do rodapé (sem script de scroll), abertura dos painéis com dois `requestAnimationFrame`, foco no fim da transição e `will-change` só durante a animação, foto da sheet decodificada antes de abrir, sem realce de toque; gesto de arrastar ligado pelo mesmo `modal.close()`; troca de tema uniforme. |
 | `fornada-render.test.ts` | 4 | Render (Container API): `FornadaBanner` mostra rótulo e valor em linhas separadas; a home sem configuração não renderiza o banner (nem quebra); o `fornada.json` de exemplo liga o banner com o aviso genérico. |
 
 Os arquivos em **negrito** são guardas de regressão criadas a partir de
@@ -61,18 +63,21 @@ incidentes reais de produção (ver [BUGS-E-CORRECOES.md](BUGS-E-CORRECOES.md)).
 
 1. **Fluxo do carrinho no navegador (E2E)** — a maior lacuna. O script client-side
    do `CartDrawer` (aplicar cupom, recalcular totais, montar a mensagem e abrir o
-   WhatsApp) só é validado **manualmente** hoje. A lógica pura por trás
+   WhatsApp) não tem teste automatizado no repositório: foi conferido no
+   navegador (Playwright, fora do repo) a cada mudança, mas isso não roda no CI. A lógica pura por trás
    (`coupon.ts`, `whatsapp.ts`, `cart-core.ts`) está bem testada, mas a **fiação
    com o DOM** não tem teste automatizado. Um teste Playwright/E2E no CI cobriria
    isso (não está montado no repo por causa do acesso a browsers/CDN no ambiente).
-2. **Script da página de detalhe** (`produto/[id].astro`): seletor de quantidade,
-   "adicionar ao carrinho" e a **foto ampliável (lightbox)** — sem teste
-   automatizado (mesma razão do item 1).
-3. **Componente `CartDrawer`** tem só um teste de render "de fiação" (config
-   padrão → seletor aparece no HTML — ver `cart-drawer.test.ts`); a interação de
-   verdade (cliques, recalcular totais ao trocar Entrega/Retirada, aplicar
-   cupom) continua sem teste automatizado — é o componente mais complexo do
-   projeto.
+2. **Scripts do detalhe do produto** (`src/lib/product-detail.ts`, usado na
+   sheet do cardápio e na página `produto/[id].astro`): seletor de quantidade,
+   "Adicionar" e a **foto ampliável (lightbox)** — sem teste automatizado (mesma
+   razão do item 1).
+3. **Componente `CartDrawer`**: a estrutura é coberta por testes de render
+   (`cart-drawer.test.ts`, `redesign-ui.test.ts`) e a decisão do gesto de
+   arrastar por `sheet-drag.test.ts`, mas a interação de verdade (cliques,
+   recalcular totais ao trocar Entrega/Retirada, aplicar e remover cupom, foco
+   preso nos painéis de `src/lib/modal.ts`) continua sem teste automatizado — é
+   o componente mais complexo do projeto.
 4. **Casos de fuso/DST** em `isExpired` — cobertos em datas fixas, não de forma
    exaustiva.
 

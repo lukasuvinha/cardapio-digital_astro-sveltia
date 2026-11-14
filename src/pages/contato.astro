@@ -5,13 +5,28 @@ import Footer from '../components/Footer.astro';
 import CartDrawer from '../components/CartDrawer.astro';
 import ContactButton from '../components/ContactButton.astro';
 import PageHero from '../components/PageHero.astro';
+import SocialIcon from '../components/SocialIcon.astro';
 import { WHATSAPP_NUMBER, INSTAGRAM_URL, SITE_NAME } from '../config/site';
+import { getContatoPagina } from '../data/paginas';
+import { itensComoEncomendar } from '../content/paginas-schema';
 
-// Pagina "Contato" (estatica), estilo "linktree" simples: um botao para o
-// WhatsApp e outro para o Instagram da loja. O link discreto "Desenvolvedor"
-// no fim leva para /desenvolvedor. Como trocar o numero/link: ver
-// docs/PAGINAS-INSTITUCIONAIS.md.
+// Pagina "Contato": botao principal do WhatsApp (cor de envio, --ok), o
+// Instagram e a secao "Como encomendar" (antecedencia, regiao de entrega,
+// retirada e formas de pagamento). Numero e link vem de src/config/site.ts;
+// os textos de "Como encomendar" sao editados no CMS em Configuracoes ->
+// Pagina Contato (src/content/configuracoes/contato.json). Item vazio nao
+// aparece; com todos vazios, a secao inteira some.
+// Passo a passo em docs/PAGINAS-INSTITUCIONAIS.md.
 const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}`;
+const comoEncomendar = itensComoEncomendar(await getContatoPagina());
+
+// icones de traco de cada item de "Como encomendar"
+const ICONES: Record<string, string> = {
+  antecedencia: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  regiao_entrega: '<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z"/><circle cx="12" cy="10" r="2.4"/>',
+  retirada: '<path d="M5 8h14l-1.2 11.2a1.5 1.5 0 0 1-1.5 1.3H7.7a1.5 1.5 0 0 1-1.5-1.3Z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>',
+  pagamento: '<rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M3 10h18M7 14.5h4"/>',
+};
 ---
 
 <BaseLayout
@@ -20,15 +35,47 @@ const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}`;
 >
   <Header />
 
-  <PageHero eyebrow="Fale com a gente" title="Contato" subtitle="Escolha por onde prefere falar com a gente." />
+  <PageHero eyebrow="Fale com a gente" title="Contato" subtitle="Pedidos, dúvidas e encomendas: chame no WhatsApp." />
 
   <main class="cd-page cd-contato">
     <div class="cd-contato__links">
-      <ContactButton href={whatsappUrl} label="WhatsApp" icon="whatsapp" external />
+      <a class="cd-btn cd-btn--ok cd-btn--block" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+        <SocialIcon icon="whatsapp" size={22} />
+        <span>Chamar no WhatsApp</span>
+      </a>
       <ContactButton href={INSTAGRAM_URL} label="Instagram" icon="instagram" external />
     </div>
 
+    {
+      comoEncomendar.length > 0 && (
+        <section class="cd-page__card cd-encomendar" aria-labelledby="cd-encomendar-titulo">
+          <h2 class="cd-encomendar__titulo" id="cd-encomendar-titulo">Como encomendar</h2>
+          <ul class="cd-encomendar__lista">
+            {comoEncomendar.map((item) => (
+              <li class="cd-encomendar__item">
+                <span class="cd-encomendar__icone" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" set:html={ICONES[item.chave]} />
+                </span>
+                <span class="cd-encomendar__texto">
+                  <strong>{item.titulo}</strong>
+                  <span>{item.texto}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    {/* ---- DESATIVADO: link discreto para a pagina /desenvolvedor. O credito
+        do desenvolvedor agora fica no rodape ("Site feito por ...", ver
+        DEV_CREDIT_ENABLED em src/config/site.ts) e a pagina foi desativada
+        (src/pages/_desenvolvedor.astro).
+        COMO REATIVAR: renomeie a pagina de volta para desenvolvedor.astro e
+        recoloque o link abaixo (o estilo .cd-contato__dev esta comentado no
+        <style>).
     <a class="cd-contato__dev" href="/desenvolvedor">Desenvolvedor</a>
+    */}
   </main>
 
   <Footer />
@@ -44,6 +91,52 @@ const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}`;
     flex-direction: column;
     gap: 12px;
   }
+
+  .cd-encomendar__titulo {
+    font-size: 22px;
+    margin-bottom: 16px;
+  }
+  .cd-encomendar__lista {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .cd-encomendar__item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .cd-encomendar__icone {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--touch);
+    height: var(--touch);
+    border-radius: var(--r-icon);
+    background: var(--s-c);
+    color: var(--on-s-c);
+  }
+  .cd-encomendar__texto {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-top: 2px;
+    line-height: 1.5;
+  }
+  .cd-encomendar__texto strong {
+    font-family: var(--font-head);
+    font-weight: var(--fw-head);
+    font-size: 16px;
+  }
+  .cd-encomendar__texto span {
+    color: var(--on-sf-v);
+  }
+
+  /* ---- DESATIVADO junto com o link para /desenvolvedor (ver nota no markup).
   .cd-contato__dev {
     display: inline-flex;
     align-items: center;
@@ -52,4 +145,5 @@ const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}`;
     font-size: var(--fs-label);
     color: var(--on-sf-v);
   }
+  */
 </style>

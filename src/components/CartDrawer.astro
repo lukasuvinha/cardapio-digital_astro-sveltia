@@ -9,12 +9,11 @@
 //
 // Abre por qualquer [data-open-cart] (botao em pilula do topo no desktop,
 // botao flutuante — FAB — no celular) ou pelo evento "cd:open-cart" (acao
-// "Ver" do snackbar). Tambem inclui o FAB e o Snackbar, para existirem em
-// toda pagina que tem carrinho.
+// "Ver" do snackbar). O FAB e o Snackbar ficam em CartRail.astro (trilho
+// sticky antes do rodape, renderizado pelo Footer).
 import { getProdutos, getCoresCategorias, productHasPhoto } from '../data/menu';
 import { getCupons } from '../data/cupons';
 import { getCheckoutConfig } from '../data/checkout-config';
-import Snackbar from './Snackbar.astro';
 
 // Catalogo enxuto para o carrinho CLIENT-SIDE (embutido como JSON inline em
 // #cd-catalog, a partir da Content Collection). A foto e a URL publica direta
@@ -61,20 +60,11 @@ const ambasOpcoes = checkoutConfig.entregaHabilitada && checkoutConfig.retiradaH
 const check = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 ---
 
-<!-- Botao flutuante (FAB estendido), so no celular e so com itens -->
-<button class="cd-fab cd-state" type="button" data-open-cart data-fab data-visible="false" aria-label="Abrir carrinho">
-  <span class="cd-fab__icon">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <circle cx="9" cy="20" r="1.4"></circle>
-      <circle cx="18" cy="20" r="1.4"></circle>
-      <path d="M2 3h3l2.6 12.4a1.8 1.8 0 0 0 1.8 1.4h8.4a1.8 1.8 0 0 0 1.8-1.4L21 7H6"></path>
-    </svg>
-    <span class="cd-badge" data-cart-count hidden>0</span>
-  </span>
-  <span class="cd-fab__total" data-cart-subtotal-text>R$ 0,00</span>
-</button>
-
-<Snackbar />
+<!-- O botao flutuante (FAB) e o Snackbar ficam em src/components/CartRail.astro,
+     num "trilho" sticky logo ANTES do rodape (renderizado pelo Footer), para
+     pararem acima do rodape so com CSS. O script abaixo continua controlando
+     o FAB ([data-fab]) e o snackbar ([data-snackbar]) onde estiverem.
+     ANTES: os dois eram renderizados aqui, com position: fixed. -->
 
 <div class="cd-cart" data-cart-root>
   <div class="cd-cart__scrim" data-modal-close></div>
@@ -271,53 +261,7 @@ const check = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
 </div>
 
 <style>
-  /* ===== FAB (celular) ================================================== */
-  .cd-fab {
-    position: fixed;
-    right: 16px;
-    bottom: calc(16px + env(safe-area-inset-bottom));
-    z-index: 40;
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    height: 60px;
-    padding: 0 22px 0 18px;
-    border-radius: var(--r-pill);
-    background: var(--cta);
-    color: var(--on-cta);
-    box-shadow: var(--shadow-cta), var(--elev-2), var(--shine);
-    transform: scale(0.6) translateY(calc(40px * var(--motion-shift)));
-    opacity: 0;
-    pointer-events: none;
-    transition:
-      transform var(--dur-out) var(--ease-out),
-      opacity var(--dur-out) var(--ease-out);
-  }
-  .cd-fab[data-visible='true'] {
-    transform: none;
-    opacity: 1;
-    pointer-events: auto;
-    transition:
-      transform var(--dur-spring) var(--ease-spring),
-      opacity var(--dur-emph) var(--ease-emph);
-  }
-  .cd-fab:active {
-    transform: scale(0.95);
-  }
-  .cd-fab__icon {
-    position: relative;
-    display: inline-flex;
-  }
-  .cd-fab__total {
-    font-family: var(--font-head);
-    font-size: var(--fs-price);
-    font-weight: var(--fw-strong);
-  }
-  @media (min-width: 768px) {
-    .cd-fab {
-      display: none;
-    }
-  }
+  /* ===== FAB (celular): estilos em CartRail.astro ====================== */
 
   /* ===== Raiz, fundo e painel ============================================ */
   .cd-cart {
@@ -373,6 +317,20 @@ const check = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
   .cd-cart__panel:focus {
     outline: none;
   }
+  /* so durante abrir/fechar (data-animating, colocado por src/lib/modal.ts):
+     camada propria para o painel e o fundo, removida ao terminar */
+  .cd-cart[data-animating] .cd-cart__panel {
+    will-change: transform;
+  }
+  .cd-cart[data-animating] .cd-cart__scrim {
+    will-change: opacity;
+  }
+  /* pega do arrasto (alca + barra do titulo, ~70px): sem rolagem nativa */
+  .cd-cart__handle,
+  .cd-cart__bar {
+    touch-action: none;
+    user-select: none;
+  }
   .cd-cart__handle {
     flex: none;
     width: 32px;
@@ -382,17 +340,24 @@ const check = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
     background: var(--ol);
   }
 
-  /* desktop: drawer lateral flutuando com 12px de margem */
+  /* desktop: drawer lateral flutuando a --sheet-inset (24px) das bordas */
   @media (min-width: 768px) {
     .cd-cart__panel {
       left: auto;
-      top: 12px;
-      right: 12px;
-      bottom: 12px;
-      width: min(460px, calc(100vw - 24px));
+      /* distancia das bordas REAIS da janela: com a trava por compensacao
+         (src/lib/modal.ts) a barra de rolagem some e o painel, fixo, usa a
+         janela inteira.
+         ANTES: 12px fixos (top/right/bottom: 12px; width: min(460px,
+         calc(100vw - 24px))). No PR #4 o right era calc(12px -
+         var(--cd-gutter, 0px)), para compensar o scrollbar-gutter removido. */
+      top: var(--sheet-inset);
+      right: var(--sheet-inset);
+      bottom: var(--sheet-inset);
+      width: min(460px, calc(100vw - 2 * var(--sheet-inset)));
       height: auto;
       border-radius: var(--r-sheet);
-      transform: translateX(calc((100% + 24px) * var(--motion-shift)));
+      /* fechado: totalmente fora da tela (largura + o respiro) */
+      transform: translateX(calc((100% + var(--sheet-inset)) * var(--motion-shift)));
     }
     .cd-cart__handle {
       display: none;
@@ -809,6 +774,7 @@ const check = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
   import { createModal } from '../lib/modal';
   import { avisarAdicionado } from '../lib/product-detail';
   import { hideSnackbar } from '../lib/snackbar';
+  import { ligarArrastoDaSheet } from '../lib/sheet-drag';
   import { WHATSAPP_NUMBER } from '../config/site';
 
   // catalogo embutido pelo servidor a partir da Content Collection
@@ -830,6 +796,39 @@ const check = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
   } = checkoutConfigEl
     ? JSON.parse(checkoutConfigEl.textContent || '{}')
     : { entregaHabilitada: true, retiradaHabilitada: true, taxaEntrega: 0, taxaACombinar: false };
+
+  // ---- ANTES (PR #4): FAB x rodape por script ----
+  //      Um listener de scroll calculava --fab-lift (quanto do rodape estava
+  //      visivel) e o FAB subia com translate. Trocado por position: sticky
+  //      (CartRail.astro): no celular a rolagem roda fora da thread principal
+  //      e o FAB ficava um frame atrasado, tremendo ao chegar no rodape; com
+  //      sticky o proprio navegador posiciona o FAB junto da rolagem. Para
+  //      reativar: descomente o bloco abaixo e volte o FAB para position:
+  //      fixed com `translate: 0 calc(-1 * var(--fab-lift, 0px))`.
+  // // O FAB e fixo no fundo da tela. Quando o rodape entra na tela, ele sobe
+  // // exatamente o quanto do rodape esta visivel, ficando sempre 16px acima da
+  // // borda superior do rodape (o mesmo respiro que tem do fundo da tela) e
+  // // nunca cobrindo os links. O valor vai em --fab-lift no <html>, usado pelo
+  // // FAB e pelo snackbar (que fica acima do FAB).
+  // {
+  //   const footer = document.querySelector<HTMLElement>('.cd-footer');
+  //   if (footer) {
+  //     let agendado = false;
+  //     const medir = () => {
+  //       agendado = false;
+  //       const visivel = Math.max(0, window.innerHeight - footer.getBoundingClientRect().top);
+  //       document.documentElement.style.setProperty('--fab-lift', `${Math.round(visivel)}px`);
+  //     };
+  //     const agendar = () => {
+  //       if (agendado) return;
+  //       agendado = true;
+  //       requestAnimationFrame(medir);
+  //     };
+  //     window.addEventListener('scroll', agendar, { passive: true });
+  //     window.addEventListener('resize', agendar, { passive: true });
+  //     medir();
+  //   }
+  // }
 
   // ---- ANTES: texto da mensagem do WhatsApp editavel pelo dono da loja no CMS.
   //      Desativado — ver nota de reativacao na frontmatter acima.
@@ -887,6 +886,19 @@ const check = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
     const modal = createModal(root, {
       panel,
       initialFocus: () => root.querySelector<HTMLElement>('[data-pane][data-state="active"] [data-modal-close], [data-modal-close].cd-cart__icon-btn'),
+    });
+
+    // ---- arrastar para baixo fecha (so no celular, onde a alca aparece) ----
+    // A pega e a alca + a barra do titulo; o gesto tambem comeca no conteudo
+    // da etapa atual quando ele esta rolado ate o topo.
+    const alca = panel.querySelector<HTMLElement>('.cd-cart__handle')!;
+    ligarArrastoDaSheet({
+      painel: panel,
+      fundo: root.querySelector<HTMLElement>('.cd-cart__scrim')!,
+      pegas: () => [alca, panel.querySelector<HTMLElement>('.cd-cart__bar')!],
+      rolavel: () => panel.querySelector<HTMLElement>('[data-pane][data-state="active"] .cd-pane__scroll'),
+      ativo: () => modal.isOpen() && getComputedStyle(alca).display !== 'none',
+      fechar: () => modal.close(),
     });
 
     // ---- etapas ----
@@ -984,7 +996,12 @@ const check = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
         el.setAttribute('aria-label', count > 0 ? `Abrir carrinho, ${count} ${count === 1 ? 'item' : 'itens'}, ${formatPrice(subtotal)}` : 'Abrir carrinho');
       });
       const fab = document.querySelector<HTMLElement>('[data-fab]');
-      if (fab) fab.dataset.visible = String(count > 0);
+      if (fab) {
+        fab.dataset.visible = String(count > 0);
+        // escondido (sem itens) tambem sai do Tab e do leitor de tela
+        fab.tabIndex = count > 0 ? 0 : -1;
+        fab.setAttribute('aria-hidden', String(count === 0));
+      }
       document.body.classList.toggle('cd-has-fab', count > 0);
       document.querySelectorAll<HTMLElement>('[data-add-to-cart]').forEach((btn) => {
         const id = btn.dataset.addToCart!;

@@ -1,18 +1,64 @@
 ---
 // Rodape reutilizavel: usado em todas as paginas (home, detalhe de produto,
-// 404, sobre, contato, desenvolvedor). Alem da marca, traz links para as
-// paginas institucionais "Sobre" e "Contato" (no desktop eles tambem ficam
-// na barra superior).
-import { SITE_NAME, SITE_TAGLINE } from '../config/site';
+// 404, sobre, contato). Traz, de cima para baixo:
+//  - a marca (nome · slogan);
+//  - atalhos para o WhatsApp e o Instagram da loja (icones de traco
+//    genericos, com aria-label — nao sao os logos das marcas);
+//  - links para "Sobre" e "Contato" (no desktop eles tambem ficam na barra
+//    superior);
+//  - o horario de pedidos (ORDER_HOURS em site.ts; some se vazio);
+//  - o credito discreto do desenvolvedor (DEV_CREDIT_ENABLED em site.ts).
+// Logo antes dele vem o CartRail (FAB e snackbar).
+import {
+  SITE_NAME,
+  SITE_TAGLINE,
+  WHATSAPP_NUMBER,
+  INSTAGRAM_URL,
+  ORDER_HOURS,
+  DEV_CREDIT_ENABLED,
+  DEV_NAME,
+  DEV_URL,
+} from '../config/site';
+import CartRail from './CartRail.astro';
+import SocialIcon from './SocialIcon.astro';
+
+const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}`;
+const horario = ORDER_HOURS.trim();
 ---
+
+<!-- trilhos sticky do botao flutuante do carrinho e do snackbar: precisam
+     ficar LOGO ANTES do rodape para pararem acima dele (ver CartRail.astro) -->
+<CartRail />
 
 <footer class="cd-footer">
   <span class="cd-footer__brand">{SITE_NAME} · {SITE_TAGLINE}</span>
+
+  <div class="cd-footer__social">
+    <a class="cd-footer__icon cd-state" href={whatsappUrl} target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp da ${SITE_NAME}`}>
+      <SocialIcon icon="whatsapp" size={22} />
+    </a>
+    <a class="cd-footer__icon cd-state" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" aria-label={`Instagram da ${SITE_NAME}`}>
+      <SocialIcon icon="instagram" size={22} />
+    </a>
+  </div>
+
   <nav class="cd-footer__links" aria-label="Links institucionais">
     <a href="/sobre">Sobre</a>
     <span class="cd-footer__dot" aria-hidden="true">·</span>
     <a href="/contato">Contato</a>
   </nav>
+
+  {horario && <p class="cd-footer__hours">{horario}</p>}
+
+  {
+    DEV_CREDIT_ENABLED && (
+      <p class="cd-footer__credit">
+        <a href={DEV_URL} target="_blank" rel="nofollow noopener">
+          Site feito por {DEV_NAME}
+        </a>
+      </p>
+    )
+  }
 </footer>
 
 <style>
@@ -20,7 +66,7 @@ import { SITE_NAME, SITE_TAGLINE } from '../config/site';
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     padding: 28px 16px calc(28px + env(safe-area-inset-bottom));
     border-top: 1px solid var(--ol-v);
     text-align: center;
@@ -32,6 +78,26 @@ import { SITE_NAME, SITE_TAGLINE } from '../config/site';
     font-size: var(--fs-body);
     color: var(--on-sf);
   }
+
+  .cd-footer__social {
+    display: flex;
+    gap: 12px;
+    margin: 8px 0 2px;
+  }
+  .cd-footer__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--touch);
+    height: var(--touch);
+    border-radius: var(--r-round);
+    background: var(--s-c);
+    color: var(--on-s-c);
+  }
+  .cd-footer__icon:hover {
+    text-decoration: none;
+  }
+
   .cd-footer__links {
     display: flex;
     align-items: center;
@@ -47,6 +113,27 @@ import { SITE_NAME, SITE_TAGLINE } from '../config/site';
     font-weight: var(--fw-label);
   }
   .cd-footer__links a:hover {
+    color: var(--primary);
+  }
+
+  .cd-footer__hours {
+    margin: 0;
+    font-size: var(--fs-label);
+  }
+
+  /* credito do desenvolvedor: pequeno e de baixo contraste, mas legivel (AA) */
+  .cd-footer__credit {
+    margin: 4px 0 0;
+    font-size: var(--fs-label);
+  }
+  .cd-footer__credit a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch);
+    padding: 0 8px;
+    color: var(--on-sf-v);
+  }
+  .cd-footer__credit a:hover {
     color: var(--primary);
   }
 </style>

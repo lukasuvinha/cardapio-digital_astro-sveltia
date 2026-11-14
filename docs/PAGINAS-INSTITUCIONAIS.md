@@ -1,114 +1,103 @@
-# Páginas institucionais: Sobre, Contato e Desenvolvedor
+# Páginas institucionais, rodapé e crédito do desenvolvedor
 
-Três páginas estáticas, alcançadas por links discretos no **rodapé** do site
-(`src/components/Footer.astro`), presente em todas as páginas (cardápio,
-detalhe de produto e 404):
+Duas páginas estáticas, **Sobre** (`/sobre`) e **Contato** (`/contato`), com
+links no **rodapé** de todas as páginas e na **barra superior** no desktop.
+
+## Rodapé
+
+`src/components/Footer.astro`, presente em todas as páginas:
 
 ```
-Doceria Exemplo · Doceria Artesanal
-        Sobre  ·  Contato
+        Doceria Exemplo · Doceria Artesanal
+              (WhatsApp)  (Instagram)
+                Sobre  ·  Contato
+     Pedidos de terça a sábado, das 9h às 18h
+               Site feito por Lukas
 ```
 
-(Nome e slogan vêm de `SITE_NAME` e `SITE_TAGLINE` em `src/config/site.ts`.)
+| Linha | De onde vem | Some quando |
+|---|---|---|
+| Nome · slogan | `SITE_NAME`, `SITE_TAGLINE` em `src/config/site.ts` | — |
+| Ícones de WhatsApp e Instagram | `WHATSAPP_NUMBER`, `INSTAGRAM_URL` | — |
+| Sobre · Contato | fixo | — |
+| Horário de pedidos | `ORDER_HOURS` | `ORDER_HOURS = ''` |
+| Crédito do desenvolvedor | `DEV_NAME`, `DEV_URL` | `DEV_CREDIT_ENABLED = false` |
 
-- **`/sobre`** — um texto sobre a loja.
-- **`/contato`** — botões para falar com a loja (WhatsApp e Instagram) e, no
-  fim da página, um link **discreto** "Desenvolvedor".
-- **`/desenvolvedor`** — só alcançada pelo link acima; card com o nome de
-  quem fez o site e botões para GitHub e LinkedIn. Não aparece no rodapé.
+Os ícones são **desenhos de traço genéricos** (`src/components/SocialIcon.astro`),
+não os logos das marcas; cada link tem `aria-label` ("WhatsApp da Doceria
+Exemplo").
 
-Nenhuma dessas páginas depende do CMS/Content Collections — são conteúdo
-estático no código, então as edições abaixo são sempre feitas **direto no
-GitHub**, do mesmo jeito que a troca do número do WhatsApp (ver
-[`docs/CUPONS-E-PEDIDOS.md`](CUPONS-E-PEDIDOS.md)).
+### Crédito do desenvolvedor
 
-## Editar o texto da página "Sobre"
+Uma linha discreta, "Site feito por {DEV_NAME}", em texto pequeno e cor de
+baixo contraste, com link para `DEV_URL` (`rel="nofollow noopener"`, abre em
+nova aba). **Combine com o cliente** antes de publicar: o site é dele. Para
+tirar, `DEV_CREDIT_ENABLED = false` em `src/config/site.ts`.
 
-O texto é **genérico de propósito** — foi escrito para o site ir ao ar, mas o
-dono da loja deve trocar por um texto próprio. O nome da loja no título e
-no primeiro parágrafo vem de `SITE_NAME` (`src/config/site.ts`).
+> A antiga página `/desenvolvedor` foi **desativada** (o crédito no rodapé a
+> substitui). O código continua em `src/pages/_desenvolvedor.astro` — o `_` no
+> nome faz o Astro não gerar a rota. Para reativar, renomeie de volta para
+> `desenvolvedor.astro` e descomente o link em `src/pages/contato.astro`.
 
-1. Abra `src/pages/sobre.astro` no repositório do GitHub
-   (`https://github.com/SEU_USUARIO/SEU_REPO/blob/main/src/pages/sobre.astro`).
-2. Clique no ícone de **lápis** (✏️) para editar.
-3. O texto fica dentro da `<div class="cd-sobre__body">`, em parágrafos
-   `<p>...</p>`. Pode:
-   - Editar o texto de cada parágrafo (o que está entre `<p>` e `</p>`);
-   - Apagar ou adicionar parágrafos inteiros (copie o padrão `<p>...</p>`);
-   - Trocar o título, que fica em `<h1 class="cd-sobre__title">...</h1>`.
-   - **Não precisa mexer em nada fora dessas tags** — o `<div class="cd-sobre__rule">`,
-     o `<Header />`, o `<Footer />` etc. são o layout da página, deixe como
-     estão.
-4. Role até o final, escreva uma mensagem de commit curta (ex.: "Atualiza
-   texto da página Sobre") e clique em **"Commit changes..."** → confirme na
-   branch `main`.
-5. Em 1–2 minutos o deploy sobe automaticamente.
+## Página Sobre
 
-## Editar os links de Contato (WhatsApp e Instagram)
+Conteúdo editado no painel: **Configurações → Página Sobre**
+(`src/content/configuracoes/sobre.json`). Tudo é opcional:
 
-Os dois links da página `/contato` vêm de constantes em
-[`src/config/site.ts`](../src/config/site.ts) — o mesmo arquivo onde já fica
-o número do WhatsApp usado nos pedidos.
+- **Foto** — da pessoa, da equipe ou da loja (horizontal, 4:3, funciona
+  melhor). No desktop fica ao lado do texto; no celular, acima.
+- **Texto** — em tom pessoal. Uma **linha em branco** separa os parágrafos.
+- **Texto do botão para o cardápio** — em branco, usa "Ver Cardápio".
 
-- **WhatsApp**: a página de Contato reaproveita a constante `WHATSAPP_NUMBER`
-  (a mesma usada para o botão "Enviar pedido"). Trocar o número lá já
-  atualiza os dois lugares — passo a passo completo em
-  [`docs/CUPONS-E-PEDIDOS.md`](CUPONS-E-PEDIDOS.md) / no
-  [`README`](../README.md#pedido-via-whatsapp).
-- **Instagram**: constante própria, `INSTAGRAM_URL`. **Hoje está com um link
-  de exemplo (placeholder)** — precisa trocar antes de divulgar o site.
+Sem foto e sem texto, a página mostra só o título e o botão. O título usa
+`SITE_NAME` ("Sobre a Doceria Exemplo"); se o nome pedir artigo masculino,
+troque "a" por "o" em `src/pages/sobre.astro`.
 
-Passo a passo para o Instagram:
+O template vem com um texto e uma ilustração de exemplo
+(`public/img/sobre/doceria-exemplo.webp`); troque pelos da loja.
 
-1. Abra `src/config/site.ts` no GitHub
-   (`https://github.com/SEU_USUARIO/SEU_REPO/blob/main/src/config/site.ts`).
-2. Clique no ícone de **lápis** (✏️) para editar.
-3. Troque o valor de `INSTAGRAM_URL` pelo link completo do perfil, por
-   exemplo:
-   ```ts
-   export const INSTAGRAM_URL = 'https://instagram.com/doceriaexemplo';
-   ```
-4. Commit (ex.: "Atualiza link do Instagram") → confirme na `main`. Deploy
-   automático em 1–2 minutos.
-5. Para conferir: abra `/contato` no site e clique no botão do Instagram.
+## Página Contato
 
-## Editar o card "Desenvolvedor" (nome, GitHub, LinkedIn)
+- **Botão principal "Chamar no WhatsApp"** (verde, a cor de envio) e o botão
+  do **Instagram** — links de `src/config/site.ts`.
+- **Como encomendar** — editado no painel em **Configurações → Página
+  Contato** (`src/content/configuracoes/contato.json`): **Antecedência**,
+  **Região de entrega**, **Retirada** e **Formas de pagamento**. Cada item em
+  branco some; com todos em branco, a seção inteira some.
 
-Também em [`src/config/site.ts`](../src/config/site.ts), três constantes:
+## Trocar o WhatsApp, o Instagram, o horário e o crédito
+
+Tudo em [`src/config/site.ts`](../src/config/site.ts):
 
 ```ts
-export const DEV_NAME = 'Seu Nome';
-export const DEV_GITHUB_URL = 'https://github.com/seu_usuario';
-export const DEV_LINKEDIN_URL = 'https://www.linkedin.com/in/seu_usuario/';
+export const WHATSAPP_NUMBER = '5511999999999'; // só dígitos: 55 + DDD + número
+export const INSTAGRAM_URL = 'https://instagram.com/doceriaexemplo';
+export const ORDER_HOURS = 'Pedidos de terça a sábado, das 9h às 18h'; // '' esconde
+export const DEV_CREDIT_ENABLED = true;
+export const DEV_NAME = 'Lukas';
+export const DEV_URL = 'https://github.com/lukasuvinha';
 ```
 
-Os três estão com **valores de exemplo** — troque pelos dados reais de quem
-desenvolveu o site seguindo os mesmos passos do Instagram acima (editar o
-arquivo, trocar o valor entre aspas, commit na `main`).
+O `WHATSAPP_NUMBER` é o mesmo usado no envio dos pedidos — trocar lá atualiza
+o botão do carrinho, o da página Contato e o ícone do rodapé.
 
 ## Onde fica cada coisa no código
 
 | O quê | Arquivo |
 |---|---|
-| Rodapé com os links Sobre/Contato | `src/components/Footer.astro` |
-| Botão reutilizável (ícone + rótulo) usado em Contato e Desenvolvedor | `src/components/ContactButton.astro` |
+| Rodapé (marca, ícones, links, horário, crédito) | `src/components/Footer.astro` |
+| Ícones de traço (WhatsApp, Instagram, GitHub, LinkedIn) | `src/components/SocialIcon.astro` |
+| Botão de link (ícone + rótulo) | `src/components/ContactButton.astro` |
 | Página Sobre | `src/pages/sobre.astro` |
 | Página Contato | `src/pages/contato.astro` |
-| Página Desenvolvedor | `src/pages/desenvolvedor.astro` |
-| Nome, slogan, número do WhatsApp, link do Instagram, dados do desenvolvedor | `src/config/site.ts` |
-
-## Sobre os ícones dos botões
-
-Os ícones de WhatsApp, Instagram, GitHub e LinkedIn são **desenhos simples
-próprios** (linha fina, no mesmo estilo do resto do site — como o ícone do
-carrinho no cabeçalho), não os logos oficiais das marcas. O nome ao lado de
-cada ícone (ex.: "WhatsApp", "Instagram") já deixa claro para onde o botão
-leva.
+| Conteúdo editável (schemas e leitura) | `src/content/paginas-schema.ts`, `src/data/paginas.ts` |
+| Campos do painel | `public/admin/config.yml`, Configurações → "sobre" e "contato" |
+| Página Desenvolvedor (desativada) | `src/pages/_desenvolvedor.astro` |
+| Número, Instagram, horário, crédito | `src/config/site.ts` |
 
 ## Testes
 
-`tests/paginas-institucionais.test.ts` cobre: os links do rodapé, o
-`ContactButton` (href, rótulo, abre em nova aba quando `external`), e que
-cada página usa os valores configurados em `site.ts` (então, se alguém trocar
-o número do WhatsApp ou os links, os testes continuam validando os valores
-atuais — não há valor "hardcoded" duplicado nos testes).
+`tests/paginas-institucionais.test.ts` cobre o rodapé (links, ícones com
+`aria-label`, horário, crédito com `nofollow` e nova aba), a desativação da
+página `/desenvolvedor`, as páginas Sobre e Contato sem conteúdo do CMS (nada
+de seção vazia) e o conteúdo de exemplo dos JSON.

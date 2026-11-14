@@ -8,10 +8,12 @@ Fonte da verdade dos produtos do cardápio, **editável pelo dono da loja** via 
 (painel em `/admin`, configurado em `public/admin/config.yml`).
 
 - Cada produto é **um arquivo plano** `produtos/<id>.md` (frontmatter: `nome`,
-  `descricao`, `preco`, `categoria`, `disponivel`, `foto`). Esse é o formato
-  padrão de folder collection — o que o Sveltia CMS **lista** corretamente.
-- O campo **`foto` é uma URL pública** (ex.: `/uploads/foo.webp`). As imagens
-  ficam em [`public/uploads/`](../../public/uploads/) e são servidas como estão.
+  `descricao`, `preco`, `categoria`, `disponivel`, `escondido`, `foto`). Esse é o
+  formato padrão de folder collection — o que o Sveltia CMS **lista** corretamente.
+- O campo **`foto` é uma URL pública** (ex.: `/uploads/foo.webp`). As fotos
+  enviadas pelo painel ficam em [`public/uploads/`](../../public/uploads/) e são
+  servidas como estão; as ilustrações dos produtos de exemplo ficam em
+  `public/img/produtos/`.
 
 ### Por que a foto NÃO usa o `image()` do Astro (3 incidentes)
 
@@ -44,16 +46,28 @@ Os componentes/páginas leem via `getProdutos()` em
 ## Outras collections
 
 - **`categorias/`** — categorias dos doces, editáveis pelo dono da loja no CMS (o campo
-  `categoria` de cada produto é um `relation` para esta collection). Schema
-  inline em `config.ts`.
+  `categoria` de cada produto é um `relation` para esta collection). Cada uma tem
+  uma **cor** opcional (morango, caramelo, cacau, baunilha ou neutro) que pinta o
+  card, o chip e o detalhe do produto; sem cor, ela é distribuída automaticamente.
+  Schema em [`categoria-schema.ts`](./categoria-schema.ts).
 - **`cupons/`** — cupons de desconto, schema em [`cupom-schema.ts`](./cupom-schema.ts).
   Lógica de validade/desconto em [`src/lib/coupon.ts`](../lib/coupon.ts). Ver
   [`docs/CUPONS-E-PEDIDOS.md`](../../docs/CUPONS-E-PEDIDOS.md).
-- **`configuracoes/`** — contém `whatsapp.json`, mas **não é uma Content
-  Collection ativa** (não está em `collections` no `config.ts`, nem no painel
-  do CMS). Era usado para o dono da loja editar o texto do WhatsApp; essa opção foi
-  desativada a pedido do cliente. Arquivo mantido para referência/reativação
-  futura — ver `docs/CUPONS-E-PEDIDOS.md`.
+- **`configuracoes/`** — arquivos singulares editados no painel em
+  **Configurações**. Cada um é uma collection própria em `config.ts` (cada
+  collection do Astro só aceita um schema):
+
+  | Arquivo | Collection | Schema | O que configura |
+  |---|---|---|---|
+  | `entrega.json` | `configuracoes` | [`configuracoes-schema.ts`](./configuracoes-schema.ts) | Entrega, retirada e taxa |
+  | `fornada.json` | `fornada` | [`fornada-schema.ts`](./fornada-schema.ts) | Aviso de próxima fornada |
+  | `sobre.json` | `sobre` | [`paginas-schema.ts`](./paginas-schema.ts) | Foto, texto e botão da página Sobre |
+  | `contato.json` | `contato` | [`paginas-schema.ts`](./paginas-schema.ts) | "Como encomendar" da página Contato |
+
+  A pasta também guarda `whatsapp.json`, que **não é lido**: era usado para
+  editar o texto do WhatsApp pelo painel, opção desativada a pedido do cliente.
+  Fica no repositório para referência/reativação — ver
+  `docs/CUPONS-E-PEDIDOS.md`.
 
 ## Histórico
 

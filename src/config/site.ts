@@ -52,9 +52,24 @@ export const WHATSAPP_ORDER_TITLE = `Novo pedido — ${SITE_NAME}`;
 export const ORDER_PREFIX = 'DE';
 
 // ---------------------------------------------------------------------------
-// Pagina "Desenvolvedor" (/desenvolvedor) — alcancada por um link discreto no
-// fim da pagina de Contato. Dados publicos de quem desenvolveu o site.
-// Troque pelos seus dados (ou apague a secao se nao quiser assinar o template).
-export const DEV_NAME = 'Seu Nome';
-export const DEV_GITHUB_URL = 'https://github.com/seu_usuario';
+// Horario de pedidos: linha opcional no rodape. Deixe '' (vazio) para nao
+// mostrar nada.
+export const ORDER_HOURS = 'Pedidos de terça a sábado, das 9h às 18h';
+
+// ---------------------------------------------------------------------------
+// Credito do desenvolvedor: linha discreta "Site feito por {DEV_NAME}" no fim
+// do rodape de todas as paginas, com link para DEV_URL.
+//
+// COMBINE COM O CLIENTE antes de publicar: o site e dele, e a assinatura so
+// deve aparecer se ele concordar (muita gente acha otimo, como indicacao; mas
+// nao e obrigatorio). Para tirar, mude DEV_CREDIT_ENABLED para false.
+export const DEV_CREDIT_ENABLED = true;
+export const DEV_NAME = 'Lukas';
+export const DEV_URL = 'https://github.com/lukasuvinha';
+
+// ---- Pagina "Desenvolvedor" (/desenvolvedor) — DESATIVADA: o credito agora
+// fica no rodape (acima). Estas constantes continuam aqui porque a pagina
+// desativada (src/pages/_desenvolvedor.astro) ainda as importa; ver a nota de
+// como reativar no topo daquele arquivo.
+export const DEV_GITHUB_URL = 'https://github.com/lukasuvinha';
 export const DEV_LINKEDIN_URL = 'https://www.linkedin.com/in/seu_usuario/';

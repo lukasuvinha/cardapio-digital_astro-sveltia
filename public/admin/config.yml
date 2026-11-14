@@ -311,6 +311,50 @@ collections:
               hint: "Opcional. Ex.: 14:30. Deixe em branco para mostrar só o dia, sem horário.",
             }
 
+      # Pagina "Sobre": foto opcional, texto em tom pessoal e o rotulo do
+      # botao que leva ao cardapio. Campos vazios somem da pagina.
+      - name: sobre
+        label: "Página Sobre"
+        file: "src/content/configuracoes/sobre.json"
+        description: "Conteúdo da página Sobre (/sobre). Tudo é opcional: o que ficar em branco não aparece no site."
+        fields:
+          - {
+              name: foto,
+              label: "Foto (opcional)",
+              widget: image,
+              required: false,
+              # "accept" e STRING separada por virgulas, NAO lista — ver
+              # docs/BUGS-E-CORRECOES.md, item 9.
+              accept: "image/jpeg,image/png,image/webp",
+              hint: "Uma foto sua, da equipe ou da loja. Funciona melhor na horizontal (4:3).",
+            }
+          - {
+              name: texto,
+              label: "Texto",
+              widget: text,
+              required: false,
+              hint: "Conte um pouco da sua história, em tom pessoal. Deixe uma linha em branco entre os parágrafos.",
+            }
+          - {
+              name: chamada,
+              label: "Texto do botão para o cardápio",
+              widget: string,
+              required: false,
+              hint: "Ex.: Ver o cardápio. Em branco, usa \"Ver Cardápio\".",
+            }
+
+      # Pagina "Contato": secao "Como encomendar". Cada campo vazio some; com
+      # todos vazios, a secao inteira some.
+      - name: contato
+        label: "Página Contato"
+        file: "src/content/configuracoes/contato.json"
+        description: "Seção \"Como encomendar\" da página Contato (/contato). O que ficar em branco não aparece no site."
+        fields:
+          - { name: antecedencia, label: "Antecedência", widget: text, required: false, hint: "Ex.: Faça seu pedido com pelo menos 2 dias de antecedência." }
+          - { name: regiao_entrega, label: "Região de entrega", widget: text, required: false, hint: "Ex.: Entregamos no Centro e bairros vizinhos." }
+          - { name: retirada, label: "Retirada", widget: text, required: false, hint: "Ex.: Retirada no ateliê, de terça a sábado, das 9h às 18h." }
+          - { name: pagamento, label: "Formas de pagamento", widget: text, required: false, hint: "Ex.: Pix, cartão ou dinheiro." }
+
       # --- DESATIVADO a pedido do cliente: edicao do texto do WhatsApp pelo
       #     dono da loja no painel. O texto agora so muda direto no codigo
       #     (titulo: WHATSAPP_ORDER_TITLE em src/config/site.ts; mensagem

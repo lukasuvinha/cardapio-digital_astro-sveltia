@@ -5,12 +5,21 @@ import Footer from '../components/Footer.astro';
 import CartDrawer from '../components/CartDrawer.astro';
 import PageHero from '../components/PageHero.astro';
 import { SITE_NAME } from '../config/site';
+import { getSobrePagina } from '../data/paginas';
+import { paragrafos } from '../content/paginas-schema';
 
-// Pagina "Sobre" (estatica). O texto abaixo e GENERICO DE PROPOSITO — o dono
-// da loja troca por um texto proprio. O nome vem de SITE_NAME
-// (src/config/site.ts); se o nome pedir artigo masculino, troque "a" por "o"
-// no titulo e no primeiro paragrafo. Passo a passo de como editar em
-// docs/PAGINAS-INSTITUCIONAIS.md.
+// Pagina "Sobre". O conteudo (foto opcional, texto em tom pessoal e o texto
+// do botao para o cardapio) e editado no CMS em Configuracoes -> Pagina
+// Sobre (src/content/configuracoes/sobre.json). O que estiver vazio nao
+// aparece. O titulo usa SITE_NAME (src/config/site.ts); se o nome pedir
+// artigo masculino, troque "a" por "o" no titulo abaixo.
+// Passo a passo em docs/PAGINAS-INSTITUCIONAIS.md.
+//
+// ---- ANTES: o texto era fixo aqui no codigo (tres paragrafos genericos com
+//      SITE_NAME). Agora vem do CMS; o texto de exemplo esta no sobre.json.
+const sobre = await getSobrePagina();
+const textos = paragrafos(sobre.texto);
+const chamada = sobre.chamada ?? 'Ver Cardápio';
 ---
 
 <BaseLayout
@@ -22,26 +31,32 @@ import { SITE_NAME } from '../config/site';
   <PageHero eyebrow="Nossa história" title={`Sobre a ${SITE_NAME}`} />
 
   <main class="cd-page cd-sobre">
-    <div class="cd-page__card cd-sobre__body">
-      <p>
-        A {SITE_NAME} nasceu do carinho pela cozinha e da vontade de
-        compartilhar doces feitos com ingredientes de qualidade e muito
-        capricho. Cada brownie, brigadeiro, bolo de pote e cookie é preparado
-        artesanalmente, em pequenas quantidades, para garantir sabor e
-        frescor em cada mordida.
-      </p>
-      <p>
-        Aqui, cada receita carrega um pouco de dedicação, da escolha dos
-        ingredientes até a entrega na sua casa. O cardápio muda com
-        frequência, sempre trazendo novidades para adoçar o seu dia.
-      </p>
-      <p>
-        Obrigada por fazer parte dessa história! Qualquer dúvida, é só
-        chamar no <a href="/contato">Contato</a>. 💛
-      </p>
-    </div>
+    {
+      (sobre.foto || textos.length > 0) && (
+        <article class="cd-page__card cd-sobre__card">
+          {sobre.foto && (
+            <img
+              class="cd-sobre__foto"
+              src={sobre.foto}
+              alt={`Foto da ${SITE_NAME}`}
+              width="1200"
+              height="900"
+              loading="eager"
+              decoding="async"
+            />
+          )}
+          {textos.length > 0 && (
+            <div class="cd-sobre__body">
+              {textos.map((p) => (
+                <p>{p}</p>
+              ))}
+            </div>
+          )}
+        </article>
+      )
+    }
 
-    <a class="cd-btn cd-btn--cta" href="/">Ver Cardápio</a>
+    <a class="cd-btn cd-btn--cta" href="/">{chamada}</a>
   </main>
 
   <Footer />
@@ -50,6 +65,19 @@ import { SITE_NAME } from '../config/site';
 </BaseLayout>
 
 <style>
+  .cd-sobre__card {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .cd-sobre__foto {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--r-img);
+    background: var(--sf-high);
+  }
   .cd-sobre__body p {
     margin: 0 0 16px;
     font-size: 16px;
@@ -58,9 +86,22 @@ import { SITE_NAME } from '../config/site';
   .cd-sobre__body p:last-child {
     margin-bottom: 0;
   }
-  .cd-sobre__body a {
-    font-weight: var(--fw-label);
-    text-decoration: underline;
-    text-underline-offset: 3px;
+
+  /* desktop: foto e texto lado a lado, numa coluna um pouco mais larga */
+  @media (min-width: 768px) {
+    .cd-sobre {
+      max-width: 960px;
+    }
+    .cd-sobre__card:has(.cd-sobre__foto) {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 28px;
+    }
+    .cd-sobre__foto {
+      flex: 0 0 44%;
+      /* sem isto, o minimo automatico do flex e a largura intrinseca da
+         imagem (1200px) e a foto espreme o texto */
+      min-width: 0;
+    }
   }
 </style>
