@@ -5,7 +5,8 @@
 //    margem).
 // Tres etapas, deslizando para o lado: carrinho -> dados -> confirmacao,
 // dirigidas pelo store (src/lib/cart-store.ts). Ao enviar, abre o WhatsApp
-// da loja com a mensagem do pedido pronta.
+// da loja com a mensagem do pedido pronta (no modo demonstracao, mostra a
+// mensagem na etapa "demo" em vez de abrir o WhatsApp — src/config/demo.ts).
 //
 // Abre por qualquer [data-open-cart] (botao em pilula do topo no desktop,
 // botao flutuante — FAB — no celular) ou pelo evento "cd:open-cart" (acao
@@ -14,6 +15,7 @@
 import { getProdutos, getCoresCategorias, productHasPhoto } from '../data/menu';
 import { getCupons } from '../data/cupons';
 import { getCheckoutConfig } from '../data/checkout-config';
+import { demoAtivo } from '../config/demo';
 
 // Catalogo enxuto para o carrinho CLIENT-SIDE (embutido como JSON inline em
 // #cd-catalog, a partir da Content Collection). A foto e a URL publica direta
@@ -43,6 +45,11 @@ const cuponsJson = JSON.stringify(cupons).replace(/</g, '\\u003c');
 // carrinho client-side saber quais opcoes mostrar e qual taxa somar.
 const checkoutConfig = await getCheckoutConfig();
 const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c');
+
+// Modo demonstracao (PUBLIC_DEMO_MODE=true no build, ver src/config/demo.ts):
+// o envio mostra a mensagem que a loja receberia (etapa "demo") em vez de
+// abrir o WhatsApp. Sem a variavel, a etapa nem e renderizada.
+const demo = demoAtivo();
 
 // ---- ANTES: texto da mensagem do WhatsApp editavel pelo dono da loja no CMS
 //      (singleton src/content/configuracoes/whatsapp.json). Desativado a
@@ -256,6 +263,29 @@ const check = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
               .cd-done__badge (import SITE_LOGO/SITE_NAME de ../config/site). */}
         </div>
       </div>
+
+      <!-- ETAPA "DEMO" (so com PUBLIC_DEMO_MODE=true): a loja de exemplo tem
+           WhatsApp ficticio, entao o envio mostra aqui a mensagem exatamente
+           como sairia, em vez de abrir o wa.me. -->
+      {
+        demo && (
+          <div class="cd-pane" data-pane="demo">
+            <div class="cd-pane__scroll cd-demo-msg">
+              <h3 class="cd-demo-msg__title" id="cd-demo-msg-title">Esta é a mensagem que a loja receberia</h3>
+              <p class="cd-demo-msg__text">
+                Esta é uma loja de demonstração, então o pedido não foi enviado. Numa loja de verdade, o
+                WhatsApp abriria com esta mensagem pronta para o cliente enviar.
+              </p>
+              <pre class="cd-demo-msg__bubble" aria-labelledby="cd-demo-msg-title" data-demo-message></pre>
+            </div>
+            <footer class="cd-pane__foot">
+              <button class="cd-btn cd-btn--tonal cd-btn--block" type="button" data-modal-close>
+                Voltar ao cardápio
+              </button>
+            </footer>
+          </div>
+        )
+      }
     </div>
   </section>
 </div>
@@ -741,6 +771,35 @@ const check = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
     max-width: 32ch;
     color: var(--on-sf-v);
   }
+
+  /* ===== Modo demonstracao: mensagem que a loja receberia ============== */
+  .cd-demo-msg {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 16px;
+  }
+  .cd-demo-msg__title {
+    font-size: var(--fs-detail-title);
+  }
+  .cd-demo-msg__text {
+    margin: 0 0 8px;
+    color: var(--on-sf-v);
+  }
+  /* "balao" da mensagem: texto cru, exatamente como iria para o WhatsApp
+     (inclusive os *asteriscos* do negrito) */
+  .cd-demo-msg__bubble {
+    margin: 0;
+    padding: 14px 16px;
+    border-radius: var(--r-field);
+    background: var(--ok-c);
+    color: var(--on-sf);
+    font-family: var(--font-body);
+    font-size: var(--fs-body);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
 </style>
 
 <!-- Catalogo de produtos (da Content Collection) para o carrinho client-side -->
@@ -776,6 +835,7 @@ const check = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
   import { hideSnackbar } from '../lib/snackbar';
   import { ligarArrastoDaSheet } from '../lib/sheet-drag';
   import { WHATSAPP_NUMBER } from '../config/site';
+  import { demoAtivo } from '../config/demo';
 
   // catalogo embutido pelo servidor a partir da Content Collection
   const catalogEl = document.getElementById('cd-catalog');
@@ -902,11 +962,13 @@ const check = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
     });
 
     // ---- etapas ----
-    type Step = 'cart' | 'checkout' | 'confirmed';
-    const ORDEM: Step[] = ['cart', 'checkout', 'confirmed'];
+    // 'demo' so existe no modo demonstracao (ver a etapa no markup)
+    type Step = 'cart' | 'checkout' | 'demo' | 'confirmed';
+    const ORDEM: Step[] = ['cart', 'checkout', 'demo', 'confirmed'];
     const TITULOS: Record<Step, string> = {
       cart: 'Seu carrinho',
       checkout: 'Seus dados',
+      demo: 'Pedido de demonstração',
       confirmed: 'Pedido enviado',
     };
     function setStep(step: Step) {
@@ -1284,16 +1346,27 @@ const check = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
         total,
       };
 
-      const url = buildWhatsappUrl(WHATSAPP_NUMBER, buildOrderMessage(order));
-      window.open(url, '_blank', 'noopener');
+      const mensagem = buildOrderMessage(order);
+      if (demoAtivo()) {
+        // MODO DEMONSTRACAO: o WhatsApp da loja de exemplo e ficticio. Mostra a
+        // mensagem exatamente como sairia, sem abrir o wa.me. O cupom NAO e
+        // marcado como usado, para quem testa a demo poder repetir.
+        const demoMsgEl = root.querySelector<HTMLElement>('[data-demo-message]');
+        if (demoMsgEl) demoMsgEl.textContent = mensagem;
+        setStep('demo');
+        root.querySelector<HTMLElement>('[data-pane="demo"] [data-modal-close]')?.focus({ preventScroll: true });
+      } else {
+        const url = buildWhatsappUrl(WHATSAPP_NUMBER, mensagem);
+        window.open(url, '_blank', 'noopener');
 
-      // registra o cupom como usado NESTE navegador (bloqueia reuso no proximo
-      // pedido). Ver limite em src/lib/coupon-usage.ts.
-      if (cupom) marcarCupomUsado(cupom.codigo);
+        // registra o cupom como usado NESTE navegador (bloqueia reuso no proximo
+        // pedido). Ver limite em src/lib/coupon-usage.ts.
+        if (cupom) marcarCupomUsado(cupom.codigo);
 
-      orderNumberEl.textContent = order.pedido;
-      setStep('confirmed');
-      root.querySelector<HTMLElement>('[data-pane="confirmed"] [data-modal-close]')?.focus({ preventScroll: true });
+        orderNumberEl.textContent = order.pedido;
+        setStep('confirmed');
+        root.querySelector<HTMLElement>('[data-pane="confirmed"] [data-modal-close]')?.focus({ preventScroll: true });
+      }
       cartStore.clear();
       form.reset();
       atualizarEnviar();
