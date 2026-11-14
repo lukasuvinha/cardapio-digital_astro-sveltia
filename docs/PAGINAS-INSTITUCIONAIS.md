@@ -11,7 +11,7 @@ No computador, uma faixa em três colunas e, abaixo de uma linha fina, a linha
 de base:
 
 ```
-Doceria Exemplo                        Sobre · Contato           (WhatsApp) (Instagram)
+Doceria Exemplo                        Sobre · Contato        (Instagram) (TikTok) (Facebook)
 Doceria Artesanal
 Pedidos de terça a sábado, das 9h às 18h
 ─────────────────────────────────────────────────────────────────────────────────────
@@ -22,7 +22,7 @@ No celular, a marca e os ícones dividem a primeira linha; links e horário
 vêm logo abaixo (quebrando linha se não couberem); por fim a linha de base:
 
 ```
-Doceria Exemplo                 (WhatsApp) (Instagram)
+Doceria Exemplo           (Instagram) (TikTok) (Facebook)
 Doceria Artesanal
 Sobre · Contato
 Pedidos de terça a sábado, das 9h às 18h
@@ -36,15 +36,36 @@ publicação).
 | Linha | De onde vem | Some quando |
 |---|---|---|
 | Nome · slogan | `SITE_NAME`, `SITE_TAGLINE` em `src/config/site.ts` | — |
-| Ícones de WhatsApp e Instagram | `WHATSAPP_NUMBER`, `INSTAGRAM_URL` | — |
+| Ícones das redes sociais | Painel: **Configurações → Rodapé → Redes sociais** | nenhuma rede ligada com link |
 | Sobre · Contato | fixo | — |
 | © ano e nome da loja | `SITE_NAME` | — |
-| Horário de pedidos | `ORDER_HOURS` | `ORDER_HOURS = ''` |
+| Horário de pedidos | Painel: **Configurações → Rodapé** | chave "Mostrar horário de pedidos" desligada, ou texto vazio |
 | Crédito do desenvolvedor | `DEV_NAME`, `DEV_URL` | `DEV_CREDIT_ENABLED = false` |
 
 Os ícones são **desenhos de traço genéricos** (`src/components/SocialIcon.astro`),
-não os logos das marcas; cada link tem `aria-label` ("WhatsApp da Doceria
-Exemplo").
+não os logos das marcas; cada link tem `aria-label` ("Instagram da Doceria
+Exemplo"). O WhatsApp **não** fica no rodapé: ele tem o botão dedicado da
+página Contato (o ícone antigo ficou comentado em `Footer.astro`, com nota de
+como reativar).
+
+### Horário e redes sociais (no painel)
+
+Em **Configurações → Rodapé** (`src/content/configuracoes/rodape.json`):
+
+- **Mostrar horário de pedidos** (liga/desliga) e **Horário de pedidos**
+  (texto livre, ex.: "Pedidos de terça a sábado, das 9h às 18h"). Desligado ou
+  em branco, a linha some; o texto continua salvo para quando religar.
+- **Redes sociais** — uma lista: em cada item, escolha a **rede** (Instagram,
+  TikTok, Facebook, Pinterest, X, YouTube ou Threads), cole o **link do
+  perfil** e use **Mostrar no site** para ligar ou esconder sem apagar.
+  - O link é **obrigatório** e precisa ser completo, começando com
+    `https://` (o painel não deixa salvar sem ele).
+  - Mesmo assim, o site só mostra a rede que estiver **ligada e com link
+    válido**; se a mesma rede for cadastrada duas vezes, vale a primeira.
+  - A ordem da lista é a ordem dos ícones.
+- As mesmas redes aparecem como botões na página **Contato**.
+- No celular cabem 3 ícones por linha ao lado da marca; com mais redes, eles
+  quebram para a linha de baixo.
 
 ### Crédito do desenvolvedor
 
@@ -77,46 +98,50 @@ O template vem com um texto e uma ilustração de exemplo
 
 ## Página Contato
 
-- **Botão principal "Chamar no WhatsApp"** (verde, a cor de envio) e o botão
-  do **Instagram** — links de `src/config/site.ts`.
+- **Botão principal "Chamar no WhatsApp"** (verde, a cor de envio), com o
+  número de `src/config/site.ts`.
+- Um botão para cada **rede social** ligada no painel (as mesmas do rodapé,
+  em Configurações → Rodapé).
 - **Como encomendar** — editado no painel em **Configurações → Página
   Contato** (`src/content/configuracoes/contato.json`): **Antecedência**,
   **Região de entrega**, **Retirada** e **Formas de pagamento**. Cada item em
   branco some; com todos em branco, a seção inteira some.
 
-## Trocar o WhatsApp, o Instagram, o horário e o crédito
+## Trocar o WhatsApp e o crédito
 
-Tudo em [`src/config/site.ts`](../src/config/site.ts):
+Em [`src/config/site.ts`](../src/config/site.ts):
 
 ```ts
 export const WHATSAPP_NUMBER = '5511999999999'; // só dígitos: 55 + DDD + número
-export const INSTAGRAM_URL = 'https://instagram.com/doceriaexemplo';
-export const ORDER_HOURS = 'Pedidos de terça a sábado, das 9h às 18h'; // '' esconde
 export const DEV_CREDIT_ENABLED = true;
 export const DEV_NAME = 'Lukas';
 export const DEV_URL = 'https://github.com/lukasuvinha';
 ```
 
 O `WHATSAPP_NUMBER` é o mesmo usado no envio dos pedidos — trocar lá atualiza
-o botão do carrinho, o da página Contato e o ícone do rodapé.
+o botão do carrinho e o da página Contato. Horário e redes sociais são
+editados no painel (acima).
 
 ## Onde fica cada coisa no código
 
 | O quê | Arquivo |
 |---|---|
 | Rodapé (marca, ícones, links, horário, crédito) | `src/components/Footer.astro` |
-| Ícones de traço (WhatsApp, Instagram, GitHub, LinkedIn) | `src/components/SocialIcon.astro` |
+| Horário e redes (schema, regras e leitura) | `src/content/rodape-schema.ts`, `src/data/rodape.ts` |
+| Ícones de traço (redes, WhatsApp, GitHub, LinkedIn) | `src/components/SocialIcon.astro` |
 | Botão de link (ícone + rótulo) | `src/components/ContactButton.astro` |
 | Página Sobre | `src/pages/sobre.astro` |
 | Página Contato | `src/pages/contato.astro` |
 | Conteúdo editável (schemas e leitura) | `src/content/paginas-schema.ts`, `src/data/paginas.ts` |
-| Campos do painel | `public/admin/config.yml`, Configurações → "sobre" e "contato" |
+| Campos do painel | `public/admin/config.yml`, Configurações → "sobre", "contato" e "rodape" |
 | Página Desenvolvedor (desativada) | `src/pages/_desenvolvedor.astro` |
-| Número, Instagram, horário, crédito | `src/config/site.ts` |
+| Número do WhatsApp e crédito | `src/config/site.ts` |
 
 ## Testes
 
-`tests/paginas-institucionais.test.ts` cobre o rodapé (links, ícones com
-`aria-label`, horário, crédito com `nofollow` e nova aba), a desativação da
+`tests/rodape.test.ts` cobre as regras do horário e das redes (só ligadas e
+com link válido, ordem, repetidas) e os campos do painel.
+`tests/paginas-institucionais.test.ts` cobre o rodapé (links, layout,
+crédito com `nofollow` e nova aba, sem atalho de WhatsApp), a desativação da
 página `/desenvolvedor`, as páginas Sobre e Contato sem conteúdo do CMS (nada
 de seção vazia) e o conteúdo de exemplo dos JSON.

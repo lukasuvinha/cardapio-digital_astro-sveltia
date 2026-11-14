@@ -39,8 +39,10 @@ export const SITE_OG_IMAGE = '/og-image.png';
 // Ex.: (11) 91234-5678  ->  '5511912345678'
 export const WHATSAPP_NUMBER = '5511999999999'; // numero que recebe os pedidos
 
-// Pagina "Contato" (/contato). Passo a passo em docs/PAGINAS-INSTITUCIONAIS.md.
-export const INSTAGRAM_URL = 'https://www.instagram.com/seu_usuario';
+// ---- ANTES: INSTAGRAM_URL ficava aqui. As redes sociais (Instagram, TikTok,
+// Facebook, Pinterest, X, YouTube, Threads) agora sao cadastradas no painel,
+// em Configuracoes -> Rodape, e aparecem no rodape e na pagina Contato.
+// export const INSTAGRAM_URL = 'https://www.instagram.com/seu_usuario';
 
 // ---------------------------------------------------------------------------
 // Pedido pelo WhatsApp
@@ -52,9 +54,9 @@ export const WHATSAPP_ORDER_TITLE = `Novo pedido — ${SITE_NAME}`;
 export const ORDER_PREFIX = 'DE';
 
 // ---------------------------------------------------------------------------
-// Horario de pedidos: linha opcional no rodape. Deixe '' (vazio) para nao
-// mostrar nada.
-export const ORDER_HOURS = 'Pedidos de terça a sábado, das 9h às 18h';
+// ---- ANTES: horario de pedidos fixo aqui (ORDER_HOURS). Agora e editado no
+// painel, em Configuracoes -> Rodape (com chave liga/desliga).
+// export const ORDER_HOURS = 'Pedidos de terça a sábado, das 9h às 18h';
 
 // ---------------------------------------------------------------------------
 // Credito do desenvolvedor: linha discreta "Site feito por {DEV_NAME}" no fim

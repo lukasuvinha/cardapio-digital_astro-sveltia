@@ -63,6 +63,7 @@ Os componentes/páginas leem via `getProdutos()` em
   | `fornada.json` | `fornada` | [`fornada-schema.ts`](./fornada-schema.ts) | Aviso de próxima fornada |
   | `sobre.json` | `sobre` | [`paginas-schema.ts`](./paginas-schema.ts) | Foto, texto e botão da página Sobre |
   | `contato.json` | `contato` | [`paginas-schema.ts`](./paginas-schema.ts) | "Como encomendar" da página Contato |
+  | `rodape.json` | `rodape` | [`rodape-schema.ts`](./rodape-schema.ts) | Horário de pedidos e redes sociais (rodapé e página Contato) |
 
   A pasta também guarda `whatsapp.json`, que **não é lido**: era usado para
   editar o texto do WhatsApp pelo painel, opção desativada a pedido do cliente.

@@ -12,6 +12,7 @@ import { entregaConfigBaseSchema } from './configuracoes-schema';
 import { fornadaConfigBaseSchema } from './fornada-schema';
 import { categoriaBaseSchema } from './categoria-schema';
 import { sobrePaginaSchema, contatoPaginaSchema } from './paginas-schema';
+import { rodapeConfigSchema } from './rodape-schema';
 
 const produtos = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/produtos' }),
@@ -67,4 +68,10 @@ const contato = defineCollection({
   schema: contatoPaginaSchema,
 });
 
-export const collections = { produtos, cupons, categorias, configuracoes, fornada, sobre, contato };
+// Rodape: horario de pedidos e redes sociais (Configuracoes -> Rodape).
+const rodape = defineCollection({
+  loader: glob({ pattern: 'rodape.json', base: './src/content/configuracoes' }),
+  schema: rodapeConfigSchema,
+});
+
+export const collections = { produtos, cupons, categorias, configuracoes, fornada, sobre, contato, rodape };

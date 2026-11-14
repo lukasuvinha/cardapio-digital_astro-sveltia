@@ -355,6 +355,64 @@ collections:
           - { name: retirada, label: "Retirada", widget: text, required: false, hint: "Ex.: Retirada no ateliê, de terça a sábado, das 9h às 18h." }
           - { name: pagamento, label: "Formas de pagamento", widget: text, required: false, hint: "Ex.: Pix, cartão ou dinheiro." }
 
+      # Rodape: horario de pedidos (liga/desliga + texto) e redes sociais.
+      # As redes sao uma LISTA: o dono da loja escolhe a rede, cola o link e
+      # liga/desliga cada uma. O link e OBRIGATORIO e precisa comecar com
+      # https:// (o pattern abaixo) — sem link a rede nao pode ser salva, e o
+      # site ainda ignora qualquer item sem link valido (rodape-schema.ts).
+      # ATENCAO: campos com "options"/"fields" em lista ficam em estilo BLOCO
+      # (sem chaves { }): lista em bloco dentro de mapping em fluxo quebra o
+      # YAML e derruba o painel (docs/BUGS-E-CORRECOES.md, item 2).
+      - name: rodape
+        label: "Rodapé"
+        file: "src/content/configuracoes/rodape.json"
+        description: "Horário de pedidos e redes sociais que aparecem no rodapé de todas as páginas (as redes também aparecem na página Contato)."
+        fields:
+          - {
+              name: horario_habilitado,
+              label: "Mostrar horário de pedidos",
+              widget: boolean,
+              default: true,
+              hint: "Desligue para esconder a linha de horário do rodapé (o texto abaixo continua salvo).",
+            }
+          - {
+              name: horario,
+              label: "Horário de pedidos",
+              widget: string,
+              required: false,
+              hint: "Ex.: Pedidos de terça a sábado, das 9h às 18h. Em branco, a linha não aparece.",
+            }
+          - name: redes
+            label: "Redes sociais"
+            label_singular: "rede social"
+            widget: list
+            required: false
+            summary: "{{fields.rede}} — {{fields.url}}"
+            hint: "Adicione as redes da loja. Cada uma precisa do link do perfil; use a chave \"Mostrar no site\" para esconder uma rede sem apagar."
+            fields:
+              - name: rede
+                label: "Rede"
+                widget: select
+                options:
+                  - { label: "Instagram", value: instagram }
+                  - { label: "TikTok", value: tiktok }
+                  - { label: "Facebook", value: facebook }
+                  - { label: "Pinterest", value: pinterest }
+                  - { label: "X (Twitter)", value: x }
+                  - { label: "YouTube", value: youtube }
+                  - { label: "Threads", value: threads }
+              - name: url
+                label: "Link do perfil"
+                widget: string
+                pattern: ["^https?://[^\\s/]+\\.[^\\s]+$", "Cole o link completo do perfil, começando com https:// (ex.: https://www.instagram.com/minhaloja)"]
+                hint: "Obrigatório. Abra seu perfil na rede, copie o endereço e cole aqui."
+              - {
+                  name: ativo,
+                  label: "Mostrar no site",
+                  widget: boolean,
+                  default: true,
+                }
+
       # --- DESATIVADO a pedido do cliente: edicao do texto do WhatsApp pelo
       #     dono da loja no painel. O texto agora so muda direto no codigo
       #     (titulo: WHATSAPP_ORDER_TITLE em src/config/site.ts; mensagem

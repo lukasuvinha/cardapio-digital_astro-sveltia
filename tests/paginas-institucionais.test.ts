@@ -14,11 +14,9 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   WHATSAPP_NUMBER,
-  INSTAGRAM_URL,
   DEV_NAME,
   DEV_URL,
   DEV_CREDIT_ENABLED,
-  ORDER_HOURS,
   SITE_NAME,
 } from '../src/config/site';
 import {
@@ -61,18 +59,21 @@ describe('ContactButton', () => {
 });
 
 describe('Footer — contato, horario e credito', () => {
-  it('icones de WhatsApp e Instagram com os links de site.ts e aria-label', async () => {
+  it('o rodape nao tem mais o atalho do WhatsApp (a pagina Contato tem o botao dedicado)', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Footer, {});
-    expect(html).toMatch(new RegExp(`<a[^>]*href="https://wa.me/${WHATSAPP_NUMBER}"[^>]*aria-label="WhatsApp da ${SITE_NAME}"`));
-    expect(html).toMatch(new RegExp(`<a[^>]*href="${INSTAGRAM_URL}"[^>]*aria-label="Instagram da ${SITE_NAME}"`));
+    expect(html).not.toContain('wa.me/');
+    // o <a> antigo ficou so como comentario no codigo, com nota de reativacao
+    const src = readFileSync(join(process.cwd(), 'src/components/Footer.astro'), 'utf8');
+    expect(src).toContain('DESATIVADO: icone do WhatsApp no rodape');
   });
 
-  it('mostra o horario de pedidos configurado', async () => {
+  it('sem configuracao do rodape (CMS vazio), nao mostra horario nem lista de redes vazia', async () => {
+    // no Vitest as collections chegam vazias: e o caso "nada cadastrado"
     const container = await AstroContainer.create();
     const html = await container.renderToString(Footer, {});
-    if (ORDER_HOURS.trim()) expect(html).toContain(ORDER_HOURS.trim());
-    else expect(html).not.toContain('cd-footer__hours');
+    expect(html).not.toContain('cd-footer__hours');
+    expect(html).not.toContain('cd-footer__social');
   });
 
   it('credito "Site feito por {DEV_NAME}" com link para DEV_URL, nofollow e nova aba', async () => {
@@ -93,7 +94,7 @@ describe('Footer — contato, horario e credito', () => {
     if (DEV_CREDIT_ENABLED) expect(base).toContain(`Site feito por ${DEV_NAME}`);
     // a faixa principal (marca, links, icones) vem antes da linha de base
     const principal = html.slice(html.indexOf('cd-footer__main'), html.indexOf('cd-footer__base'));
-    for (const trecho of ['cd-footer__name', 'href="/sobre"', 'href="/contato"', 'cd-footer__social']) expect(principal).toContain(trecho);
+    for (const trecho of ['cd-footer__name', 'href="/sobre"', 'href="/contato"']) expect(principal).toContain(trecho);
   });
 
   it('layout: grade de 3 colunas no desktop, nada centralizado, linha fina e area segura (tokens)', () => {
@@ -172,11 +173,10 @@ describe('Página Contato', () => {
     expect(html).toContain('WhatsApp');
   });
 
-  it('botão do Instagram usa o link configurado', async () => {
+  it('os botoes de redes vem do CMS (Configuracoes -> Rodape): sem cadastro, nenhum botao de rede', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Contato, {});
-    expect(html).toContain(INSTAGRAM_URL);
-    expect(html).toContain('Instagram');
+    expect(html).not.toContain('cd-linkbtn');
   });
 
   it('sem conteudo do CMS, a secao "Como encomendar" nao aparece', async () => {

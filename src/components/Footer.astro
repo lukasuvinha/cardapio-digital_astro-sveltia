@@ -5,31 +5,33 @@
 // Layout (ver os blocos de CSS abaixo):
 //  - Desktop (>= 768px): faixa em 3 colunas alinhadas ao topo, dentro de
 //    --maxw — marca (nome, slogan e horario de pedidos) | Sobre · Contato |
-//    icones de WhatsApp e Instagram. Abaixo, separada por uma linha fina, a
-//    linha de base: "© ano loja" a esquerda e o credito a direita.
+//    icones das redes sociais. Abaixo, separada por uma linha fina, a linha
+//    de base: "© ano loja" a esquerda e o credito a direita.
 //  - Celular: linha 1 com a marca a esquerda e os icones a direita; linha 2
 //    com Sobre · Contato e o horario (quebra se precisar); linha de base com
 //    © e credito. Nada centralizado.
 //
-// Conteudo: nome e slogan (SITE_NAME, SITE_TAGLINE), icones de traco
-// genericos com aria-label (nao sao os logos das marcas), horario
-// (ORDER_HOURS; some se vazio) e o credito do desenvolvedor
-// (DEV_CREDIT_ENABLED; desligado, a linha de base mostra so o ©).
-import {
-  SITE_NAME,
-  SITE_TAGLINE,
-  WHATSAPP_NUMBER,
-  INSTAGRAM_URL,
-  ORDER_HOURS,
-  DEV_CREDIT_ENABLED,
-  DEV_NAME,
-  DEV_URL,
-} from '../config/site';
+// Conteudo: nome e slogan (SITE_NAME, SITE_TAGLINE); horario de pedidos e
+// redes sociais editados no CMS em Configuracoes -> Rodape (ver
+// src/data/rodape.ts): o horario tem chave liga/desliga, e cada rede so
+// aparece se estiver ligada e tiver link. Icones de traco genericos com
+// aria-label (nao sao os logos das marcas). Credito do desenvolvedor por
+// DEV_CREDIT_ENABLED (desligado, a linha de base mostra so o ©).
+import { SITE_NAME, SITE_TAGLINE, DEV_CREDIT_ENABLED, DEV_NAME, DEV_URL } from '../config/site';
+import { getRodape } from '../data/rodape';
 import CartRail from './CartRail.astro';
 import SocialIcon from './SocialIcon.astro';
 
-const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}`;
-const horario = ORDER_HOURS.trim();
+// horario ('' quando desligado/vazio) e redes ligadas com link valido
+const { horario, redes } = await getRodape();
+
+// ---- ANTES: horario fixo em ORDER_HOURS (src/config/site.ts) e icones fixos
+//      de WhatsApp e Instagram (WHATSAPP_NUMBER / INSTAGRAM_URL). O horario e
+//      as redes passaram para o CMS; o WhatsApp saiu do rodape porque a
+//      pagina Contato ja tem um botao dedicado. Para voltar o icone do
+//      WhatsApp, descomente o <a> marcado no markup e esta linha (importando
+//      WHATSAPP_NUMBER de ../config/site):
+// const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}`;
 // ano do build: o site e estatico, entao atualiza a cada publicacao
 const ano = new Date().getFullYear();
 ---
@@ -58,14 +60,26 @@ const ano = new Date().getFullYear();
         {horario && <p class="cd-footer__hours">{horario}</p>}
       </div>
 
-      <div class="cd-footer__social">
+      {
+        redes.length > 0 && (
+          <ul class="cd-footer__social" aria-label="Redes sociais">
+            {redes.map((r) => (
+              <li>
+                <a class="cd-footer__icon cd-state" href={r.url} target="_blank" rel="noopener noreferrer" aria-label={`${r.nome} da ${SITE_NAME}`}>
+                  <SocialIcon icon={r.rede} size={22} />
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+      {/* ---- DESATIVADO: icone do WhatsApp no rodape (a pagina Contato ja tem
+          o botao dedicado). COMO REATIVAR: recoloque este <a> dentro da lista
+          acima e descomente whatsappUrl no frontmatter.
         <a class="cd-footer__icon cd-state" href={whatsappUrl} target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp da ${SITE_NAME}`}>
           <SocialIcon icon="whatsapp" size={22} />
         </a>
-        <a class="cd-footer__icon cd-state" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" aria-label={`Instagram da ${SITE_NAME}`}>
-          <SocialIcon icon="instagram" size={22} />
-        </a>
-      </div>
+      */}
     </div>
 
     <div class="cd-footer__base">
@@ -104,7 +118,9 @@ const ano = new Date().getFullYear();
     grid-template-areas:
       'brand social'
       'meta meta';
-    align-items: center;
+    /* topo: com muitas redes os icones quebram em mais linhas e a marca
+       continua alinhada a primeira (nao fica "flutuando" no meio) */
+    align-items: start;
     column-gap: 16px;
     row-gap: 4px;
     padding: 16px 0 8px;
@@ -131,7 +147,15 @@ const ano = new Date().getFullYear();
   .cd-footer__social {
     grid-area: social;
     display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    /* no celular, ate 3 icones por linha (quebra se houver mais redes), para
+       nao espremer a marca */
+    max-width: calc(3 * var(--touch) + 2 * 8px);
   }
   .cd-footer__icon {
     display: inline-flex;
@@ -244,6 +268,7 @@ const ano = new Date().getFullYear();
       margin-top: 4px;
     }
     .cd-footer__social {
+      max-width: none;
       grid-area: social;
       justify-self: end;
       margin-top: -6px; /* topo dos icones alinhado ao topo do nome */
