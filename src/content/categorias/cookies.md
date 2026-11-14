@@ -1,3 +1,4 @@
 ---
 nome: Cookies
+cor: baunilha
 ---

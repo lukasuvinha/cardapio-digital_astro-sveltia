@@ -1,202 +1,224 @@
 ---
-import type { Product } from '../data/menu';
+// Card de produto (Material 3, mobile-first).
+// Fundo na cor da categoria (--cat, via data-cor); foto quadrada; categoria,
+// nome (ate 2 linhas) e preco. O card inteiro e um link para
+// /produto/:id — sem JS ele navega para a pagina estatica; com JS, no
+// cardapio, o clique abre o detalhe numa sheet/dialog (ver ProductSheet.astro).
+//
+// Botao "+" (canto inferior direito): adiciona 1 unidade ao carrinho. Quando
+// o produto ja esta no carrinho vira um circulo ambar com a quantidade
+// (atualizado pelo script do CartDrawer via [data-add-to-cart]). Produto
+// esgotado: foto em cinza, selo "Esgotado" e sem botao "+".
+//
+// O botao fica FORA do <a> (botao dentro de link e HTML invalido); o link
+// cobre o card todo com um pseudo-elemento e o botao fica por cima.
+import type { Product, CorCategoria } from '../data/menu';
 import { formatPrice } from '../lib/format';
 import { slugify } from '../lib/slug';
 import ProductImage from './ProductImage.astro';
 
 interface Props {
   product: Product;
+  cor?: CorCategoria;
+  /** posicao na grade, para a entrada em cascata */
+  index?: number;
 }
 
-const { product } = Astro.props;
+const { product, cor = 'neutro', index = 0 } = Astro.props;
 const catSlug = slugify(product.categoria);
 ---
 
-<a
+<article
   class="cd-card"
-  href={`/produto/${product.id}`}
   data-testid="product-card"
   data-categoria={catSlug}
   data-available={String(product.disponivel)}
+  data-cor={cor}
+  style={`--i: ${index}`}
 >
-  <div class="cd-card__media">
-    <ProductImage foto={product.foto} alt={`Foto de ${product.nome}`}>
-      {!product.disponivel && <span class="cd-card__soldout">Esgotado</span>}
-    </ProductImage>
-  </div>
-
-  <div class="cd-card__body">
+  <a class="cd-card__link cd-state" href={`/produto/${product.id}`} data-open-detail={product.id}>
+    <div class="cd-card__media">
+      <ProductImage foto={product.foto} alt={`Foto de ${product.nome}`}>
+        {!product.disponivel && <span class="cd-card__soldout">Esgotado</span>}
+      </ProductImage>
+    </div>
     <span class="cd-card__cat">{product.categoria}</span>
     <h3 class="cd-card__name">{product.nome}</h3>
-    <div class="cd-card__foot">
-      <span class="cd-card__price">{formatPrice(product.preco)}</span>
-      <span class="cd-card__more" aria-hidden="true">›</span>
-    </div>
-  </div>
+    <span class="cd-card__price">{formatPrice(product.preco)}</span>
+  </a>
 
-  {/*
-    FUNCIONALIDADE OCULTA (Fase 4): botao "+" de adicao rapida no card.
-    Foi removido porque agora o card inteiro e um link para a pagina de
-    detalhe do produto (/produto/:id), onde o cliente escolhe a quantidade.
-    ONDE ESTAVA: dentro de <div class="cd-card__foot">, logo apos o preco.
-    COMO REATIVAR: recolar o bloco abaixo dentro do .cd-card__foot e
-    descomentar as regras .cd-card__add* no <style>. O handler global em
-    CartDrawer (para [data-add-to-cart]) ja faz stopPropagation/preventDefault,
-    entao o clique no botao NAO dispara a navegacao do link do card.
-
-    {product.disponivel && (
+  {
+    product.disponivel && (
       <button
-        class="cd-card__add"
+        class="cd-card__add cd-state"
         type="button"
         data-add-to-cart={product.id}
-        data-label="+"
+        data-nome={product.nome}
         aria-label={`Adicionar ${product.nome} ao carrinho`}
       >
-        +
+        <svg class="cd-card__plus" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+        <span class="cd-card__qty" data-qty-label aria-hidden="true"></span>
       </button>
-    )}
-  */}
-</a>
+    )
+  }
+</article>
 
 <style>
-  /* Mobile-first: o card e desenhado primeiro para telas pequenas.
-     Agora o card e um link (<a>) para a pagina de detalhe do produto. */
   .cd-card {
-    display: flex;
-    flex-direction: column;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-card);
-    overflow: hidden;
-    text-decoration: none;
-    color: inherit;
-    cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    position: relative;
+    border-radius: var(--r-card);
+    background: var(--cat);
+    color: var(--on-sf);
+    transition:
+      transform var(--dur-emph) var(--ease-emph),
+      box-shadow var(--dur-emph) var(--ease-emph),
+      background-color var(--dur-emph) var(--ease-emph);
+    animation: cd-card-in var(--dur-in) var(--ease-in) backwards;
+    animation-delay: calc(var(--i, 0) * var(--stagger));
   }
-  /* realce so com cursor real: no toque o :hover "gruda" e o card ficava
-     levantado/sombreado apos o toque. */
-  @media (hover: hover) {
-    .cd-card:hover {
-      transform: translateY(-3px);
-      box-shadow: var(--shadow-card-hover);
-      border-color: var(--gold);
-    }
-  }
-  /* usado pelo filtro de categorias (o display:flex acima sobrepoe o [hidden] padrao) */
+  /* usado pelo filtro de categorias */
   .cd-card[hidden] {
     display: none;
   }
-
-  /* A caixa da imagem (proporcao 4:3) e o placeholder vivem no componente
-     reutilizavel ProductImage. Aqui so a borda inferior e o clip do card. */
-  .cd-card__media {
-    border-bottom: 1px solid var(--border);
-    overflow: hidden;
+  @keyframes cd-card-in {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 
+  .cd-card__link {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 8px 8px 14px;
+    border-radius: inherit;
+    color: inherit;
+    text-decoration: none;
+  }
+  .cd-card__link:hover {
+    text-decoration: none;
+  }
+
+  .cd-card__media {
+    --media-ratio: 1 / 1;
+    border-radius: var(--r-img);
+    overflow: hidden;
+    /* garante o recorte arredondado durante o zoom (Safari) */
+    isolation: isolate;
+  }
+  .cd-card__media :global(.cd-media__img) {
+    transition: transform var(--dur-in) var(--ease-emph), filter var(--dur-emph) var(--ease-emph);
+  }
   .cd-card__soldout {
     position: absolute;
     top: 10px;
-    right: 10px;
-    padding: 4px 8px;
-    background: var(--rust);
-    color: var(--on-accent);
-    font-size: 9.5px;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    border-radius: var(--radius-xs);
+    left: 10px;
+    padding: 4px 10px;
+    border-radius: var(--r-badge);
+    background: var(--inv-sf);
+    color: var(--inv-on-sf);
+    font-size: 12px;
+    font-weight: var(--fw-strong);
+    z-index: 1;
   }
-  /* Produto indisponivel: esmaecemos apenas a FOTO, usando FILTER (nao
-     opacity). Com filter a imagem continua OPACA, entao o placeholder atras
-     ("Foto em breve") NAO vaza atraves dela; e o selo "Esgotado" e o texto do
-     placeholder (quando nao ha foto) mantem contraste total (acessibilidade).
-     A indisponibilidade ja fica clara pelo selo "Esgotado". */
   .cd-card[data-available='false'] .cd-card__media :global(.cd-media__img) {
-    filter: saturate(0.65) brightness(0.9);
+    filter: grayscale(1);
   }
 
-  .cd-card__body {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    padding: 12px 12px 14px;
-  }
   .cd-card__cat {
-    font-size: 9.5px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--muted);
+    margin: 12px 6px 0;
+    font-size: var(--fs-label);
+    font-weight: var(--fw-label);
+    color: var(--on-sf-v);
   }
   .cd-card__name {
-    margin: 5px 0 0;
-    font-family: var(--font-head);
-    font-weight: 400;
-    font-size: 14px;
+    margin: 2px 6px 0;
+    font-size: 16px;
     line-height: 1.3;
-    color: var(--ink);
-  }
-  .cd-card__foot {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    margin-top: auto;
-    padding-top: 12px;
+    /* ate 2 linhas */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.6em;
   }
   .cd-card__price {
+    margin: 8px 56px 0 6px;
     font-family: var(--font-head);
-    font-size: 16px;
-    color: var(--gold-text);
-    white-space: nowrap;
-  }
-  .cd-card__more {
-    font-size: 20px;
-    line-height: 1;
-    color: var(--muted);
-    transition: transform 0.15s ease, color 0.15s ease;
-  }
-  @media (hover: hover) {
-    .cd-card:hover .cd-card__more {
-      color: var(--ink);
-      transform: translateX(2px);
-    }
+    font-size: var(--fs-price);
+    font-weight: var(--fw-strong);
+    color: var(--primary);
+    min-height: var(--touch);
+    display: flex;
+    align-items: center;
   }
 
-  /*
-    Estilos do botao "+" de adicao rapida (oculto na Fase 4 — ver markup acima).
-    COMO REATIVAR: descomentar junto com o bloco do botao no markup.
-
+  /* Botao "+" (acao = --cta) */
   .cd-card__add {
-    flex: none;
-    width: 30px;
-    height: 30px;
+    position: absolute;
+    right: 10px;
+    bottom: 12px;
+    z-index: 2;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: none;
-    border-radius: var(--radius-round);
-    background: var(--brand);
-    color: var(--cream);
-    font-family: var(--font-body);
-    font-size: 19px;
-    line-height: 1;
-    cursor: pointer;
-    transition: transform 0.12s ease, background 0.15s;
+    width: var(--touch);
+    height: var(--touch);
+    border-radius: var(--r-round);
+    background: var(--cta);
+    color: var(--on-cta);
+    box-shadow: var(--shadow-cta), var(--shine);
+    transition:
+      transform var(--dur-spring) var(--ease-spring),
+      background-color var(--dur-emph) var(--ease-emph),
+      color var(--dur-emph) var(--ease-emph),
+      box-shadow var(--dur-emph) var(--ease-emph);
   }
-  .cd-card__add:hover { transform: scale(1.08); }
-  .cd-card__add.is-added { background: var(--gold); color: var(--brand); font-size: 15px; }
-  */
+  .cd-card__add:active {
+    transform: scale(0.95);
+  }
+  .cd-card__qty {
+    display: none;
+    font-family: var(--font-head);
+    font-size: 17px;
+    font-weight: var(--fw-strong);
+  }
+  /* ja no carrinho: circulo ambar (destaque) com a quantidade */
+  .cd-card__add[data-in-cart='true'] {
+    background: var(--hl);
+    color: var(--on-hl);
+    box-shadow: var(--shine);
+  }
+  .cd-card__add[data-in-cart='true'] .cd-card__plus {
+    display: none;
+  }
+  .cd-card__add[data-in-cart='true'] .cd-card__qty {
+    display: inline;
+  }
+  .cd-card__add.is-bump {
+    animation: cd-bump var(--dur-spring) var(--ease-spring);
+  }
 
-  /* Telas maiores: um respiro a mais no conteudo */
-  @media (min-width: 640px) {
-    .cd-card__body {
-      padding: 16px 16px 18px;
+  @media (hover: hover) {
+    .cd-card:hover {
+      transform: translateY(calc(-4px * var(--motion-shift)));
+      box-shadow: var(--elev-2);
     }
-    .cd-card__name {
-      font-size: 15.5px;
+    .cd-card:hover .cd-card__media :global(.cd-media__img) {
+      transform: scale(calc(1 + 0.05 * var(--motion-shift)));
     }
+  }
+
+  @media (min-width: 768px) {
     .cd-card__price {
-      font-size: 17px;
+      font-size: var(--fs-price-lg);
     }
   }
 </style>

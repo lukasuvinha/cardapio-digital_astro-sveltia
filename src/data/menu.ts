@@ -20,7 +20,14 @@
 // -----------------------------------------------------------------------------
 
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { porDisponibilidade, produtosVisiveis, type Product } from './menu-helpers';
+import {
+  categoriasDe,
+  coresPorCategoria,
+  porDisponibilidade,
+  produtosVisiveis,
+  type CorCategoria,
+  type Product,
+} from './menu-helpers';
 
 // reexporta tipos e helpers puros para os consumidores continuarem importando
 // tudo de '../data/menu'
@@ -52,4 +59,16 @@ function toProduct(entry: CollectionEntry<'produtos'>): Product {
 export async function getProdutos(): Promise<Product[]> {
   const entries = await getCollection('produtos');
   return produtosVisiveis(entries.map(toProduct)).sort(porDisponibilidade);
+}
+
+/**
+ * Cor de cada categoria do cardapio (nome -> cor), lendo o campo opcional
+ * "cor" da collection "categorias" (CMS). Categorias sem cor recebem uma cor
+ * automatica pela ordem em que aparecem no cardapio.
+ */
+export async function getCoresCategorias(produtos: Product[]): Promise<Record<string, CorCategoria>> {
+  const entries = await getCollection('categorias');
+  const definidas: Record<string, CorCategoria | undefined> = {};
+  for (const e of entries) definidas[e.data.nome] = e.data.cor;
+  return coresPorCategoria(categoriasDe(produtos), definidas);
 }

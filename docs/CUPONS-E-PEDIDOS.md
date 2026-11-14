@@ -49,7 +49,7 @@ estático atual. O código fica em `src/lib/coupon-usage.ts`.
 
 ## Entrega e retirada
 
-No checkout, o cliente escolhe entre **Retirada** e **Entrega** (com uma
+Na primeira etapa do carrinho, o cliente escolhe entre **Retirada** e **Entrega** (com uma
 **taxa de entrega** opcional somada ao total). O dono da loja controla os três pelo
 painel do Sveltia (**`/admin`** → **Configurações** → **Entrega e Retirada**),
 sem mexer em código:

@@ -1,25 +1,34 @@
 ---
-// Drawer do carrinho (reutilizavel): abre a partir do botao "Carrinho" do
-// header em qualquer pagina. Contem tres passos — carrinho, checkout e
-// confirmacao — dirigidos pelo store (src/lib/cart-store.ts). Ao confirmar,
-// abre o WhatsApp da loja com a mensagem do pedido pronta.
-// Mobile-first: no celular ocupa a largura toda; em telas maiores vira um
-// painel lateral. Compatibilidade clara/escura via variaveis de tema.
-import { getProdutos, productHasPhoto } from '../data/menu';
+// Carrinho (reutilizavel, incluido em todas as paginas):
+//  - celular (< 768px): bottom sheet de altura quase total;
+//  - desktop: drawer lateral a direita (ate 460px, flutuando com 12px de
+//    margem).
+// Tres etapas, deslizando para o lado: carrinho -> dados -> confirmacao,
+// dirigidas pelo store (src/lib/cart-store.ts). Ao enviar, abre o WhatsApp
+// da loja com a mensagem do pedido pronta.
+//
+// Abre por qualquer [data-open-cart] (botao em pilula do topo no desktop,
+// botao flutuante — FAB — no celular) ou pelo evento "cd:open-cart" (acao
+// "Ver" do snackbar). Tambem inclui o FAB e o Snackbar, para existirem em
+// toda pagina que tem carrinho.
+import { getProdutos, getCoresCategorias, productHasPhoto } from '../data/menu';
 import { getCupons } from '../data/cupons';
 import { getCheckoutConfig } from '../data/checkout-config';
-import { SITE_NAME, SITE_LOGO } from '../config/site';
+import Snackbar from './Snackbar.astro';
 
 // Catalogo enxuto para o carrinho CLIENT-SIDE (embutido como JSON inline em
 // #cd-catalog, a partir da Content Collection). A foto e a URL publica direta
-// (ex.: /uploads/foo.webp); so entra se for um formato suportado.
+// (ex.: /uploads/foo.webp); so entra se for um formato suportado. A cor da
+// categoria pinta o fundo da miniatura.
 const produtos = await getProdutos();
+const cores = await getCoresCategorias(produtos);
 const catalogo = produtos.map((p) => ({
   id: p.id,
   nome: p.nome,
   preco: p.preco,
   disponivel: p.disponivel,
   foto: productHasPhoto(p) ? p.foto! : null,
+  cor: cores[p.categoria] ?? 'neutro',
 }));
 // escapa "<" no JSON para o navegador nao encerrar o bloco de script por
 // engano, caso algum nome de produto contenha a sequencia de fechamento.
@@ -47,686 +56,725 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
 //   mensagemFinal: (whatsappConfig as { mensagem_final?: string })?.mensagem_final || '',
 // };
 // const waConfigJson = JSON.stringify(waConfig).replace(/</g, '\\u003c');
+
+const ambasOpcoes = checkoutConfig.entregaHabilitada && checkoutConfig.retiradaHabilitada;
+const check = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 ---
 
-<div class="cd-drawer-root" data-open="false" aria-hidden="true">
-  <div class="cd-drawer__backdrop" data-close></div>
+<!-- Botao flutuante (FAB estendido), so no celular e so com itens -->
+<button class="cd-fab cd-state" type="button" data-open-cart data-fab data-visible="false" aria-label="Abrir carrinho">
+  <span class="cd-fab__icon">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="9" cy="20" r="1.4"></circle>
+      <circle cx="18" cy="20" r="1.4"></circle>
+      <path d="M2 3h3l2.6 12.4a1.8 1.8 0 0 0 1.8 1.4h8.4a1.8 1.8 0 0 0 1.8-1.4L21 7H6"></path>
+    </svg>
+    <span class="cd-badge" data-cart-count hidden>0</span>
+  </span>
+  <span class="cd-fab__total" data-cart-subtotal-text>R$ 0,00</span>
+</button>
 
-  <aside
-    class="cd-drawer"
+<Snackbar />
+
+<div class="cd-cart" data-cart-root>
+  <div class="cd-cart__scrim" data-modal-close></div>
+
+  <section
+    class="cd-cart__panel"
     role="dialog"
     aria-modal="true"
-    aria-label="Carrinho"
+    aria-labelledby="cd-cart-title"
+    data-cart-panel
     data-step="cart"
   >
-    <!-- PASSO: CARRINHO -->
-    <section class="cd-step cd-step--cart">
-      <header class="cd-drawer__bar">
-        <span class="cd-drawer__title">Seu Carrinho</span>
-        <button class="cd-drawer__close" type="button" data-close aria-label="Fechar carrinho">✕</button>
-      </header>
+    <div class="cd-cart__handle" aria-hidden="true"></div>
+    <header class="cd-cart__bar">
+      <button class="cd-cart__icon-btn cd-cart__back cd-state" type="button" data-back-cart aria-label="Voltar ao carrinho">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+      </button>
+      <h2 class="cd-cart__title" id="cd-cart-title" data-cart-title>Seu carrinho</h2>
+      <button class="cd-cart__icon-btn cd-state" type="button" data-modal-close aria-label="Fechar carrinho">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
+    </header>
 
-      <div class="cd-drawer__body" data-cart-list>
-        <!-- itens renderizados pelo script -->
-      </div>
-
-      <footer class="cd-drawer__foot" data-cart-foot hidden>
-        <!-- Cupom de desconto: o cliente digita o codigo e clica em Aplicar.
-             Cupom invalido/expirado NAO trava o pedido; so mostra o aviso. -->
-        <div class="cd-cupom">
-          <input
-            type="text"
-            class="cd-cupom__input"
-            data-cupom-input
-            placeholder="Cupom de desconto"
-            autocomplete="off"
-            aria-label="Código do cupom de desconto"
-          />
-          <button class="cd-cupom__apply" type="button" data-cupom-apply>Aplicar</button>
-        </div>
-        <div class="cd-cupom__msg" data-cupom-msg hidden></div>
-
-        <div class="cd-drawer__line">
-          <span>Subtotal</span>
-          <span data-cart-subtotal>R$ 0,00</span>
-        </div>
-        <div class="cd-drawer__line cd-drawer__line--desc" data-desconto-row hidden>
-          <span data-desconto-label>Desconto</span>
-          <span data-desconto-valor>−R$ 0,00</span>
-        </div>
-        <div class="cd-drawer__line" data-taxa-row hidden>
-          <span>Taxa de entrega</span>
-          <span data-taxa-valor>R$ 0,00</span>
-        </div>
-        <div class="cd-drawer__subtotal">
-          <span>Total</span>
-          <span data-cart-total>R$ 0,00</span>
-        </div>
-        <button class="cd-btn cd-btn--brand" type="button" data-go-checkout>Finalizar Pedido</button>
-      </footer>
-    </section>
-
-    <!-- PASSO: CHECKOUT -->
-    <section class="cd-step cd-step--checkout">
-      <header class="cd-drawer__bar">
-        <button class="cd-drawer__back" type="button" data-back-cart aria-label="Voltar ao carrinho">‹</button>
-        <span class="cd-drawer__title">Finalizar Pedido</span>
-        <button class="cd-drawer__close" type="button" data-close aria-label="Fechar carrinho">✕</button>
-      </header>
-
-      <div class="cd-drawer__body">
-        <form class="cd-form" data-checkout-form novalidate>
-          <label class="cd-field__label">Seus Dados</label>
-          <div class="cd-field">
-            <input type="text" name="nome" placeholder="Nome completo" autocomplete="name" required />
-          </div>
-          <div class="cd-field">
-            <input type="tel" name="telefone" placeholder="Telefone / WhatsApp" autocomplete="tel" required />
+    <div class="cd-cart__track">
+      <!-- ETAPA 1: CARRINHO -->
+      <div class="cd-pane" data-pane="cart">
+        <div class="cd-pane__scroll">
+          <div class="cd-cart__list" data-cart-list>
+            <!-- itens renderizados pelo script -->
           </div>
 
-          <!-- Entrega/Retirada: o dono da loja liga/desliga cada opcao pelo CMS
-               (collection "configuracoes", arquivo entrega.json). As duas
-               nunca ficam desligadas ao mesmo tempo (ver
-               src/lib/checkout-config.ts). Com as duas ligadas (padrao),
-               mostra o seletor; com so uma ligada, essa vira a unica opcao e
-               o seletor nem aparece. -->
-          {checkoutConfig.entregaHabilitada && checkoutConfig.retiradaHabilitada && (
-            <>
-              <label class="cd-field__label">Entrega</label>
-              <div class="cd-seg" data-seg="fulfillment">
-                <button type="button" class="cd-seg__opt is-active" data-value="retirada">Retirada</button>
-                <button type="button" class="cd-seg__opt" data-value="entrega">Entrega</button>
+          <div class="cd-cart__extras" data-cart-foot hidden>
+            <!-- Cupom de desconto: o cliente digita o codigo e toca em Aplicar.
+                 Cupom invalido/expirado NAO trava o pedido; so mostra o aviso.
+                 Aplicado, vira um bloco --t-c com botao de remover. -->
+            <div class="cd-coupon" data-coupon-form>
+              <label class="cd-field cd-coupon__field">
+                <span class="cd-field__label">Cupom de desconto</span>
+                <input
+                  type="text"
+                  class="cd-field__input"
+                  data-cupom-input
+                  placeholder="Digite o código"
+                  autocomplete="off"
+                  autocapitalize="characters"
+                />
+              </label>
+              <button class="cd-btn cd-btn--tonal cd-btn--sm cd-coupon__apply" type="button" data-cupom-apply>Aplicar</button>
+            </div>
+            <div class="cd-coupon-on" data-coupon-applied hidden>
+              <span class="cd-coupon-on__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z" /><circle cx="7.5" cy="7.5" r="1.5" /></svg>
+              </span>
+              <span class="cd-coupon-on__text">
+                <strong data-coupon-code></strong>
+                <span data-coupon-desc></span>
+              </span>
+              <button class="cd-cart__icon-btn cd-state" type="button" data-cupom-remove aria-label="Remover cupom">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+              </button>
+            </div>
+            <p class="cd-coupon-msg" data-cupom-msg role="status" hidden></p>
+
+            <!-- Entrega/Retirada: o dono da loja liga/desliga cada opcao pelo CMS
+                 (collection "configuracoes", arquivo entrega.json). As duas
+                 nunca ficam desligadas ao mesmo tempo (ver
+                 src/lib/checkout-config.ts). Com as duas ligadas (padrao),
+                 mostra o seletor; com so uma ligada, essa vira a unica opcao e
+                 o seletor nem aparece. -->
+            {ambasOpcoes && (
+              <div class="cd-cart__group">
+                <span class="cd-field__label" id="cd-fulfillment-label">Como você quer receber?</span>
+                <div class="cd-seg" data-seg="fulfillment" role="group" aria-labelledby="cd-fulfillment-label">
+                  <button type="button" class="cd-seg__opt cd-state" data-value="entrega" aria-pressed="false"><span class="cd-seg__check" aria-hidden="true" set:html={check} /><span>Entrega</span></button>
+                  <button type="button" class="cd-seg__opt cd-state" data-value="retirada" aria-pressed="true"><span class="cd-seg__check" aria-hidden="true" set:html={check} /><span>Retirada</span></button>
+                </div>
               </div>
-            </>
-          )}
-          {checkoutConfig.entregaHabilitada && !checkoutConfig.retiradaHabilitada && (
-            <label class="cd-field__label">Endereço de Entrega</label>
-          )}
-          {checkoutConfig.entregaHabilitada && (
-            <div class="cd-field" data-address hidden={checkoutConfig.retiradaHabilitada}>
-              <input type="text" name="endereco" placeholder="Endereço completo" autocomplete="street-address" />
-            </div>
-          )}
+            )}
 
-          <label class="cd-field__label">Pagamento</label>
-          <div class="cd-seg" data-seg="payment">
-            <button type="button" class="cd-seg__opt is-active" data-value="pix">Pix</button>
-            <button type="button" class="cd-seg__opt" data-value="cartao">Cartão</button>
-            <button type="button" class="cd-seg__opt" data-value="dinheiro">Dinheiro</button>
-          </div>
-
-          <label class="cd-field__label">Observações (opcional)</label>
-          <div class="cd-field">
-            <textarea name="observacoes" rows="2" placeholder="Alguma preferência ou observação..."></textarea>
-          </div>
-
-          <div class="cd-summary">
-            <div class="cd-summary__title">Resumo do Pedido</div>
-            <div data-summary-lines></div>
-            <div class="cd-summary__rule"></div>
-            <div class="cd-summary__row cd-summary__row--desc" data-desconto-row hidden>
-              <span data-desconto-label>Desconto</span>
-              <span data-desconto-valor>−R$ 0,00</span>
-            </div>
-            <div class="cd-summary__row" data-taxa-row hidden>
-              <span>Taxa de entrega</span>
-              <span data-taxa-valor>R$ 0,00</span>
-            </div>
-            <div class="cd-summary__total">
-              <span>Total</span>
-              <span data-cart-total>R$ 0,00</span>
+            <div class="cd-summary">
+              <div class="cd-summary__row">
+                <span>Subtotal</span>
+                <span data-cart-subtotal>R$ 0,00</span>
+              </div>
+              <div class="cd-summary__row cd-summary__row--desc" data-desconto-row hidden>
+                <span data-desconto-label>Desconto</span>
+                <span data-desconto-valor>−R$ 0,00</span>
+              </div>
+              <div class="cd-summary__row" data-taxa-row hidden>
+                <span>Taxa de entrega</span>
+                <span data-taxa-valor>R$ 0,00</span>
+              </div>
+              <div class="cd-summary__total">
+                <span>Total</span>
+                <span data-cart-total>R$ 0,00</span>
+              </div>
             </div>
           </div>
-        </form>
-      </div>
-
-      <footer class="cd-drawer__foot">
-        <button class="cd-btn cd-btn--brand" type="button" data-send-whatsapp>Enviar pedido pelo WhatsApp</button>
-      </footer>
-    </section>
-
-    <!-- PASSO: CONFIRMADO -->
-    <section class="cd-step cd-step--confirmed">
-      <div class="cd-confirm">
-        <div class="cd-confirm__ring">
-          <img
-            class="cd-confirm__ring-img"
-            src={SITE_LOGO}
-            alt={SITE_NAME}
-            width="112"
-            height="112"
-            loading="eager"
-          />
         </div>
-        <div class="cd-confirm__title">Pedido enviado!</div>
-        <p class="cd-confirm__text">
-          Abrimos o WhatsApp com o seu pedido <strong data-order-number></strong>.
-          É só enviar a mensagem para a gente confirmar. 💛
-        </p>
-        <button class="cd-btn cd-btn--brand" type="button" data-close>Voltar ao Cardápio</button>
+
+        <footer class="cd-pane__foot">
+          <button class="cd-btn cd-btn--cta cd-btn--block" type="button" data-go-checkout aria-disabled="true">
+            <span>Continuar</span>
+            <svg class="cd-btn__arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </button>
+        </footer>
       </div>
-    </section>
-  </aside>
+
+      <!-- ETAPA 2: DADOS -->
+      <div class="cd-pane" data-pane="checkout">
+        <div class="cd-pane__scroll">
+          <form class="cd-form" data-checkout-form novalidate>
+            <label class="cd-field">
+              <span class="cd-field__label">Nome completo</span>
+              <input class="cd-field__input" type="text" name="nome" autocomplete="name" required />
+            </label>
+            <label class="cd-field">
+              <span class="cd-field__label">Telefone / WhatsApp</span>
+              <input class="cd-field__input" type="tel" name="telefone" autocomplete="tel" inputmode="tel" required />
+            </label>
+            {checkoutConfig.entregaHabilitada && (
+              <label class="cd-field" data-address hidden={checkoutConfig.retiradaHabilitada}>
+                <span class="cd-field__label">Endereço de entrega</span>
+                <input class="cd-field__input" type="text" name="endereco" autocomplete="street-address" />
+              </label>
+            )}
+
+            <div class="cd-cart__group">
+              <span class="cd-field__label" id="cd-payment-label">Pagamento</span>
+              <div class="cd-seg" data-seg="payment" role="group" aria-labelledby="cd-payment-label">
+                <button type="button" class="cd-seg__opt cd-state" data-value="pix" aria-pressed="true"><span class="cd-seg__check" aria-hidden="true" set:html={check} /><span>Pix</span></button>
+                <button type="button" class="cd-seg__opt cd-state" data-value="cartao" aria-pressed="false"><span class="cd-seg__check" aria-hidden="true" set:html={check} /><span>Cartão</span></button>
+                <button type="button" class="cd-seg__opt cd-state" data-value="dinheiro" aria-pressed="false"><span class="cd-seg__check" aria-hidden="true" set:html={check} /><span>Dinheiro</span></button>
+              </div>
+            </div>
+
+            <label class="cd-field">
+              <span class="cd-field__label">Observações (opcional)</span>
+              <textarea class="cd-field__input" name="observacoes" rows="2" placeholder="Alguma preferência ou observação?"></textarea>
+            </label>
+
+            <div class="cd-summary">
+              <div class="cd-summary__title">Resumo do pedido</div>
+              <div data-summary-lines></div>
+              <div class="cd-summary__row cd-summary__row--desc" data-desconto-row hidden>
+                <span data-desconto-label>Desconto</span>
+                <span data-desconto-valor>−R$ 0,00</span>
+              </div>
+              <div class="cd-summary__row" data-taxa-row hidden>
+                <span>Taxa de entrega</span>
+                <span data-taxa-valor>R$ 0,00</span>
+              </div>
+              <div class="cd-summary__total">
+                <span>Total</span>
+                <span data-cart-total>R$ 0,00</span>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <footer class="cd-pane__foot">
+          <p class="cd-pane__hint" data-send-hint>Preencha nome e telefone para enviar.</p>
+          <button class="cd-btn cd-btn--ok cd-btn--block" type="button" data-send-whatsapp aria-disabled="true">
+            <!-- icone generico de mensagem (de proposito, NAO o logo do WhatsApp) -->
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8.5 8.5 0 0 1-12.4 7.6L3 21l1.4-5.6A8.5 8.5 0 1 1 21 12Z" /><path d="M8.5 11h7M8.5 14.5h4.5" /></svg>
+            <span>Enviar pedido pelo WhatsApp</span>
+          </button>
+        </footer>
+      </div>
+
+      <!-- ETAPA 3: CONFIRMACAO -->
+      <div class="cd-pane" data-pane="confirmed">
+        <div class="cd-pane__scroll cd-done">
+          <div class="cd-done__badge" aria-hidden="true">
+            <span class="cd-done__wave"></span>
+            <span class="cd-done__circle">
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path class="cd-done__check" d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+            </span>
+          </div>
+          <h3 class="cd-done__title">Pedido enviado!</h3>
+          <p class="cd-done__num">Pedido <span data-order-number></span></p>
+          <p class="cd-done__text">
+            Abrimos o WhatsApp com o seu pedido. É só enviar a mensagem para a gente confirmar. 💛
+          </p>
+          <button class="cd-btn cd-btn--tonal" type="button" data-modal-close>Voltar ao cardápio</button>
+          {/* ANTES: o selo da confirmacao mostrava o logo da loja (SITE_LOGO) num
+              circulo com borda. Trocado pelo check animado do redesign Material 3.
+              Para voltar: <img src={SITE_LOGO} alt={SITE_NAME} /> no lugar de
+              .cd-done__badge (import SITE_LOGO/SITE_NAME de ../config/site). */}
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
 
 <style>
-  .cd-drawer-root {
+  /* ===== FAB (celular) ================================================== */
+  .cd-fab {
+    position: fixed;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    z-index: 40;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    height: 60px;
+    padding: 0 22px 0 18px;
+    border-radius: var(--r-pill);
+    background: var(--cta);
+    color: var(--on-cta);
+    box-shadow: var(--shadow-cta), var(--elev-2), var(--shine);
+    transform: scale(0.6) translateY(calc(40px * var(--motion-shift)));
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      transform var(--dur-out) var(--ease-out),
+      opacity var(--dur-out) var(--ease-out);
+  }
+  .cd-fab[data-visible='true'] {
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
+    transition:
+      transform var(--dur-spring) var(--ease-spring),
+      opacity var(--dur-emph) var(--ease-emph);
+  }
+  .cd-fab:active {
+    transform: scale(0.95);
+  }
+  .cd-fab__icon {
+    position: relative;
+    display: inline-flex;
+  }
+  .cd-fab__total {
+    font-family: var(--font-head);
+    font-size: var(--fs-price);
+    font-weight: var(--fw-strong);
+  }
+  @media (min-width: 768px) {
+    .cd-fab {
+      display: none;
+    }
+  }
+
+  /* ===== Raiz, fundo e painel ============================================ */
+  .cd-cart {
     position: fixed;
     inset: 0;
-    z-index: 50;
+    z-index: 60;
     visibility: hidden;
-    pointer-events: none;
+    transition: visibility 0s linear var(--dur-out);
   }
-  .cd-drawer-root[data-open='true'] {
+  .cd-cart[data-open='true'] {
     visibility: visible;
-    pointer-events: auto;
+    transition: none;
   }
-
-  .cd-drawer__backdrop {
+  .cd-cart__scrim {
     position: absolute;
     inset: 0;
-    background: var(--backdrop);
+    background: var(--scrim);
     opacity: 0;
-    transition: opacity 0.2s ease;
+    transition: opacity var(--dur-out) var(--ease-out);
   }
-  .cd-drawer-root[data-open='true'] .cd-drawer__backdrop {
+  .cd-cart[data-open='true'] .cd-cart__scrim {
     opacity: 1;
+    transition: opacity var(--dur-in) var(--ease-in);
   }
 
-  .cd-drawer {
+  /* celular: bottom sheet de altura quase total */
+  .cd-cart__panel {
     position: absolute;
-    top: 0;
+    left: 0;
     right: 0;
-    height: 100%;
-    width: 100%;
-    max-width: 420px;
-    background: var(--bg);
-    border-left: 1px solid var(--border);
-    box-shadow: var(--shadow-drawer);
+    bottom: 0;
+    height: 94dvh;
     display: flex;
     flex-direction: column;
-    transform: translateX(100%);
-    transition: transform 0.25s ease;
+    border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+    background: var(--sf-low);
+    color: var(--on-sf);
+    box-shadow: var(--elev-3);
+    overflow: hidden;
+    transform: translateY(calc(100% * var(--motion-shift)));
+    opacity: 0;
+    transition:
+      transform var(--dur-out) var(--ease-out),
+      opacity var(--dur-out) var(--ease-out);
   }
-  .cd-drawer-root[data-open='true'] .cd-drawer {
-    transform: translateX(0);
+  .cd-cart[data-open='true'] .cd-cart__panel {
+    transform: none;
+    opacity: 1;
+    transition:
+      transform var(--dur-in) var(--ease-in),
+      opacity var(--dur-in) var(--ease-in);
+  }
+  .cd-cart__panel:focus {
+    outline: none;
+  }
+  .cd-cart__handle {
+    flex: none;
+    width: 32px;
+    height: 4px;
+    margin: 10px auto 0;
+    border-radius: var(--r-pill);
+    background: var(--ol);
   }
 
-  /* Passos: mostra apenas o passo ativo */
-  .cd-step {
+  /* desktop: drawer lateral flutuando com 12px de margem */
+  @media (min-width: 768px) {
+    .cd-cart__panel {
+      left: auto;
+      top: 12px;
+      right: 12px;
+      bottom: 12px;
+      width: min(460px, calc(100vw - 24px));
+      height: auto;
+      border-radius: var(--r-sheet);
+      transform: translateX(calc((100% + 24px) * var(--motion-shift)));
+    }
+    .cd-cart__handle {
+      display: none;
+    }
+  }
+
+  .cd-cart__bar {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 8px 4px 20px;
+  }
+  .cd-cart__title {
+    flex: 1;
+    font-size: 22px;
+  }
+  .cd-cart__icon-btn {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--touch);
+    height: var(--touch);
+    border-radius: var(--r-round);
+    color: var(--on-sf);
+  }
+  .cd-cart__back {
     display: none;
-    flex-direction: column;
+    margin-left: -12px;
+  }
+  .cd-cart__panel[data-step='checkout'] .cd-cart__back {
+    display: inline-flex;
+  }
+
+  /* ===== Etapas (deslizam para o lado) ================================== */
+  .cd-cart__track {
+    position: relative;
     flex: 1;
     min-height: 0;
   }
-  .cd-drawer[data-step='cart'] .cd-step--cart,
-  .cd-drawer[data-step='checkout'] .cd-step--checkout,
-  .cd-drawer[data-step='confirmed'] .cd-step--confirmed {
+  .cd-pane {
+    position: absolute;
+    inset: 0;
     display: flex;
+    flex-direction: column;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateX(calc(40px * var(--motion-shift)));
+    transition:
+      transform var(--dur-in) var(--ease-in),
+      opacity var(--dur-emph) var(--ease-emph),
+      visibility 0s linear var(--dur-in);
+  }
+  .cd-pane[data-state='before'] {
+    transform: translateX(calc(-40px * var(--motion-shift)));
+  }
+  .cd-pane[data-state='active'] {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition:
+      transform var(--dur-in) var(--ease-in),
+      opacity var(--dur-emph) var(--ease-emph);
+  }
+  .cd-pane__scroll {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 8px 20px 20px;
+  }
+  .cd-pane__foot {
+    flex: none;
+    padding: 12px 20px calc(16px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--ol-v);
+    background: var(--sf-low);
+  }
+  .cd-pane__hint {
+    margin: 0 0 10px;
+    text-align: center;
+    font-size: var(--fs-label);
+    color: var(--on-sf-v);
+  }
+  .cd-pane__hint[hidden] {
+    display: none;
   }
 
-  .cd-drawer__bar {
+  /* ===== Itens ========================================================== */
+  .cd-cart__list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .cd-cart__list :global(.cd-ci) {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 18px 20px;
-    background: var(--brand);
+    padding: 10px;
+    border-radius: var(--r-img);
+    background: var(--sf-lowest);
   }
-  .cd-drawer__title {
-    flex: 1;
-    color: var(--cream);
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 1.8px;
-    text-transform: uppercase;
-  }
-  .cd-drawer__close,
-  .cd-drawer__back {
-    background: transparent;
-    border: none;
-    color: var(--cream);
-    font-size: 22px;
-    line-height: 1;
-    cursor: pointer;
-    padding: 0;
-  }
-  .cd-drawer__back {
-    font-size: 26px;
-  }
-
-  .cd-drawer__body {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    padding: 18px 20px;
-  }
-
-  .cd-drawer__foot {
-    padding: 16px 20px 22px;
-    border-top: 1px solid var(--border);
-    background: var(--bg);
-  }
-  .cd-drawer__subtotal {
+  .cd-cart__list :global(.cd-ci__thumb) {
+    flex: none;
+    width: 64px;
+    height: 64px;
+    border-radius: var(--r-img-sm);
+    overflow: hidden;
+    background: var(--cat);
     display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 14px;
-  }
-  .cd-drawer__subtotal span:first-child {
-    font-size: 13.5px;
-    font-weight: 600;
-    letter-spacing: 1.3px;
-    text-transform: uppercase;
-    color: var(--muted-text);
-  }
-  .cd-drawer__subtotal span:last-child {
+    align-items: center;
+    justify-content: center;
     font-family: var(--font-head);
     font-size: 22px;
-    color: var(--ink);
+    font-weight: var(--fw-head);
+    color: var(--on-sf-v);
   }
-
-  /* ---- Cupom de desconto (rodape do carrinho) ---- */
-  .cd-cupom {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 10px;
+  .cd-cart__list :global(.cd-ci__thumb img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
-  .cd-cupom__input {
+  .cd-cart__list :global(.cd-ci__info) {
     flex: 1;
     min-width: 0;
-    border: 1px solid var(--brand-border);
-    border-radius: var(--radius-sm);
-    background: transparent;
-    color: var(--ink);
-    font-family: var(--font-body);
-    font-size: 14px;
-    font-weight: 500;
-    padding: 10px 12px;
-    outline: none;
-    text-transform: uppercase;
   }
-  .cd-cupom__input::placeholder {
-    color: var(--muted-text);
-    font-weight: 400;
-    text-transform: none;
+  .cd-cart__list :global(.cd-ci__name) {
+    font-weight: var(--fw-label);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
-  .cd-cupom__apply {
-    flex: none;
-    padding: 10px 16px;
-    background: transparent;
-    color: var(--ink);
-    border: 1px solid var(--brand-border);
-    border-radius: var(--radius-sm);
-    font-family: var(--font-body);
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    cursor: pointer;
+  .cd-cart__list :global(.cd-ci__total) {
+    margin-top: 2px;
+    font-family: var(--font-head);
+    font-weight: var(--fw-strong);
+    color: var(--primary);
   }
-  @media (hover: hover) {
-    .cd-cupom__apply:hover {
-      background: var(--brand);
-      color: var(--cream);
-      border-color: var(--brand);
-    }
+  .cd-cart__list :global(.cd-ci__unit) {
+    font-size: var(--fs-label);
+    color: var(--on-sf-v);
   }
-  .cd-cupom__msg {
-    font-size: 13px;
-    font-weight: 500;
-    margin-bottom: 12px;
-    line-height: 1.4;
-  }
-  .cd-cupom__msg[data-state='ok'] {
-    color: var(--gold-text);
-  }
-  .cd-cupom__msg[data-state='err'] {
-    color: var(--rust);
-  }
-  /* linha de subtotal/desconto no rodape (antes do Total) */
-  .cd-drawer__line {
+
+  /* carrinho vazio */
+  .cd-cart__list :global(.cd-empty) {
     display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--muted-text);
-    margin-bottom: 8px;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 56px 16px;
+    color: var(--on-sf-v);
   }
-  .cd-drawer__line--desc span:last-child {
-    color: var(--gold-text);
+  .cd-cart__list :global(.cd-empty__icon) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    margin-bottom: 16px;
+    border-radius: var(--r-round);
+    background: var(--sf-high);
+    color: var(--on-sf-v);
   }
-  /* o atributo [hidden] precisa vencer o display:flex acima, senao a linha de
-     desconto continuaria visivel (mostrando "−R$ 0,00") quando nao ha cupom. */
-  .cd-drawer__line[hidden] {
+  .cd-cart__list :global(.cd-empty__title) {
+    font-family: var(--font-head);
+    font-weight: var(--fw-head);
+    font-size: 20px;
+    color: var(--on-sf);
+  }
+  .cd-cart__list :global(.cd-empty__text) {
+    margin-top: 4px;
+  }
+
+  /* ===== Cupom, entrega e resumo ======================================= */
+  .cd-cart__extras {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 20px;
+  }
+  .cd-cart__extras[hidden] {
+    display: none;
+  }
+  .cd-coupon {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+  }
+  .cd-coupon[hidden] {
+    display: none;
+  }
+  .cd-coupon__field {
+    flex: 1;
+    min-width: 0;
+  }
+  .cd-coupon__apply {
+    min-height: 52px;
+  }
+  .cd-coupon-on {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 6px 8px 14px;
+    border-radius: var(--r-field);
+    background: var(--t-c);
+    color: var(--on-t-c);
+  }
+  .cd-coupon-on[hidden] {
+    display: none;
+  }
+  .cd-coupon-on__icon {
+    display: inline-flex;
+  }
+  .cd-coupon-on__text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+  }
+  .cd-coupon-on__text span {
+    font-size: var(--fs-label);
+  }
+  .cd-coupon-on .cd-cart__icon-btn {
+    color: var(--on-t-c);
+  }
+  .cd-coupon-msg {
+    margin: -8px 0 0;
+    font-size: var(--fs-label);
+    font-weight: var(--fw-label);
+    color: var(--err);
+  }
+  .cd-coupon-msg[hidden] {
     display: none;
   }
 
-  .cd-btn {
-    width: 100%;
-    padding: 16px;
-    font-size: 14.5px;
-    font-weight: 600;
-    letter-spacing: 1.3px;
-    text-transform: uppercase;
-    border-radius: var(--radius-md);
-    border: none;
-    cursor: pointer;
-  }
-  .cd-btn--brand {
-    background: var(--brand);
-    color: var(--cream);
-  }
-
-  /* Obs.: os estilos dos itens do carrinho, do estado vazio e das linhas do
-     resumo ficam no bloco <style is:global> abaixo, porque esse HTML e
-     injetado via innerHTML em runtime e nao recebe o atributo de escopo do
-     Astro. Estao namespaced sob .cd-drawer-root para nao vazar. */
-
-  /* ---- Formulario de checkout ---- */
-  .cd-field__label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin: 20px 0 10px;
-  }
-  .cd-field__label:first-child {
-    margin-top: 0;
-  }
-  .cd-field {
-    border-bottom: 1px solid var(--brand-border);
-    padding-bottom: 9px;
-  }
-  .cd-field input,
-  .cd-field textarea {
-    width: 100%;
-    border: none;
-    outline: none;
-    background: transparent;
-    font-family: var(--font-body);
-    font-size: 16.5px;
-    font-weight: 500;
-    color: var(--ink);
-    padding: 5px 0;
-    resize: none;
-  }
-  .cd-field input::placeholder,
-  .cd-field textarea::placeholder {
-    color: var(--muted-text);
-    font-weight: 400;
-  }
-  .cd-field.is-invalid {
-    border-bottom-color: var(--rust);
-  }
-
-  .cd-seg {
+  .cd-cart__group {
     display: flex;
+    flex-direction: column;
     gap: 8px;
-  }
-  .cd-seg__opt {
-    flex: 1;
-    padding: 10px 4px;
-    background: transparent;
-    color: var(--ink);
-    border: 1px solid var(--brand-border);
-    border-radius: var(--radius-sm);
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-  }
-  .cd-seg__opt.is-active {
-    background: var(--brand);
-    color: var(--cream);
-    border-color: var(--brand);
   }
 
   .cd-summary {
-    background: var(--card-alt);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 14px 16px;
-    margin-top: 22px;
+    padding: 16px;
+    border-radius: var(--r-img);
+    background: var(--sf-lowest);
   }
   .cd-summary__title {
     font-family: var(--font-head);
-    font-size: 15px;
-    color: var(--ink);
-    margin-bottom: 10px;
+    font-weight: var(--fw-head);
+    font-size: 17px;
+    margin-bottom: 8px;
   }
-  /* .cd-summary__row esta no bloco is:global (injetado via innerHTML) */
-  .cd-summary__rule {
-    width: 100%;
-    height: 1px;
-    background: var(--border);
-    margin: 8px 0;
+  .cd-summary :global(.cd-summary__row),
+  .cd-summary__row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 3px 0;
+    font-size: 14px;
+    color: var(--on-sf-v);
+  }
+  /* [hidden] precisa vencer o display:flex (sem cupom/taxa, a linha some) */
+  .cd-summary__row[hidden] {
+    display: none;
+  }
+  .cd-summary__row--desc {
+    color: var(--t);
+    font-weight: var(--fw-label);
   }
   .cd-summary__total {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-  }
-  .cd-summary__total span:first-child {
-    font-size: 13.5px;
-    font-weight: 600;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    color: var(--muted-text);
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px solid var(--ol-v);
+    font-weight: var(--fw-label);
   }
   .cd-summary__total span:last-child {
     font-family: var(--font-head);
-    font-size: 19px;
-    color: var(--gold-text);
+    font-size: 22px;
+    font-weight: var(--fw-strong);
+    color: var(--primary);
   }
 
-  /* ---- Confirmacao ---- */
-  .cd-confirm {
-    flex: 1;
+  /* ===== Dados ========================================================== */
+  .cd-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .cd-form .cd-field[hidden] {
+    display: none;
+  }
+
+  /* ===== Confirmacao ==================================================== */
+  .cd-done {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 40px 34px;
+    gap: 8px;
+    padding-top: 32px;
   }
-  /* Medalhao: logo da loja (SITE_LOGO em src/config/site.ts) recortado em
-     circulo, dentro de um anel com a cor de acento do tema. A arte do logo
-     tem cores proprias (nao segue o tema claro/escuro); a adaptacao ao tema
-     e via moldura (anel + sombra). Ver docs/LOGO.md. */
-  .cd-confirm__ring {
-    width: 112px;
-    height: 112px;
-    border-radius: var(--radius-round);
-    border: 2px solid var(--gold);
-    overflow: hidden;
+  .cd-done__badge {
+    position: relative;
+    width: 104px;
+    height: 104px;
+    margin-bottom: 20px;
+  }
+  .cd-done__wave {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--r-round);
+    background: var(--ok-c);
+  }
+  .cd-done__circle {
+    position: absolute;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 22px;
-    box-shadow: var(--shadow-seal);
+    border-radius: var(--r-round);
+    background: var(--ok);
+    color: var(--on-ok);
   }
-  .cd-confirm__ring-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: var(--radius-round);
+  .cd-done__check {
+    stroke-dasharray: 24;
+    stroke-dashoffset: 0;
   }
-  /* ---- ANTES: monograma de texto no lugar do logo (substituido pela imagem).
-     Markup antigo: <div class="cd-confirm__ring-inner">Nome<br />da Loja</div>
-  .cd-confirm__ring-inner {
-    width: 80px;
-    height: 80px;
-    border-radius: var(--radius-round);
-    border: 1px solid var(--gold);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-head);
-    font-size: 13px;
-    color: var(--ink);
-    line-height: 1.3;
+  /* animacoes rodam quando a etapa de confirmacao fica ativa */
+  .cd-cart__panel[data-step='confirmed'] .cd-done__wave {
+    animation: cd-wave 1100ms var(--ease-in) both;
   }
-  */
-  .cd-confirm__title {
-    font-family: var(--font-head);
-    font-size: 23px;
-    color: var(--ink);
+  .cd-cart__panel[data-step='confirmed'] .cd-done__circle {
+    animation: cd-pop var(--dur-spring) var(--ease-spring) both;
   }
-  .cd-confirm__text {
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--muted-text);
-    margin: 12px 0 30px;
-    line-height: 1.65;
-    max-width: 34ch;
+  .cd-cart__panel[data-step='confirmed'] .cd-done__check {
+    animation: cd-draw 420ms var(--ease-emph) 260ms both;
   }
-  .cd-confirm__text strong {
-    color: var(--ink);
-  }
-</style>
-
-<!-- Estilos do conteudo injetado via innerHTML (itens, vazio, linhas do
-     resumo). Global, mas namespaced sob .cd-drawer-root para nao vazar. -->
-<style is:global>
-  .cd-drawer-root .cd-ci {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 12px;
-    margin-bottom: 12px;
-  }
-  .cd-drawer-root .cd-ci__thumb {
-    width: 52px;
-    height: 52px;
-    flex: none;
-    background: var(--card-alt);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .cd-drawer-root .cd-ci__thumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .cd-drawer-root .cd-ci__mono {
-    font-family: var(--font-head);
-    font-size: 20px;
-    color: var(--ink);
-    opacity: 0.35;
-  }
-  .cd-drawer-root .cd-ci__info {
-    flex: 1;
-    min-width: 0;
-  }
-  .cd-drawer-root .cd-ci__name {
-    font-family: var(--font-head);
-    font-size: 15.5px;
-    color: var(--ink);
-    line-height: 1.32;
-  }
-  .cd-drawer-root .cd-ci__line {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--muted-text);
-    margin-top: 4px;
-  }
-  .cd-drawer-root .cd-ci__remove {
-    margin-top: 7px;
-    padding: 0;
-    background: transparent;
-    border: none;
-    color: var(--muted);
-    font-family: var(--font-body);
-    font-size: 13px;
-    letter-spacing: 0.3px;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    cursor: pointer;
-  }
-  @media (hover: hover) {
-    .cd-drawer-root .cd-ci__remove:hover {
-      color: var(--rust);
+  @keyframes cd-wave {
+    from {
+      transform: scale(0.6);
+      opacity: 1;
+    }
+    to {
+      transform: scale(1.9);
+      opacity: 0;
     }
   }
-  .cd-drawer-root .cd-ci__qty {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    border: 1px solid var(--brand-border);
-    border-radius: var(--radius-pill);
-    padding: 5px 12px;
-    flex: none;
+  @keyframes cd-pop {
+    from {
+      transform: scale(0.4);
+    }
+    to {
+      transform: scale(1);
+    }
   }
-  .cd-drawer-root .cd-ci__qty button {
-    background: transparent;
-    border: none;
-    color: var(--ink);
-    font-size: 17px;
-    cursor: pointer;
-    width: 16px;
-    text-align: center;
-    padding: 0;
-    font-family: var(--font-body);
+  @keyframes cd-draw {
+    from {
+      stroke-dashoffset: 24;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
   }
-  .cd-drawer-root .cd-ci__qty span {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--ink);
-    min-width: 12px;
-    text-align: center;
+  .cd-done__title {
+    font-size: 26px;
   }
-
-  .cd-drawer-root .cd-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    text-align: center;
-    padding: 30px;
-  }
-  .cd-drawer-root .cd-empty__rule {
-    width: 30px;
-    height: 1px;
-    background: var(--gold);
-    margin-bottom: 14px;
-  }
-  .cd-drawer-root .cd-empty__title {
+  .cd-done__num {
+    margin: 0;
     font-family: var(--font-head);
-    font-size: 19px;
-    color: var(--ink);
+    font-size: 20px;
+    font-weight: var(--fw-strong);
+    color: var(--ok-text);
   }
-  .cd-drawer-root .cd-empty__text {
-    font-size: 14.5px;
-    font-weight: 500;
-    color: var(--muted-text);
-    margin-top: 8px;
-    line-height: 1.55;
-  }
-
-  .cd-drawer-root .cd-summary__row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--muted-text);
-    margin-bottom: 6px;
-    gap: 12px;
-  }
-  .cd-drawer-root .cd-summary__row--desc span:last-child {
-    color: var(--gold-text);
-  }
-  /* [hidden] precisa vencer o display:flex de .cd-summary__row (mesmo motivo
-     do rodape): sem cupom, a linha de desconto do resumo fica oculta. */
-  .cd-drawer-root .cd-summary__row[hidden] {
-    display: none;
+  .cd-done__text {
+    margin: 4px 0 20px;
+    max-width: 32ch;
+    color: var(--on-sf-v);
   }
 </style>
 
@@ -758,11 +806,15 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
   import { applyCoupon, couponErrorMessage, type Coupon } from '../lib/coupon';
   import { getCuponsUsados, marcarCupomUsado } from '../lib/coupon-usage';
   import { formatPrice } from '../lib/format';
+  import { createModal } from '../lib/modal';
+  import { avisarAdicionado } from '../lib/product-detail';
+  import { hideSnackbar } from '../lib/snackbar';
   import { WHATSAPP_NUMBER } from '../config/site';
 
   // catalogo embutido pelo servidor a partir da Content Collection
   const catalogEl = document.getElementById('cd-catalog');
-  const products: CatalogItem[] = catalogEl ? JSON.parse(catalogEl.textContent || '[]') : [];
+  const products: (CatalogItem & { cor?: string })[] = catalogEl ? JSON.parse(catalogEl.textContent || '[]') : [];
+  const corDe = (id: string) => products.find((p) => p.id === id)?.cor ?? 'neutro';
 
   // cupons embutidos pelo servidor a partir da Content Collection
   const cuponsEl = document.getElementById('cd-cupons');
@@ -786,27 +838,36 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
   //   ? JSON.parse(waCfgEl.textContent || '{}')
   //   : {};
 
-  const root = document.querySelector<HTMLElement>('.cd-drawer-root');
-  const drawer = document.querySelector<HTMLElement>('.cd-drawer');
-  if (root && drawer) {
+  const root = document.querySelector<HTMLElement>('[data-cart-root]');
+  const panel = document.querySelector<HTMLElement>('[data-cart-panel]');
+  if (root && panel) {
     const listEl = root.querySelector<HTMLElement>('[data-cart-list]')!;
     const footEl = root.querySelector<HTMLElement>('[data-cart-foot]')!;
     const summaryLinesEl = root.querySelector<HTMLElement>('[data-summary-lines]')!;
     const totalEls = root.querySelectorAll<HTMLElement>('[data-cart-total]');
     const subtotalEls = root.querySelectorAll<HTMLElement>('[data-cart-subtotal]');
-    // linhas de desconto (rodape do carrinho + resumo do checkout)
+    // linhas de desconto (resumo do carrinho + resumo dos dados)
     const descontoRows = root.querySelectorAll<HTMLElement>('[data-desconto-row]');
     const descontoLabels = root.querySelectorAll<HTMLElement>('[data-desconto-label]');
     const descontoValores = root.querySelectorAll<HTMLElement>('[data-desconto-valor]');
+    const cupomForm = root.querySelector<HTMLElement>('[data-coupon-form]');
     const cupomInput = root.querySelector<HTMLInputElement>('[data-cupom-input]');
     const cupomMsg = root.querySelector<HTMLElement>('[data-cupom-msg]');
+    const cupomAplicado = root.querySelector<HTMLElement>('[data-coupon-applied]');
+    const cupomCodeEl = root.querySelector<HTMLElement>('[data-coupon-code]');
+    const cupomDescEl = root.querySelector<HTMLElement>('[data-coupon-desc]');
     const form = root.querySelector<HTMLFormElement>('[data-checkout-form]')!;
     // pode nao existir: some do DOM quando a Entrega esta desligada no CMS
     const addressField = root.querySelector<HTMLElement>('[data-address]');
     const orderNumberEl = root.querySelector<HTMLElement>('[data-order-number]')!;
-    // linhas da taxa de entrega (rodape do carrinho + resumo do checkout)
+    // linhas da taxa de entrega (resumo do carrinho + resumo dos dados)
     const taxaRows = root.querySelectorAll<HTMLElement>('[data-taxa-row]');
     const taxaValores = root.querySelectorAll<HTMLElement>('[data-taxa-valor]');
+    const titleEl = root.querySelector<HTMLElement>('[data-cart-title]')!;
+    const goCheckoutBtn = root.querySelector<HTMLElement>('[data-go-checkout]')!;
+    const sendBtn = root.querySelector<HTMLElement>('[data-send-whatsapp]')!;
+    const sendHint = root.querySelector<HTMLElement>('[data-send-hint]');
+    const panes = Array.from(root.querySelectorAll<HTMLElement>('[data-pane]'));
 
     // Retirada e a preferencia padrao quando ambas estao ligadas; se so a
     // Entrega estiver ligada, o unico valor possivel ja comeca selecionado
@@ -817,25 +878,42 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     // codigo do cupom aplicado (null = nenhum). O desconto e recalculado a cada
     // render, pois o subtotal muda quando o cliente altera o carrinho.
     let cupomCodigo: string | null = null;
+    let ultimaContagem = totalCount(cartStore.get());
 
     const esc = (s: string) =>
       s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-    // ---- abrir / fechar ----
-    function setStep(step: 'cart' | 'checkout' | 'confirmed') {
-      drawer!.dataset.step = step;
+    // ---- abrir / fechar (foco preso, Esc, fundo, volta do foco) ----
+    const modal = createModal(root, {
+      panel,
+      initialFocus: () => root.querySelector<HTMLElement>('[data-pane][data-state="active"] [data-modal-close], [data-modal-close].cd-cart__icon-btn'),
+    });
+
+    // ---- etapas ----
+    type Step = 'cart' | 'checkout' | 'confirmed';
+    const ORDEM: Step[] = ['cart', 'checkout', 'confirmed'];
+    const TITULOS: Record<Step, string> = {
+      cart: 'Seu carrinho',
+      checkout: 'Seus dados',
+      confirmed: 'Pedido enviado',
+    };
+    function setStep(step: Step) {
+      panel!.dataset.step = step;
+      titleEl.textContent = TITULOS[step];
+      const atual = ORDEM.indexOf(step);
+      for (const pane of panes) {
+        const i = ORDEM.indexOf(pane.dataset.pane as Step);
+        pane.dataset.state = i === atual ? 'active' : i < atual ? 'before' : 'after';
+        pane.toggleAttribute('inert', i !== atual);
+      }
     }
-    function open() {
+    setStep('cart');
+
+    function open(trigger?: HTMLElement | null) {
       render(cartStore.get());
       setStep('cart');
-      root!.dataset.open = 'true';
-      root!.setAttribute('aria-hidden', 'false');
-      document.body.style.overflow = 'hidden';
-    }
-    function close() {
-      root!.dataset.open = 'false';
-      root!.setAttribute('aria-hidden', 'true');
-      document.body.style.overflow = '';
+      hideSnackbar();
+      modal.open(trigger);
     }
 
     // Limpa a mensagem de feedback do cupom.
@@ -843,10 +921,20 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
       if (!cupomMsg) return;
       cupomMsg.hidden = true;
       cupomMsg.textContent = '';
-      cupomMsg.removeAttribute('data-state');
     }
 
-    // Recalcula subtotal/desconto/taxa/total e atualiza o DOM (rodape + resumo).
+    // Mostra o cupom aplicado (bloco --t-c) ou o campo para digitar.
+    function mostrarCupom(desconto: number) {
+      const aplicado = Boolean(cupomCodigo);
+      if (cupomForm) cupomForm.hidden = aplicado;
+      if (cupomAplicado) cupomAplicado.hidden = !aplicado;
+      if (aplicado) {
+        if (cupomCodeEl) cupomCodeEl.textContent = `Cupom ${cupomCodigo}`;
+        if (cupomDescEl) cupomDescEl.textContent = `Desconto de ${formatPrice(desconto)}`;
+      }
+    }
+
+    // Recalcula subtotal/desconto/taxa/total e atualiza o DOM (os dois resumos).
     // Se o cupom aplicado deixou de valer (ex.: carrinho esvaziou), descarta-o.
     function atualizarTotais(subtotal: number) {
       let desconto = 0;
@@ -874,6 +962,40 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
       descontoRows.forEach((el) => (el.hidden = desconto <= 0));
       taxaValores.forEach((el) => (el.textContent = combinar ? 'A combinar' : formatPrice(taxa)));
       taxaRows.forEach((el) => (el.hidden = !(taxa > 0 || combinar)));
+      mostrarCupom(desconto);
+    }
+
+    // Contadores fora do carrinho: badge e subtotal do topo/FAB, FAB visivel
+    // so com itens, e o botao "+" de cada card (vira a quantidade).
+    function atualizarContadores(cart: Cart, count: number, subtotal: number) {
+      document.querySelectorAll<HTMLElement>('[data-cart-count]').forEach((el) => {
+        el.textContent = String(count);
+        el.hidden = count === 0;
+        if (count > ultimaContagem) {
+          el.classList.remove('is-bump');
+          void el.offsetWidth;
+          el.classList.add('is-bump');
+        }
+      });
+      document.querySelectorAll<HTMLElement>('[data-cart-subtotal-text]').forEach((el) => {
+        el.textContent = formatPrice(subtotal);
+      });
+      document.querySelectorAll<HTMLElement>('[data-open-cart]').forEach((el) => {
+        el.setAttribute('aria-label', count > 0 ? `Abrir carrinho, ${count} ${count === 1 ? 'item' : 'itens'}, ${formatPrice(subtotal)}` : 'Abrir carrinho');
+      });
+      const fab = document.querySelector<HTMLElement>('[data-fab]');
+      if (fab) fab.dataset.visible = String(count > 0);
+      document.body.classList.toggle('cd-has-fab', count > 0);
+      document.querySelectorAll<HTMLElement>('[data-add-to-cart]').forEach((btn) => {
+        const id = btn.dataset.addToCart!;
+        const q = cart[id] ?? 0;
+        btn.dataset.inCart = String(q > 0);
+        const label = btn.querySelector<HTMLElement>('[data-qty-label]');
+        if (label) label.textContent = q > 0 ? String(q) : '';
+        const nome = btn.dataset.nome ?? '';
+        btn.setAttribute('aria-label', q > 0 ? `Adicionar mais um ${nome} (${q} no carrinho)` : `Adicionar ${nome} ao carrinho`);
+      });
+      ultimaContagem = count;
     }
 
     // ---- render do carrinho ----
@@ -882,16 +1004,15 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
       const count = totalCount(cart);
       const subtotal = cartTotal(cart, products);
 
-      // badge no header (e qualquer contador)
-      document.querySelectorAll<HTMLElement>('[data-cart-count]').forEach((el) => {
-        el.textContent = String(count);
-        el.hidden = count === 0;
-      });
+      atualizarContadores(cart, count, subtotal);
+      goCheckoutBtn.setAttribute('aria-disabled', String(lines.length === 0));
 
       if (lines.length === 0) {
         listEl.innerHTML = `
           <div class="cd-empty">
-            <div class="cd-empty__rule"></div>
+            <span class="cd-empty__icon" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"></circle><circle cx="18" cy="20" r="1.4"></circle><path d="M2 3h3l2.6 12.4a1.8 1.8 0 0 0 1.8 1.4h8.4a1.8 1.8 0 0 0 1.8-1.4L21 7H6"></path></svg>
+            </span>
             <div class="cd-empty__title">Seu carrinho está vazio</div>
             <div class="cd-empty__text">Escolha alguma delícia no cardápio para começar.</div>
           </div>`;
@@ -905,23 +1026,31 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
       }
 
       footEl.hidden = false;
+      const menos = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>';
+      const lixo = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
+      const mais = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
       listEl.innerHTML = lines
         .map((l) => {
           const thumb = l.foto
-            ? `<img src="${esc(l.foto)}" alt="" />`
-            : `<span class="cd-ci__mono">${esc(l.nome.charAt(0))}</span>`;
+            ? `<img src="${esc(l.foto)}" alt="" loading="lazy" />`
+            : `<span aria-hidden="true">${esc(l.nome.charAt(0))}</span>`;
+          // com 1 unidade, o "−" vira lixeira (remove o item)
+          const dec =
+            l.qty > 1
+              ? `<button type="button" class="cd-stepper__btn cd-state" data-dec="${esc(l.id)}" aria-label="Diminuir ${esc(l.nome)}">${menos}</button>`
+              : `<button type="button" class="cd-stepper__btn cd-state" data-remove="${esc(l.id)}" aria-label="Remover ${esc(l.nome)}">${lixo}</button>`;
           return `
           <div class="cd-ci">
-            <div class="cd-ci__thumb">${thumb}</div>
+            <div class="cd-ci__thumb" data-cor="${esc(corDe(l.id))}">${thumb}</div>
             <div class="cd-ci__info">
               <div class="cd-ci__name">${esc(l.nome)}</div>
-              <div class="cd-ci__line">${l.qty} × ${formatPrice(l.preco)} = ${formatPrice(l.lineTotal)}</div>
-              <button type="button" class="cd-ci__remove" data-remove="${l.id}">Remover</button>
+              <div class="cd-ci__total">${formatPrice(l.lineTotal)}</div>
+              <div class="cd-ci__unit">${l.qty} × ${formatPrice(l.preco)}</div>
             </div>
-            <div class="cd-ci__qty">
-              <button type="button" data-dec="${l.id}" aria-label="Diminuir">−</button>
-              <span>${l.qty}</span>
-              <button type="button" data-inc="${l.id}" aria-label="Aumentar">+</button>
+            <div class="cd-stepper">
+              ${dec}
+              <span class="cd-stepper__value" aria-label="Quantidade">${l.qty}</span>
+              <button type="button" class="cd-stepper__btn cd-state" data-inc="${esc(l.id)}" aria-label="Aumentar ${esc(l.nome)}">${mais}</button>
             </div>
           </div>`;
         })
@@ -946,68 +1075,91 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
       if (res.ok) {
         cupomCodigo = res.coupon.codigo;
         if (cupomInput) cupomInput.value = res.coupon.codigo;
-        if (cupomMsg) {
-          cupomMsg.textContent = `Cupom aplicado! Desconto de ${formatPrice(res.desconto)}.`;
-          cupomMsg.dataset.state = 'ok';
-          cupomMsg.hidden = false;
-        }
+        limparCupomMsg();
       } else {
         cupomCodigo = null;
         if (cupomMsg) {
           cupomMsg.textContent = couponErrorMessage(res.motivo);
-          cupomMsg.dataset.state = 'err';
           cupomMsg.hidden = false;
         }
       }
       render(cartStore.get());
+      if (res.ok) root!.querySelector<HTMLElement>('[data-cupom-remove]')?.focus();
     }
+
+    function removerCupom() {
+      cupomCodigo = null;
+      if (cupomInput) cupomInput.value = '';
+      limparCupomMsg();
+      render(cartStore.get());
+      cupomInput?.focus();
+    }
+
+    // Habilita "Enviar" so com os campos obrigatorios preenchidos.
+    function camposOk(): boolean {
+      const data = new FormData(form);
+      const nome = String(data.get('nome') || '').trim();
+      const telefone = String(data.get('telefone') || '').trim();
+      const endereco = String(data.get('endereco') || '').trim();
+      return Boolean(nome && telefone && (selecionado.fulfillment !== 'entrega' || endereco));
+    }
+    function atualizarEnviar() {
+      const ok = camposOk();
+      sendBtn.setAttribute('aria-disabled', String(!ok));
+      if (sendHint) {
+        sendHint.hidden = ok;
+        sendHint.textContent =
+          selecionado.fulfillment === 'entrega'
+            ? 'Preencha nome, telefone e endereço para enviar.'
+            : 'Preencha nome e telefone para enviar.';
+      }
+    }
+    form.addEventListener('input', atualizarEnviar);
+    atualizarEnviar();
 
     cartStore.subscribe(render);
 
     // ---- interacoes ----
+    document.addEventListener('cd:open-cart', () => open());
     document.addEventListener('click', (e) => {
       const t = e.target as HTMLElement;
 
-      // abrir pelo header
-      if (t.closest('[data-open-cart]')) {
+      // abrir pelo topo (desktop) ou pelo FAB (celular)
+      const abrir = t.closest<HTMLElement>('[data-open-cart]');
+      if (abrir) {
         e.preventDefault();
-        open();
+        open(abrir);
         return;
       }
-      // adicionar ao carrinho (cards)
+      // adicionar ao carrinho ("+" dos cards)
       const addBtn = t.closest<HTMLElement>('[data-add-to-cart]');
       if (addBtn) {
         e.preventDefault();
         e.stopPropagation();
-        const id = addBtn.dataset.addToCart!;
-        cartStore.add(id, 1);
-        // feedback curto que cabe no botao circular "+"
-        const original = addBtn.dataset.label ?? addBtn.textContent ?? '+';
-        addBtn.dataset.label = original;
-        addBtn.textContent = '✓';
-        addBtn.classList.add('is-added');
-        window.setTimeout(() => {
-          addBtn.textContent = original;
-          addBtn.classList.remove('is-added');
-        }, 1000);
+        cartStore.add(addBtn.dataset.addToCart!, 1);
+        addBtn.classList.remove('is-bump');
+        void addBtn.offsetWidth;
+        addBtn.classList.add('is-bump');
+        avisarAdicionado(addBtn.dataset.nome ?? 'Item');
         return;
       }
     });
 
-    // fechar (backdrop / botoes com data-close)
-    root.querySelectorAll('[data-close]').forEach((el) =>
-      el.addEventListener('click', close),
-    );
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && root.dataset.open === 'true') close();
+    // navegacao entre etapas
+    goCheckoutBtn.addEventListener('click', () => {
+      if (goCheckoutBtn.getAttribute('aria-disabled') === 'true') return;
+      setStep('checkout');
+      atualizarEnviar();
+      form.querySelector<HTMLElement>('[name="nome"]')?.focus({ preventScroll: true });
+    });
+    root.querySelector('[data-back-cart]')?.addEventListener('click', () => {
+      setStep('cart');
+      goCheckoutBtn.focus({ preventScroll: true });
     });
 
-    // navegacao entre passos
-    root.querySelector('[data-go-checkout]')?.addEventListener('click', () => setStep('checkout'));
-    root.querySelector('[data-back-cart]')?.addEventListener('click', () => setStep('cart'));
-
-    // cupom: aplicar pelo botao ou pela tecla Enter
+    // cupom: aplicar pelo botao ou pela tecla Enter; remover pelo "x"
     root.querySelector('[data-cupom-apply]')?.addEventListener('click', aplicarCupom);
+    root.querySelector('[data-cupom-remove]')?.addEventListener('click', removerCupom);
     cupomInput?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -1024,6 +1176,13 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
       if (inc) cartStore.inc(inc.dataset.inc!);
       else if (dec) cartStore.dec(dec.dataset.dec!);
       else if (rem) cartStore.remove(rem.dataset.remove!);
+      // o HTML da lista e refeito: devolve o foco ao botao equivalente
+      const alvo = inc ?? dec ?? rem;
+      if (alvo) {
+        const sel = inc ? `[data-inc="${inc.dataset.inc}"]` : dec ? `[data-dec="${dec.dataset.dec}"], [data-remove="${dec.dataset.dec}"]` : '';
+        const prox = sel ? listEl.querySelector<HTMLElement>(sel) : null;
+        (prox ?? goCheckoutBtn).focus({ preventScroll: true });
+      }
     });
 
     // segmentos (entrega / pagamento)
@@ -1031,8 +1190,8 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
       seg.addEventListener('click', (e) => {
         const opt = (e.target as HTMLElement).closest<HTMLElement>('.cd-seg__opt');
         if (!opt) return;
-        seg.querySelectorAll('.cd-seg__opt').forEach((o) => o.classList.remove('is-active'));
-        opt.classList.add('is-active');
+        seg.querySelectorAll('.cd-seg__opt').forEach((o) => o.setAttribute('aria-pressed', 'false'));
+        opt.setAttribute('aria-pressed', 'true');
         const grupo = seg.dataset.seg!;
         const valor = opt.dataset.value!;
         if (grupo === 'fulfillment') {
@@ -1040,6 +1199,7 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
           if (addressField) addressField.hidden = valor !== 'entrega';
           // a taxa de entrega depende do fulfillment escolhido: recalcula o total
           atualizarTotais(cartTotal(cartStore.get(), products));
+          atualizarEnviar();
         } else if (grupo === 'payment') {
           selecionado.payment = valor as Payment;
         }
@@ -1047,7 +1207,9 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
     });
 
     // enviar pelo WhatsApp
-    root.querySelector('[data-send-whatsapp]')?.addEventListener('click', () => {
+    sendBtn.addEventListener('click', () => {
+      // desabilitado (campos obrigatorios vazios): ignora o clique
+      if (sendBtn.getAttribute('aria-disabled') === 'true') return;
       const cart = cartStore.get();
       const lines = cartLines(cart, products);
       if (lines.length === 0) {
@@ -1114,8 +1276,10 @@ const checkoutConfigJson = JSON.stringify(checkoutConfig).replace(/</g, '\\u003c
 
       orderNumberEl.textContent = order.pedido;
       setStep('confirmed');
+      root.querySelector<HTMLElement>('[data-pane="confirmed"] [data-modal-close]')?.focus({ preventScroll: true });
       cartStore.clear();
       form.reset();
+      atualizarEnviar();
       // limpa o cupom para o proximo pedido
       cupomCodigo = null;
       if (cupomInput) cupomInput.value = '';

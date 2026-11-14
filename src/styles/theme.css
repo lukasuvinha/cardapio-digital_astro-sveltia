@@ -1,125 +1,253 @@
 /* =========================================================================
-   TEMA: "confeitaria" (tema padrao do template)
+   TEMA: "material" (padrao) — Material You (Material 3), paleta quente de
+   confeitaria.
    -------------------------------------------------------------------------
-   Este arquivo e a UNICA fonte de cores, fontes, raios de borda e sombras do
-   site. Componentes e paginas usam apenas var(--token) — nenhum deles tem
-   cor, fonte, raio ou sombra escritos direto no CSS.
+   Este arquivo e a fonte das cores, fontes, escala de texto, raios, sombras e
+   curvas de movimento do site. Componentes e paginas usam apenas
+   var(--token): nenhum deles tem cor, fonte, raio ou sombra escritos direto
+   no CSS (tests/theme.test.ts barra isso).
+
+   PAPEIS FIXOS DAS CORES (nao misture):
+     --cta (vermelho-morango) .... so em ACOES (botoes, "+", carrinho)
+     --hl  (ambar) ............... so em DESTAQUES (contador, icone da fornada)
+     --ok  (verde) ............... so em ENVIO/SUCESSO (WhatsApp, confirmacao)
+   Os nomes seguem o Material 3: --sf = surface, --on-sf = texto sobre surface,
+   --s-c = secondary container, --t-c = tertiary container, --inv-sf =
+   inverse surface, --ol = outline.
 
    COMO CRIAR UM TEMA NOVO
-   1. Copie este arquivo (ex.: src/styles/theme-bistro.css) e troque os
-      VALORES dos tokens. Nao renomeie nem apague tokens: todos sao usados
-      pelos componentes. Mantenha os tres blocos de cores do tema escuro
-      iguais entre si (o [data-theme='dark'] e o fallback @media).
-   2. Em src/layouts/BaseLayout.astro, troque o import
-      `../styles/theme.css` pelo arquivo novo.
-   3. Em src/config/theme.ts, ajuste o que o HTML precisa e o CSS nao
-      alcanca: a URL das fontes (Google Fonts) e as cores da barra do
-      navegador (meta theme-color). Elas devem bater com --brand (claro) e
-      --bg (escuro) daqui — o teste tests/theme.test.ts confere isso.
-   4. Arquivos estaticos tambem tem cor propria e nao leem tokens:
-      public/favicon.svg, public/logo.svg, public/og-image.png e as
-      ilustracoes em public/img/produtos/. Troque-os se a paleta mudar muito.
-   5. Contraste: os tokens de TEXTO (--ink, --muted, --muted-text,
-      --gold-text, --cream sobre --brand) foram escolhidos para passar no
-      contraste AA. Ao trocar, confira com um verificador de contraste.
+   1. Copie src/styles/theme-confeitaria.css (um tema alternativo completo,
+      ja escrito "por cima" deste) e troque o nome no seletor
+      [data-ui-theme='confeitaria'] e os VALORES. Todo tema precisa definir
+      os mesmos tokens de cor dos blocos claro/escuro abaixo; fontes, raios,
+      sombras e movimento sao opcionais (sem eles, valem os deste arquivo).
+   2. Importe o arquivo novo em src/layouts/BaseLayout.astro, junto dos
+      outros temas.
+   3. Em src/config/theme.ts, adicione o tema em THEMES (URL das fontes e
+      cores da barra do navegador = --hero claro/escuro) e aponte
+      ACTIVE_THEME para ele. So isso troca o tema do site inteiro.
+   4. Rode `npm test`: tests/theme.test.ts confere tokens, theme-color e o
+      contraste AA dos pares de texto principais nos dois modos.
+   5. Imagens nao leem tokens: public/favicon.svg, public/logo.svg,
+      public/og-image.png e as ilustracoes de public/img/produtos/.
 
-   Os nomes dos tokens descrevem o PAPEL (ex.: --brand, --accent-strong),
-   mesmo quando o nome historico lembra uma cor (--gold, --cream, --rust):
-   num tema novo, --gold pode muito bem ser azul.
+   MODO ESCURO: definido duas vezes de proposito — pelo atributo
+   [data-theme='dark'] (escolha do usuario, aplicada antes da pintura pelo
+   script do BaseLayout) e pelo fallback @media sem JS. Mantenha os dois
+   blocos IGUAIS (o teste confere).
    ========================================================================= */
 
-/* ---- Tokens fixos (iguais nos dois modos, claro e escuro) --------------- */
+/* ---- Tokens que nao mudam com o modo claro/escuro ----------------------- */
 :root {
-  /* Cores de acento */
-  --gold: #C6A15B;          /* acento principal: bordas, detalhes, foco */
-  --cream: #E4C989;         /* texto/icones sobre a cor da marca (--brand) */
-  --rust: #A8532E;          /* acento forte: badges ("Mais pedido", contador) */
-  --green-soft: #3F6B52;    /* acento alternativo */
-  --on-accent: #f7efe1;     /* texto sobre --rust (badges) */
-  --brand-hover: #1a4231;   /* fundo de botao da marca no hover */
-  --gold-tint: rgba(198, 161, 91, 0.15);     /* hover de botoes contornados */
-  --brand-translucent: rgba(31, 77, 58, 0.72); /* botao sobre foto (lupa) */
+  /* Fontes: Outfit em titulos, nome da loja e precos; Roboto no resto */
+  --font-head: 'Outfit', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Roboto', 'Segoe UI', system-ui, sans-serif;
 
-  /* Sobreposicoes */
-  --backdrop: rgba(20, 30, 20, 0.5);         /* fundo atras do carrinho */
-  --overlay-strong: rgba(15, 22, 16, 0.9);   /* fundo do lightbox da foto */
-  --overlay-soft: rgba(15, 22, 16, 0.6);     /* botao fechar do lightbox */
+  /* Escala de texto (celular / desktop >= 768px) */
+  --fs-page-title: 30px;      /* "Cardapio", titulos de pagina */
+  --fs-page-title-lg: 48px;
+  --fs-detail-title: 24px;    /* nome no detalhe do produto */
+  --fs-detail-title-lg: 30px;
+  --fs-store: 20px;           /* nome da loja na barra superior */
+  --fs-price: 18px;
+  --fs-price-lg: 20px;
+  --fs-body: 15px;
+  --fs-label: 13px;           /* rotulos, chips, categoria */
+  --fs-button: 17px;
+  --fw-head: 600;
+  --fw-strong: 700;
+  --fw-label: 500;
 
-  /* Fontes */
-  --font-head: 'Yeseva One', Georgia, serif;  /* titulos, nome da loja, precos */
-  --font-body: 'EB Garamond', Georgia, serif; /* texto corrido e botoes */
+  /* Raios */
+  --r-badge: 8px;             /* selos ("Esgotado") */
+  --r-field: 12px;            /* campos, chips, snackbar */
+  --r-chip-on: 16px;          /* chip selecionado (raio maior) */
+  --r-icon: 14px;             /* icone quadrado da loja / da fornada */
+  --r-img-sm: 18px;           /* miniaturas */
+  --r-img: 20px;              /* fotos */
+  --r-card: 24px;
+  --r-sheet: 28px;            /* sheets, drawer, dialog, banner */
+  --r-hero: 32px;             /* cantos inferiores do bloco do topo */
+  --r-hero-lg: 40px;
+  --r-pill: 999px;            /* botoes */
+  --r-round: 50%;
 
-  /* Raios de borda */
-  --radius-xs: 2px;       /* badges retangulares, contorno de foco */
-  --radius-sm: 3px;       /* chips de categoria, campos do carrinho */
-  --radius-md: 4px;       /* botoes */
-  --radius-lg: 6px;       /* caixas de resumo */
-  --radius-card: 8px;     /* cards, botoes de contato, foto ampliada */
-  --radius-xl: 10px;      /* foto do detalhe do produto */
-  --radius-badge: 9px;    /* contador do carrinho (pilula de 18px) */
-  --radius-pill: 16px;    /* seletor de quantidade do carrinho */
-  --radius-pill-lg: 22px; /* seletor de quantidade do detalhe */
-  --radius-round: 50%;    /* botoes redondos, selos, avatar */
+  /* Tamanhos minimos de toque e dos botoes de acao */
+  --touch: 44px;
+  --btn-h: 58px;
 
-  /* Sombras */
-  --shadow-card-hover: 0 14px 28px rgba(31, 77, 58, 0.16);
-  --shadow-button-hover: 0 10px 24px rgba(31, 77, 58, 0.14);
-  --shadow-seal: 0 4px 16px rgba(198, 161, 91, 0.35); /* selo do logo */
-  --shadow-drawer: -20px 0 50px rgba(0, 0, 0, 0.25);
-  --shadow-lightbox: 0 20px 60px rgba(0, 0, 0, 0.5);
-  --shadow-placeholder: inset 0 0 0 2px var(--border); /* moldura do "Foto em breve" */
+  /* Movimento (Material 3) */
+  --ease-emph: cubic-bezier(0.2, 0, 0, 1);         /* chips, cores, estados */
+  --ease-in: cubic-bezier(0.05, 0.7, 0.1, 1);      /* entrada: abrir, cascata */
+  --ease-out: cubic-bezier(0.3, 0, 0.8, 0.15);     /* saida: fechar */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* mola: FAB, contador, toque */
+  --dur-emph: 350ms;
+  --dur-in: 500ms;
+  --dur-out: 220ms;
+  --dur-spring: 500ms;
+  --stagger: 45ms;            /* atraso da cascata dos cards */
 
-  --maxw: 1180px;
+  /* Anel interno dos campos (foco / erro) */
+  --ring-focus: inset 0 0 0 1px var(--primary);
+  --ring-err: inset 0 0 0 1px var(--err);
+
+  /* Camada de estado (hover / toque) */
+  --state-hover: 0.08;
+  --state-press: 0.14;
+
+  --maxw: 1320px;
 }
 
 /* ---- Modo CLARO (padrao) ------------------------------------------------ */
 :root {
-  --bg: #F7EFE1;
-  --card: #FFFDF7;
-  --card-alt: #EFE3CB;
-  --ink: #3B2A1E;
-  --muted: #6f5730;            /* escurecido p/ contraste AA em rotulos pequenos */
-  --muted-text: rgba(59, 42, 30, 0.72);
-  --border: rgba(198, 161, 91, 0.4);
-  --brand: #1F4D3A;
-  --brand-border: rgba(31, 77, 58, 0.32);
-  /* acento LEGIVEL para TEXTO sobre fundos claros (preco, total). O --gold
-     puro e usado so em bordas/acentos; como texto no claro reprova no
-     contraste, entao aqui usamos um tom mais escuro. */
-  --gold-text: #836420;
+  --cta: #D6204F;
+  --on-cta: #FFFFFF;
+  --cta-glow: rgba(214, 32, 79, 0.5);
+  --ok: #188038;
+  --on-ok: #FFFFFF;
+  --ok-c: #C4EED0;
+  --ok-text: #146C2E;
+  --primary: #B02F13;
+  --hl: #FFB82E;
+  --on-hl: #2A1800;
+  --t-c: #FFDF9E;
+  --on-t-c: #261A00;
+  --t: #7C5800;
+  --hero: #FFD9DF;
+  --on-hero: #3B0B17;
+  --s-c: #F7DED7;
+  --on-s-c: #2C1510;
+  --inv-sf: #392E2B;
+  --inv-on-sf: #FFEDE8;
+  --sf: #FFF8F5;
+  --sf-lowest: #FFFFFF;
+  --sf-low: #FCF1EC;
+  --sf-high: #F1E5E0;
+  --sf-highest: #EBDFDA;
+  --on-sf: #231917;
+  --on-sf-v: #53433F;
+  --ol: #85736E;
+  --ol-v: #D8C2BC;
+  --err: #BA1A1A;
+  --on-disabled: rgba(35, 25, 23, 0.38);
+
+  /* Cores por categoria (card, chip e detalhe) */
+  --c-neutro: #F1E5E0;
+  --c-morango: #FFE1E7;
+  --c-caramelo: #FCE5CC;
+  --c-cacau: #F1DFD3;
+  --c-baunilha: #FFF0C2;
+
+  /* Sombras e camadas */
+  --scrim: rgba(35, 25, 23, 0.42);
+  --shine: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --shadow-cta: 0 10px 24px -6px var(--cta-glow);
+  --elev-1: 0 2px 8px -2px rgba(59, 11, 23, 0.16);
+  --elev-2: 0 12px 28px -10px rgba(59, 11, 23, 0.28);
+  --elev-3: 0 18px 44px -12px rgba(35, 25, 23, 0.36);
 }
 
 /* ---- Modo ESCURO -------------------------------------------------------- */
-/* Aplicado quando o usuario escolhe explicitamente (data-theme="dark")...  */
 :root[data-theme='dark'] {
-  --bg: #0f1d16;
-  --card: #1a3327;
-  --card-alt: #21402f;
-  --ink: #F1E6D2;
-  --muted: #c9a15e;
-  --muted-text: rgba(233, 214, 175, 0.72);
-  --border: rgba(198, 161, 91, 0.28);
-  --brand: #142a1f;
-  --brand-border: rgba(198, 161, 91, 0.28);
-  /* no escuro o acento puro ja tem contraste bom sobre o fundo escuro */
-  --gold-text: #C6A15B;
+  --cta: #D6204F;
+  --on-cta: #FFFFFF;
+  --cta-glow: rgba(214, 32, 79, 0.6);
+  --ok: #188038;
+  --on-ok: #FFFFFF;
+  --ok-c: #0B4A22;
+  --ok-text: #7DD99A;
+  --primary: #FFB4A1;
+  --hl: #FFB82E;
+  --on-hl: #2A1800;
+  --t-c: #5C4200;
+  --on-t-c: #FFDF9E;
+  --t: #F9BD3E;
+  --hero: #3E1821;
+  --on-hero: #FFD9DF;
+  --s-c: #5D3F38;
+  --on-s-c: #FFDAD2;
+  --inv-sf: #F1DFDA;
+  --inv-on-sf: #392E2B;
+  --sf: #1A110F;
+  --sf-lowest: #140C0A;
+  --sf-low: #231917;
+  --sf-high: #322825;
+  --sf-highest: #3D3230;
+  --on-sf: #F1DFDA;
+  --on-sf-v: #D8C2BC;
+  --ol: #A08C87;
+  --ol-v: #53433F;
+  --err: #FFB4AB;
+  --on-disabled: rgba(241, 223, 218, 0.38);
+  --c-neutro: #322825;
+  --c-morango: #45202A;
+  --c-caramelo: #46301B;
+  --c-cacau: #3C2A21;
+  --c-baunilha: #433716;
+  --scrim: rgba(0, 0, 0, 0.6);
+  --shine: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  --shadow-cta: 0 10px 24px -6px var(--cta-glow);
+  --elev-1: 0 2px 10px -2px rgba(0, 0, 0, 0.5);
+  --elev-2: 0 14px 30px -10px rgba(0, 0, 0, 0.7);
+  --elev-3: 0 20px 48px -12px rgba(0, 0, 0, 0.75);
 }
 
-/* ...e como fallback sem JS: segue a preferencia do sistema, a menos que o
-   usuario tenha escolhido o tema claro explicitamente. O script inline no
-   layout normalmente ja define data-theme antes da pintura, evitando flash.
-   MANTENHA IGUAL ao bloco [data-theme='dark'] acima. */
+/* Fallback sem JS: segue o sistema. MANTENHA IGUAL ao bloco acima. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']):not([data-theme='dark']) {
-    --bg: #0f1d16;
-    --card: #1a3327;
-    --card-alt: #21402f;
-    --ink: #F1E6D2;
-    --muted: #c9a15e;
-    --muted-text: rgba(233, 214, 175, 0.72);
-    --border: rgba(198, 161, 91, 0.28);
-    --brand: #142a1f;
-    --brand-border: rgba(198, 161, 91, 0.28);
-    --gold-text: #C6A15B;
+    --cta: #D6204F;
+    --on-cta: #FFFFFF;
+    --cta-glow: rgba(214, 32, 79, 0.6);
+    --ok: #188038;
+    --on-ok: #FFFFFF;
+    --ok-c: #0B4A22;
+    --ok-text: #7DD99A;
+    --primary: #FFB4A1;
+    --hl: #FFB82E;
+    --on-hl: #2A1800;
+    --t-c: #5C4200;
+    --on-t-c: #FFDF9E;
+    --t: #F9BD3E;
+    --hero: #3E1821;
+    --on-hero: #FFD9DF;
+    --s-c: #5D3F38;
+    --on-s-c: #FFDAD2;
+    --inv-sf: #F1DFDA;
+    --inv-on-sf: #392E2B;
+    --sf: #1A110F;
+    --sf-lowest: #140C0A;
+    --sf-low: #231917;
+    --sf-high: #322825;
+    --sf-highest: #3D3230;
+    --on-sf: #F1DFDA;
+    --on-sf-v: #D8C2BC;
+    --ol: #A08C87;
+    --ol-v: #53433F;
+    --err: #FFB4AB;
+    --on-disabled: rgba(241, 223, 218, 0.38);
+    --c-neutro: #322825;
+    --c-morango: #45202A;
+    --c-caramelo: #46301B;
+    --c-cacau: #3C2A21;
+    --c-baunilha: #433716;
+    --scrim: rgba(0, 0, 0, 0.6);
+    --shine: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    --shadow-cta: 0 10px 24px -6px var(--cta-glow);
+    --elev-1: 0 2px 10px -2px rgba(0, 0, 0, 0.5);
+    --elev-2: 0 14px 30px -10px rgba(0, 0, 0, 0.7);
+    --elev-3: 0 20px 48px -12px rgba(0, 0, 0, 0.75);
+  }
+}
+
+/* Movimento reduzido: sem cascata, molas nem deslizes (os componentes leem
+   estes tokens). Ficam so transicoes curtas de opacidade/cor. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-emph: 120ms;
+    --dur-in: 150ms;
+    --dur-out: 120ms;
+    --dur-spring: 0ms;
+    --stagger: 0ms;
+    --ease-spring: linear;
   }
 }

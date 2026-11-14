@@ -2,7 +2,35 @@
 
 Novidades do template de cardápio digital (Astro + Sveltia CMS + Cloudflare Workers).
 
-## [Não lançado] — 2026-11-13
+## [Não lançado] — 2026-11-14
+
+Redesign completo no estilo **Material You (Material 3)**, com paleta quente de
+confeitaria. As regras de negócio (carrinho, cupons, entrega/retirada, fornada,
+mensagem do WhatsApp e número do pedido) não mudaram.
+
+### Novo
+- **Novo visual:** barra superior e bloco do topo em rosa, chips de categoria,
+  cards coloridos por categoria com botão "+" e fontes Outfit + Roboto.
+- **Detalhe do produto sem sair do cardápio:** abre em bottom sheet no celular e
+  em janela central no desktop. A página `/produto/...` continua existindo, com o
+  mesmo visual.
+- **Carrinho em etapas** (carrinho → dados → confirmação) deslizando para o lado,
+  com botão flutuante no celular, aviso "adicionado" com atalho "Ver", cupom
+  removível e confirmação animada.
+- **Cor por categoria:** campo opcional "Cor" no painel (morango, caramelo,
+  cacau, baunilha ou neutro). Sem cor escolhida, o site distribui as cores
+  sozinho.
+- **Tema alternativo "confeitaria"** (o visual anterior, verde e dourado): para
+  usar, troque uma linha em `src/config/theme.ts`.
+- Animações no padrão Material 3, desligadas para quem prefere menos movimento.
+
+### Acessibilidade
+- Janelas (detalhe, carrinho, foto ampliada) prendem o foco, fecham com Esc ou
+  com toque no fundo e devolvem o foco ao fechar.
+- Alvos de toque de no mínimo 44px e contraste AA conferido por teste nos dois
+  temas e nos modos claro e escuro.
+
+## 2026-11-13
 
 O template virou um produto genérico: a marca de origem saiu e entrou uma loja
 fictícia, a **Doceria Exemplo**. O visual continua o mesmo.

@@ -1,3 +1,4 @@
 ---
 nome: Brigadeiro
+cor: caramelo
 ---

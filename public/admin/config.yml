@@ -136,6 +136,22 @@ collections:
     slug: "{{slug}}"
     fields:
       - { name: nome, label: "Nome", widget: string, hint: "Ex.: Bolo de Pote. É este texto que aparece na lista de categorias do produto." }
+      # Cor da categoria (fundo do card, do chip e do detalhe do produto).
+      # Campo em estilo BLOCO (sem chaves { }), igual ao "tipo" do cupom: uma
+      # lista em bloco dentro de mapping em fluxo quebra o YAML e derruba o
+      # painel (docs/BUGS-E-CORRECOES.md, item 2). Os valores batem com
+      # CORES_CATEGORIA em src/content/categoria-schema.ts.
+      - name: cor
+        label: "Cor"
+        widget: select
+        required: false
+        options:
+          - { label: "Morango (rosa)", value: morango }
+          - { label: "Caramelo (laranja-claro)", value: caramelo }
+          - { label: "Cacau (marrom-claro)", value: cacau }
+          - { label: "Baunilha (amarelo-claro)", value: baunilha }
+          - { label: "Neutro (bege)", value: neutro }
+        hint: "Opcional. Cor de fundo dos produtos desta categoria no cardápio. Se ficar em branco, o site escolhe uma cor automaticamente pela ordem das categorias."
 
   # Cupons de desconto. O dono da loja cria um codigo, escolhe o tipo (percentual ou
   # valor fixo), o valor e a validade. O cliente digita o codigo no carrinho.

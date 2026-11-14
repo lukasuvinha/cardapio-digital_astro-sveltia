@@ -1,8 +1,9 @@
 /* =========================================================================
-   Estilos globais (reset, base tipografica, foco e movimento reduzido).
+   Estilos globais: reset, base tipografica, utilitarios compartilhados
+   (camada de estado, cor da categoria) e movimento reduzido.
    -------------------------------------------------------------------------
-   Cores, fontes, raios e sombras NAO ficam aqui: vem dos tokens do tema
-   (src/styles/theme.css), carregado antes deste arquivo no BaseLayout.
+   Cores, fontes, raios, sombras e curvas NAO ficam aqui: vem dos tokens do
+   tema (src/styles/theme.css), carregado antes deste arquivo no BaseLayout.
    ========================================================================= */
 
 /* ---- Reset enxuto ------------------------------------------------------- */
@@ -17,23 +18,45 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--bg);
-  color: var(--ink);
+  background: var(--sf);
+  color: var(--on-sf);
   font-family: var(--font-body);
-  transition: background 0.2s, color 0.2s;
+  font-size: var(--fs-body);
+  line-height: 1.5;
+  transition: background-color var(--dur-emph) var(--ease-emph), color var(--dur-emph) var(--ease-emph);
+}
+
+/* Trava a rolagem da pagina quando um sheet/drawer/dialog esta aberto
+   (ver src/lib/modal.ts). */
+body.cd-scroll-lock {
+  overflow: hidden;
 }
 
 a {
-  color: var(--muted);
+  color: var(--primary);
   text-decoration: none;
 }
 a:hover {
-  color: var(--ink);
+  text-decoration: underline;
 }
 
-button {
-  font-family: var(--font-body);
+/* Reset de botao com ESPECIFICIDADE ZERO (:where): qualquer classe de
+   componente (ex.: .cd-btn) vence este reset sem precisar de !important.
+   Um reset "button { background: none }" com especificidade normal ja
+   apagou o fundo de botoes no prototipo — nao troque por seletor simples. */
+:where(button) {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+:where(input, textarea, select) {
+  font: inherit;
+  color: inherit;
 }
 
 img {
@@ -41,22 +64,345 @@ img {
   display: block;
 }
 
-/* Foco visivel por teclado, consistente em todo o site (acessibilidade).
-   Usa o acento do tema (--gold). Componentes com foco proprio podem sobrescrever. */
-:where(a, button, input, textarea, select, [tabindex]):focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 2px;
-  border-radius: var(--radius-xs);
+h1, h2, h3 {
+  font-family: var(--font-head);
+  font-weight: var(--fw-head);
+  margin: 0;
 }
 
-/* Respeita quem prefere menos animacao (acessibilidade). */
+/* Foco visivel por teclado, consistente em todo o site. */
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--r-badge);
+}
+
+/* ---- Camada de estado (Material 3) -------------------------------------
+   Elementos com .cd-state ganham um veu da cor do proprio texto: 8% no
+   hover e 14% no toque. O elemento precisa de position e overflow
+   (aplicados aqui). */
+.cd-state {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.cd-state::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-emph) var(--ease-emph);
+  z-index: 1;
+}
+@media (hover: hover) {
+  .cd-state:hover::after {
+    opacity: var(--state-hover);
+  }
+}
+.cd-state:active::after {
+  opacity: var(--state-press);
+}
+.cd-state[aria-disabled='true']::after {
+  display: none;
+}
+
+/* ---- Cor da categoria --------------------------------------------------
+   data-cor="morango|caramelo|cacau|baunilha|neutro" define --cat, usado
+   como fundo de cards, chips e detalhe. Ver corDaCategoria em
+   src/data/menu-helpers.ts. */
+[data-cor] {
+  --cat: var(--c-neutro);
+}
+[data-cor='morango'] {
+  --cat: var(--c-morango);
+}
+[data-cor='caramelo'] {
+  --cat: var(--c-caramelo);
+}
+[data-cor='cacau'] {
+  --cat: var(--c-cacau);
+}
+[data-cor='baunilha'] {
+  --cat: var(--c-baunilha);
+}
+
+/* ---- Botoes ------------------------------------------------------------
+   .cd-btn         base em pilula, 58px, texto 17px/700
+   .cd-btn--cta    acao principal (vermelho-morango, sombra colorida)
+   .cd-btn--ok     envio/sucesso (verde) — "Enviar pelo WhatsApp"
+   .cd-btn--tonal  secundario (--s-c), sem sombra
+   Desabilitado: aria-disabled="true" (o handler tambem ignora o clique). */
+.cd-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: var(--btn-h);
+  padding: 0 28px;
+  border-radius: var(--r-pill);
+  font-family: var(--font-body);
+  font-size: var(--fs-button);
+  font-weight: var(--fw-strong);
+  line-height: 1.2;
+  text-decoration: none;
+  transition:
+    transform var(--dur-spring) var(--ease-spring),
+    background-color var(--dur-emph) var(--ease-emph),
+    color var(--dur-emph) var(--ease-emph),
+    box-shadow var(--dur-emph) var(--ease-emph);
+}
+.cd-btn:hover {
+  text-decoration: none;
+}
+.cd-btn:active:not([aria-disabled='true']) {
+  transform: scale(0.95);
+}
+.cd-btn--block {
+  width: 100%;
+}
+.cd-btn--cta {
+  background: var(--cta);
+  color: var(--on-cta);
+  box-shadow: var(--shadow-cta), var(--shine);
+}
+.cd-btn--ok {
+  background: var(--ok);
+  color: var(--on-ok);
+  box-shadow: var(--elev-1), var(--shine);
+}
+.cd-btn--tonal {
+  background: var(--s-c);
+  color: var(--on-s-c);
+}
+.cd-btn--sm {
+  min-height: var(--touch);
+  padding: 0 20px;
+  font-size: var(--fs-body);
+}
+.cd-btn[aria-disabled='true'] {
+  background: var(--sf-highest);
+  color: var(--on-disabled);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+/* seta que desliza no hover ("Continuar") */
+.cd-btn__arrow {
+  transition: transform var(--dur-emph) var(--ease-emph);
+}
+@media (hover: hover) {
+  .cd-btn:hover:not([aria-disabled='true']) .cd-btn__arrow {
+    transform: translateX(calc(4px * var(--motion-shift)));
+  }
+}
+
+/* ---- Stepper de quantidade (− 2 +) ------------------------------------- */
+.cd-stepper {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  border-radius: var(--r-pill);
+  background: var(--sf-high);
+  color: var(--on-sf);
+}
+.cd-stepper__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch);
+  height: var(--touch);
+  border-radius: var(--r-round);
+}
+.cd-stepper__value {
+  min-width: 28px;
+  text-align: center;
+  font-family: var(--font-head);
+  font-weight: var(--fw-strong);
+  font-size: 17px;
+}
+
+.cd-stepper__btn[aria-disabled='true'] {
+  color: var(--on-disabled);
+  cursor: default;
+}
+
+/* ---- Campos de texto (rotulo acima) ------------------------------------ */
+.cd-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cd-field__label {
+  font-size: var(--fs-label);
+  font-weight: var(--fw-label);
+  color: var(--on-sf-v);
+}
+.cd-field__input {
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 16px;
+  border: 1px solid var(--ol);
+  border-radius: var(--r-field);
+  background: var(--sf-lowest);
+  color: var(--on-sf);
+  font-size: 16px; /* 16px evita o zoom automatico do iOS */
+  transition: border-color var(--dur-emph) var(--ease-emph), box-shadow var(--dur-emph) var(--ease-emph);
+}
+.cd-field__input::placeholder {
+  color: var(--on-sf-v);
+}
+.cd-field__input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: var(--ring-focus);
+}
+textarea.cd-field__input {
+  resize: vertical;
+  min-height: 80px;
+}
+.cd-field.is-invalid .cd-field__input {
+  border-color: var(--err);
+  box-shadow: var(--ring-err);
+}
+
+/* ---- Botao segmentado (Entrega/Retirada, Pagamento) --------------------
+   Selecionado: --s-c com um check. */
+.cd-seg {
+  display: flex;
+  border: 1px solid var(--ol);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+.cd-seg__opt {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 48px;
+  padding: 0 10px;
+  color: var(--on-sf);
+  font-size: 14px;
+  font-weight: var(--fw-label);
+  transition: background-color var(--dur-emph) var(--ease-emph), color var(--dur-emph) var(--ease-emph);
+}
+.cd-seg__opt + .cd-seg__opt {
+  border-left: 1px solid var(--ol);
+}
+.cd-seg__check {
+  display: inline-flex;
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: width var(--dur-emph) var(--ease-emph), opacity var(--dur-emph) var(--ease-emph);
+}
+.cd-seg__opt[aria-pressed='true'] {
+  background: var(--s-c);
+  color: var(--on-s-c);
+}
+.cd-seg__opt[aria-pressed='true'] .cd-seg__check {
+  width: 18px;
+  opacity: 1;
+}
+
+/* ---- Paginas institucionais (Sobre, Contato, Desenvolvedor, 404) ------
+   Conteudo centralizado abaixo do bloco do topo (PageHero), em cartoes de
+   superficie. */
+.cd-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 16px 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+.cd-page__card {
+  width: 100%;
+  padding: 24px;
+  border-radius: var(--r-sheet);
+  background: var(--sf-low);
+  color: var(--on-sf);
+}
+@media (min-width: 768px) {
+  .cd-page {
+    padding: 40px 32px 120px;
+  }
+  .cd-page__card {
+    padding: 32px 36px;
+  }
+}
+
+/* ---- Contador do carrinho (barra superior e FAB) ----------------------
+   Ambar (--hl) = destaque. Da um "pulo" de mola a cada item adicionado
+   (classe .is-bump, colocada pelo script do CartDrawer). */
+.cd-badge {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-pill);
+  background: var(--hl);
+  color: var(--on-hl);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: var(--fw-strong);
+  line-height: 1;
+}
+.cd-badge[hidden] {
+  display: none;
+}
+.cd-badge.is-bump {
+  animation: cd-bump var(--dur-spring) var(--ease-spring);
+}
+@keyframes cd-bump {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.35);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Texto so para leitores de tela. */
+.cd-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---- Movimento reduzido ------------------------------------------------
+   Os tokens de duracao ja encurtam em theme.css. Aqui desligamos animacoes
+   de keyframes (cascata, molas, desenho do check) e deslocamentos: os
+   componentes que deslizam leem --motion-shift (0 com movimento reduzido)
+   e ficam so com a transicao de opacidade. */
+:root {
+  --motion-shift: 1;
+}
 @media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-shift: 0;
+  }
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
 }

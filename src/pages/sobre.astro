@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import CartDrawer from '../components/CartDrawer.astro';
+import PageHero from '../components/PageHero.astro';
 import { SITE_NAME } from '../config/site';
 
 // Pagina "Sobre" (estatica). O texto abaixo e GENERICO DE PROPOSITO — o dono
@@ -18,12 +19,10 @@ import { SITE_NAME } from '../config/site';
 >
   <Header />
 
-  <main class="cd-sobre">
-    <div class="cd-sobre__rule"></div>
-    <span class="cd-sobre__eyebrow">Nossa história</span>
-    <h1 class="cd-sobre__title">Sobre a {SITE_NAME}</h1>
+  <PageHero eyebrow="Nossa história" title={`Sobre a ${SITE_NAME}`} />
 
-    <div class="cd-sobre__body">
+  <main class="cd-page cd-sobre">
+    <div class="cd-page__card cd-sobre__body">
       <p>
         A {SITE_NAME} nasceu do carinho pela cozinha e da vontade de
         compartilhar doces feitos com ingredientes de qualidade e muito
@@ -42,7 +41,7 @@ import { SITE_NAME } from '../config/site';
       </p>
     </div>
 
-    <a class="cd-sobre__btn" href="/">Ver Cardápio</a>
+    <a class="cd-btn cd-btn--cta" href="/">Ver Cardápio</a>
   </main>
 
   <Footer />
@@ -51,72 +50,17 @@ import { SITE_NAME } from '../config/site';
 </BaseLayout>
 
 <style>
-  .cd-sobre {
-    max-width: 620px;
-    margin: 0 auto;
-    padding: clamp(40px, 10vh, 90px) clamp(20px, 6vw, 32px) 90px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-  .cd-sobre__rule {
-    width: 40px;
-    height: 1px;
-    background: var(--gold);
-    margin-bottom: 18px;
-  }
-  .cd-sobre__eyebrow {
-    font-size: 11px;
-    letter-spacing: 2.5px;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  .cd-sobre__title {
-    margin: 10px 0 0;
-    font-family: var(--font-head);
-    font-weight: 400;
-    font-size: clamp(26px, 6vw, 36px);
-    line-height: 1.2;
-    color: var(--ink);
-  }
-  .cd-sobre__body {
-    margin-top: 26px;
-    text-align: left;
-  }
   .cd-sobre__body p {
+    margin: 0 0 16px;
     font-size: 16px;
-    line-height: 1.75;
-    color: var(--muted-text);
-    margin: 0 0 18px;
+    line-height: 1.7;
   }
   .cd-sobre__body p:last-child {
     margin-bottom: 0;
   }
   .cd-sobre__body a {
-    color: var(--gold-text);
+    font-weight: var(--fw-label);
     text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-  .cd-sobre__btn {
-    margin-top: 34px;
-    padding: 15px 30px;
-    background: var(--brand);
-    color: var(--cream);
-    border-radius: var(--radius-md);
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-  }
-  @media (hover: hover) {
-    .cd-sobre__btn:hover {
-      color: var(--cream);
-      background: var(--brand-hover);
-    }
-  }
-  .cd-sobre__btn:focus-visible {
-    outline: 2px solid var(--gold);
-    outline-offset: 3px;
+    text-underline-offset: 3px;
   }
 </style>

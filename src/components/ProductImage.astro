@@ -13,7 +13,8 @@
 //    (onerror), o placeholder aparece — nunca uma imagem quebrada.
 //
 // TAMANHO/RECOMENDACAO das fotos (o CMS ja cuida disso no upload):
-//   - Proporcao 4:3 (ex.: 1200 x 900). Fora disso, e recortada (object-fit).
+//   - Proporcao 4:3 (ex.: 1200 x 900). No card a foto e QUADRADA (recorte
+//     central via object-fit); deixe o doce no centro da foto.
 //   - Formato: JPG, PNG ou WebP (o CMS converte para WebP e redimensiona).
 import { productHasPhoto } from '../data/menu-helpers';
 
@@ -61,10 +62,12 @@ const temFoto = productHasPhoto({ foto });
 </div>
 
 <style>
+  /* Proporcao: 4:3 por padrao. Quem usa pode trocar com a variavel
+     --media-ratio (ex.: o card usa 1 / 1) e arredondar via classe propria. */
   .cd-media {
     position: relative;
-    aspect-ratio: 4 / 3; /* proporcao padrao de todas as fotos */
-    background: var(--card-alt);
+    aspect-ratio: var(--media-ratio, 4 / 3);
+    background: var(--sf-high);
     overflow: hidden;
   }
   /* a imagem vem depois do placeholder no DOM, entao pinta por cima dele;
@@ -85,12 +88,10 @@ const temFoto = productHasPhoto({ foto });
     align-items: center;
     justify-content: center;
     gap: 8px;
-    color: var(--muted);
-    box-shadow: var(--shadow-placeholder);
+    color: var(--on-sf-v);
   }
   .cd-media__ph span {
-    font-size: 11px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
+    font-size: var(--fs-label);
+    font-weight: var(--fw-label);
   }
 </style>

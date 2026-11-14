@@ -1,0 +1,194 @@
+---
+// Conteudo do detalhe do produto, igual nos dois lugares onde aparece:
+//  - pagina estatica /produto/:id (links diretos e SEO);
+//  - sheet (celular) / dialog (desktop) aberta pelo card no cardapio — ver
+//    ProductSheet.astro, que guarda este markup num <template> por produto.
+// Fundo na cor da categoria (--cat, via data-cor no container de quem usa).
+// Foto, categoria, nome, descricao, preco, stepper de quantidade e o botao
+// "Adicionar · R$ X". O comportamento fica em src/lib/product-detail.ts.
+import type { Product } from '../data/menu';
+import { formatPrice } from '../lib/format';
+import ProductImage from './ProductImage.astro';
+
+interface Props {
+  product: Product;
+  /** nivel do titulo: h1 na pagina, h2 dentro da sheet/dialog */
+  headingLevel?: 1 | 2;
+  /** id do titulo (para aria-labelledby do dialog) */
+  headingId?: string;
+  /** mostra o botao de ampliar a foto (pagina estatica) */
+  zoom?: boolean;
+  loading?: 'lazy' | 'eager';
+}
+
+const { product, headingLevel = 1, headingId, zoom = false, loading = 'eager' } = Astro.props;
+const Heading = headingLevel === 1 ? 'h1' : 'h2';
+---
+
+<div class="cd-pdx" data-detail={product.id} data-available={String(product.disponivel)}>
+  <div class="cd-pdx__media">
+    <ProductImage foto={product.foto} alt={`Foto de ${product.nome}`} loading={loading}>
+      {!product.disponivel && <span class="cd-pdx__soldout">Esgotado</span>}
+      {
+        zoom && (
+          <button class="cd-pdx__zoom cd-state" type="button" data-zoom aria-label="Ampliar foto">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <path d="M21 21l-4.35-4.35M11 8v6M8 11h6" />
+            </svg>
+          </button>
+        )
+      }
+    </ProductImage>
+  </div>
+
+  <div class="cd-pdx__info">
+    <span class="cd-pdx__cat">{product.categoria}</span>
+    <Heading class="cd-pdx__name" id={headingId}>{product.nome}</Heading>
+    {product.descricao && <p class="cd-pdx__desc">{product.descricao}</p>}
+    <div class="cd-pdx__price">{formatPrice(product.preco)}</div>
+
+    {
+      product.disponivel ? (
+        <div class="cd-pdx__actions">
+          <div class="cd-stepper cd-pdx__stepper" data-qty>
+            <button class="cd-stepper__btn cd-state" type="button" data-qty-dec aria-label="Diminuir quantidade">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14" /></svg>
+            </button>
+            <span class="cd-stepper__value" data-qty-value aria-live="polite">1</span>
+            <button class="cd-stepper__btn cd-state" type="button" data-qty-inc aria-label="Aumentar quantidade">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+            </button>
+          </div>
+          <button
+            class="cd-btn cd-btn--cta cd-pdx__add"
+            type="button"
+            data-add-detail={product.id}
+            data-preco={product.preco}
+            data-nome={product.nome}
+          >
+            <span>Adicionar</span>
+            <span aria-hidden="true">·</span>
+            <span data-line-total>{formatPrice(product.preco)}</span>
+          </button>
+        </div>
+      ) : (
+        <p class="cd-pdx__off">Este produto está esgotado no momento.</p>
+      )
+    }
+  </div>
+</div>
+
+<style>
+  .cd-pdx {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    color: var(--on-sf);
+  }
+  .cd-pdx__media {
+    border-radius: var(--r-img);
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .cd-pdx[data-available='false'] .cd-pdx__media :global(.cd-media__img) {
+    filter: grayscale(1);
+  }
+  .cd-pdx__soldout {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    padding: 4px 10px;
+    border-radius: var(--r-badge);
+    background: var(--inv-sf);
+    color: var(--inv-on-sf);
+    font-size: var(--fs-label);
+    font-weight: var(--fw-strong);
+  }
+  .cd-pdx__zoom {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--touch);
+    height: var(--touch);
+    border-radius: var(--r-round);
+    background: var(--inv-sf);
+    color: var(--inv-on-sf);
+    cursor: zoom-in;
+  }
+
+  .cd-pdx__info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .cd-pdx__cat {
+    font-size: var(--fs-label);
+    font-weight: var(--fw-label);
+    color: var(--primary);
+  }
+  .cd-pdx__name {
+    margin-top: 4px;
+    font-size: var(--fs-detail-title);
+    line-height: 1.2;
+  }
+  .cd-pdx__desc {
+    margin: 10px 0 0;
+    color: var(--on-sf-v);
+    line-height: 1.6;
+  }
+  .cd-pdx__price {
+    margin-top: 14px;
+    font-family: var(--font-head);
+    font-size: var(--fs-price-lg);
+    font-weight: var(--fw-strong);
+    color: var(--primary);
+  }
+  .cd-pdx__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .cd-pdx__stepper {
+    background: var(--sf-lowest);
+    padding: 7px 4px;
+  }
+  .cd-pdx__add {
+    flex: 1;
+    min-width: 0;
+    gap: 6px;
+    padding: 0 16px;
+    white-space: nowrap;
+  }
+  .cd-pdx__off {
+    margin: 20px 0 0;
+    padding: 14px 16px;
+    border-radius: var(--r-field);
+    background: var(--inv-sf);
+    color: var(--inv-on-sf);
+    font-weight: var(--fw-label);
+  }
+
+  @media (min-width: 768px) {
+    .cd-pdx {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 32px;
+    }
+    .cd-pdx__media {
+      --media-ratio: 1 / 1;
+      flex: 0 0 46%;
+    }
+    .cd-pdx__info {
+      flex: 1;
+      padding-top: 8px;
+    }
+    .cd-pdx__name {
+      font-size: var(--fs-detail-title-lg);
+    }
+  }
+</style>

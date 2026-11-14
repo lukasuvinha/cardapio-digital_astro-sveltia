@@ -1,0 +1,30 @@
+---
+// Icone da loja na barra superior: quadrado arredondado na cor de acao
+// (--cta) com um desenho simples em linha. O desenho padrao e um cupcake
+// (confeitaria); para outra loja, troque o <svg> abaixo por outro icone de
+// linha 24x24 (stroke="currentColor") ou por <img src={SITE_LOGO} />.
+---
+
+<span class="cd-store-icon" aria-hidden="true">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6.5 12.5 8 20h8l1.5-7.5" />
+    <path d="M5 12.5a2.5 2.5 0 0 1 1-4.6A3.5 3.5 0 0 1 12 6a3.5 3.5 0 0 1 6 1.9 2.5 2.5 0 0 1 1 4.6Z" />
+    <path d="M10 15.5v2M14 15.5v2" />
+    <path d="M12 6V3.8" />
+  </svg>
+</span>
+
+<style>
+  .cd-store-icon {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--touch);
+    height: var(--touch);
+    border-radius: var(--r-icon);
+    background: var(--cta);
+    color: var(--on-cta);
+    box-shadow: var(--shine);
+  }
+</style>

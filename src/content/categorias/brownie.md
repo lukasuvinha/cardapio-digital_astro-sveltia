@@ -1,3 +1,4 @@
 ---
 nome: Brownie
+cor: cacau
 ---

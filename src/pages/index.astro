@@ -1,56 +1,77 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
+import PageHero from '../components/PageHero.astro';
 import FornadaBanner from '../components/FornadaBanner.astro';
 import CategoryNav from '../components/CategoryNav.astro';
 import ProductGrid from '../components/ProductGrid.astro';
+import ProductSheet from '../components/ProductSheet.astro';
 import Footer from '../components/Footer.astro';
 import CartDrawer from '../components/CartDrawer.astro';
-import { getProdutos, categoriasDe } from '../data/menu';
+import { getProdutos, getCoresCategorias, categoriasDe } from '../data/menu';
 import { getFornadaBanner } from '../data/fornada';
 import { slugify } from '../lib/slug';
+import { MENU_SUBTITLE } from '../config/site';
 
 // Cardapio direto ao ponto: uma unica grade com TODOS os produtos.
 // Dados vindos da Content Collection "produtos" (editavel via Sveltia CMS).
-// A barra de categorias funciona como filtro (client-side) — ver script abaixo.
+// Os chips de categoria funcionam como filtro (client-side) — ver script abaixo.
 const produtos = await getProdutos();
-const navItems = categoriasDe(produtos).map((c) => ({ label: c, slug: slugify(c) }));
+const cores = await getCoresCategorias(produtos);
+const navItems = categoriasDe(produtos).map((c) => ({ label: c, slug: slugify(c), cor: cores[c] }));
 
 // Banner "Proxima fornada": o dono do site liga/desliga e configura pelo CMS (ver
-// src/data/fornada.ts). So renderiza quando ela ligou a chave geral.
+// src/data/fornada.ts). So renderiza quando a chave geral esta ligada.
 const fornada = await getFornadaBanner();
 ---
 
 <BaseLayout>
   <Header />
-  {fornada.visivel && <FornadaBanner texto={fornada.texto} />}
-  <CategoryNav items={navItems} />
+
+  <!-- Bloco do topo: no desktop tem o titulo, o subtitulo e o banner; no
+       celular, so o banner (o titulo vem logo abaixo, junto dos chips). -->
+  <PageHero title="Cardápio" subtitle={MENU_SUBTITLE} titleMobile={false}>
+    {fornada.visivel && <FornadaBanner texto={fornada.texto} />}
+  </PageHero>
 
   <main class="cd-main">
-    <ProductGrid products={produtos} />
+    <h1 class="cd-main__title">Cardápio</h1>
+    <CategoryNav items={navItems} />
+    <ProductGrid products={produtos} cores={cores} />
   </main>
 
   <Footer />
 
+  <ProductSheet products={produtos} cores={cores} />
   <CartDrawer />
 </BaseLayout>
 
 <script>
-  // Filtro por categoria: mostra/esconde os cards conforme o chip ativo.
+  // Filtro por categoria: mostra/esconde os cards conforme o chip selecionado
+  // e refaz a entrada em cascata dos cards que ficaram visiveis.
   const chips = Array.from(document.querySelectorAll<HTMLElement>('[data-filter]'));
   const cards = Array.from(document.querySelectorAll<HTMLElement>('.cd-grid [data-categoria]'));
 
   function aplicar(filtro: string) {
+    let i = 0;
     for (const card of cards) {
       const mostra = filtro === 'all' || card.dataset.categoria === filtro;
       card.hidden = !mostra;
+      if (mostra) {
+        card.style.setProperty('--i', String(i++));
+        // reinicia a animacao de entrada
+        card.style.animation = 'none';
+        void card.offsetWidth;
+        card.style.animation = '';
+      }
     }
   }
 
   for (const chip of chips) {
     chip.addEventListener('click', () => {
-      chips.forEach((c) => c.classList.remove('is-active'));
-      chip.classList.add('is-active');
+      chips.forEach((c) => c.setAttribute('aria-pressed', 'false'));
+      chip.setAttribute('aria-pressed', 'true');
+      chip.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
       aplicar(chip.dataset.filter || 'all');
     });
   }
@@ -60,6 +81,27 @@ const fornada = await getFornadaBanner();
   .cd-main {
     max-width: var(--maxw);
     margin: 0 auto;
-    padding: clamp(18px, 4vw, 32px) clamp(16px, 4vw, 48px) 80px;
+    padding: 24px 16px 120px;
+  }
+  .cd-main__title {
+    font-size: var(--fs-page-title);
+    line-height: 1.15;
+    margin-bottom: 12px;
+  }
+  .cd-main :global(.cd-chips) {
+    margin-bottom: 16px;
+  }
+
+  @media (min-width: 768px) {
+    .cd-main {
+      padding: 32px clamp(24px, 4vw, 48px) 96px;
+    }
+    /* no desktop o titulo fica dentro do bloco do topo */
+    .cd-main__title {
+      display: none;
+    }
+    .cd-main :global(.cd-chips) {
+      margin-bottom: 24px;
+    }
   }
 </style>
