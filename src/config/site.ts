@@ -20,7 +20,11 @@ export const SITE_TAGLINE = 'Doceria Artesanal';
 export const SITE_DESCRIPTION =
   'Cardápio da Doceria Exemplo: brownies, brigadeiros, bolos de pote e cookies artesanais. Peça pelo WhatsApp.';
 
-/** Logo da loja (selo redondo da confirmacao do pedido e da pagina 404). Caminho em public/. */
+/** Subtitulo do bloco do topo do cardapio (aparece no desktop, abaixo de "Cardápio"). */
+export const MENU_SUBTITLE =
+  'Doces artesanais feitos em pequenas fornadas. Monte seu pedido e envie pelo WhatsApp.';
+
+/** Logo da loja (selo redondo da pagina 404). Caminho em public/. */
 export const SITE_LOGO = '/logo.svg';
 
 /** Imagem de preview ao compartilhar o link (1200x630). Caminho em public/. */

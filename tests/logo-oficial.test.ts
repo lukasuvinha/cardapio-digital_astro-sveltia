@@ -1,7 +1,8 @@
 // Guarda de regressao: o logo configurado em src/config/site.ts (SITE_LOGO)
 // e a imagem de compartilhamento (SITE_OG_IMAGE) precisam existir em public/,
-// e os "selos" circulares da confirmacao de pedido e da pagina 404 precisam
-// usar esse logo (imagem), nao um monograma de texto. Ver docs/LOGO.md.
+// e o selo circular da pagina 404 precisa usar esse logo (imagem), nao um
+// monograma de texto. A confirmacao do pedido, desde o redesign Material 3,
+// mostra um check animado no lugar do logo. Ver docs/LOGO.md.
 import { describe, it, expect } from 'vitest';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -18,13 +19,13 @@ describe('Logo configurado — arquivos', () => {
   });
 });
 
-describe('Selo de confirmação do pedido (CartDrawer)', () => {
-  it('usa o logo configurado (imagem), não um monograma de texto', async () => {
+describe('Confirmação do pedido (CartDrawer)', () => {
+  it('mostra o check de sucesso (redesign Material 3), sem o selo de logo', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(CartDrawer, {});
-    expect(html).toContain(`src="${SITE_LOGO}"`);
-    // o monograma de texto antigo nao deve estar ativo no markup
-    expect(html).not.toMatch(/cd-confirm__ring-inner">/);
+    expect(html).toContain('cd-done__circle');
+    expect(html).toContain('cd-done__check');
+    expect(html).not.toContain(`src="${SITE_LOGO}"`);
   });
 });
 

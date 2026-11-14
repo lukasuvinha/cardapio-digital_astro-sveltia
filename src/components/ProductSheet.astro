@@ -1,0 +1,177 @@
+---
+// Detalhe do produto aberto a partir do cardapio, sem sair da pagina:
+//  - celular (< 768px): bottom sheet;
+//  - desktop: dialog central de ate 880px (foto a esquerda, informacoes a
+//    direita).
+// Fundo na cor da categoria. O conteudo e o MESMO da pagina estatica
+// /produto/:id (componente ProductDetail), guardado num <template> por
+// produto e clonado ao abrir. Sem JS, o card continua sendo um link para a
+// pagina estatica.
+import type { Product, CorCategoria } from '../data/menu';
+import ProductDetail from './ProductDetail.astro';
+
+interface Props {
+  products: Product[];
+  cores: Record<string, CorCategoria>;
+}
+
+const { products, cores } = Astro.props;
+---
+
+<div class="cd-sheet" data-detail-root>
+  <div class="cd-sheet__scrim" data-modal-close></div>
+  <section class="cd-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="cd-detail-title" data-detail-panel data-cor="neutro">
+    <div class="cd-sheet__handle" aria-hidden="true"></div>
+    <button class="cd-sheet__close cd-state" type="button" data-modal-close aria-label="Fechar detalhe do produto">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+    </button>
+    <div class="cd-sheet__body" data-detail-slot></div>
+  </section>
+</div>
+
+{
+  products.map((p) => (
+    <template data-detail-template={p.id} data-cor={cores[p.categoria] ?? 'neutro'}>
+      <ProductDetail product={p} headingLevel={2} headingId="cd-detail-title" loading="lazy" />
+    </template>
+  ))
+}
+
+<script>
+  import { createModal } from '../lib/modal';
+  import { ligarDetalhe } from '../lib/product-detail';
+
+  const root = document.querySelector<HTMLElement>('[data-detail-root]');
+  const panel = root?.querySelector<HTMLElement>('[data-detail-panel]');
+  const slot = root?.querySelector<HTMLElement>('[data-detail-slot]');
+
+  if (root && panel && slot) {
+    const modal = createModal(root, {
+      panel,
+      initialFocus: () => panel.querySelector<HTMLElement>('[data-add-detail]') ?? panel,
+    });
+
+    document.addEventListener('click', (e) => {
+      const link = (e.target as HTMLElement).closest<HTMLAnchorElement>('[data-open-detail]');
+      if (!link) return;
+      // ctrl/cmd/shift/botao do meio: deixa abrir a pagina normalmente
+      const me = e as MouseEvent;
+      if (me.metaKey || me.ctrlKey || me.shiftKey || me.altKey || me.button !== 0) return;
+      const tpl = document.querySelector<HTMLTemplateElement>(
+        `template[data-detail-template="${CSS.escape(link.dataset.openDetail!)}"]`,
+      );
+      if (!tpl) return; // sem template: segue o link
+      e.preventDefault();
+      slot.replaceChildren(tpl.content.cloneNode(true));
+      panel.dataset.cor = tpl.dataset.cor ?? 'neutro';
+      panel.scrollTop = 0;
+      ligarDetalhe(slot, () => modal.close());
+      modal.open(link);
+    });
+  }
+</script>
+
+<style>
+  .cd-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    visibility: hidden;
+    transition: visibility 0s linear var(--dur-out);
+  }
+  .cd-sheet[data-open='true'] {
+    visibility: visible;
+    transition: none;
+  }
+  .cd-sheet__scrim {
+    position: absolute;
+    inset: 0;
+    background: var(--scrim);
+    opacity: 0;
+    transition: opacity var(--dur-out) var(--ease-out);
+  }
+  .cd-sheet[data-open='true'] .cd-sheet__scrim {
+    opacity: 1;
+    transition: opacity var(--dur-in) var(--ease-in);
+  }
+
+  .cd-sheet__panel {
+    position: relative;
+    width: 100%;
+    max-height: 92vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 12px 20px calc(24px + env(safe-area-inset-bottom));
+    border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+    background: var(--cat);
+    box-shadow: var(--elev-3);
+    transform: translateY(calc(100% * var(--motion-shift)));
+    opacity: 0;
+    transition:
+      transform var(--dur-out) var(--ease-out),
+      opacity var(--dur-out) var(--ease-out);
+  }
+  .cd-sheet[data-open='true'] .cd-sheet__panel {
+    transform: none;
+    opacity: 1;
+    transition:
+      transform var(--dur-in) var(--ease-in),
+      opacity var(--dur-in) var(--ease-in);
+  }
+  .cd-sheet__panel:focus {
+    outline: none;
+  }
+
+  .cd-sheet__handle {
+    width: 32px;
+    height: 4px;
+    margin: 0 auto 12px;
+    border-radius: var(--r-pill);
+    background: var(--ol);
+  }
+  .cd-sheet__close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--touch);
+    height: var(--touch);
+    border-radius: var(--r-round);
+    background: var(--sf-lowest);
+    color: var(--on-sf);
+  }
+  .cd-sheet__body {
+    padding-top: 36px;
+  }
+
+  @media (min-width: 768px) {
+    .cd-sheet {
+      align-items: center;
+      padding: 24px;
+    }
+    .cd-sheet__panel {
+      max-width: 880px;
+      max-height: calc(100vh - 48px);
+      padding: 28px;
+      border-radius: var(--r-sheet);
+      transform: translateY(calc(24px * var(--motion-shift))) scale(calc(1 - 0.04 * var(--motion-shift)));
+    }
+    .cd-sheet__handle {
+      display: none;
+    }
+    .cd-sheet__close {
+      top: 16px;
+      right: 16px;
+    }
+    .cd-sheet__body {
+      padding-top: 0;
+      padding-right: 40px;
+    }
+  }
+</style>

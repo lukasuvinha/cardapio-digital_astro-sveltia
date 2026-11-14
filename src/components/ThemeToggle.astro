@@ -3,31 +3,34 @@
 // Uso: <ThemeToggle /> em qualquer lugar. Pode haver mais de um na pagina;
 // o script sincroniza todos. A escolha e persistida em localStorage ('cd-theme')
 // e aplicada antes da pintura pelo script inline do BaseLayout (sem flash).
+// O icone (sol/lua) gira ao trocar.
 ---
 
 <button
-  class="cd-theme-toggle"
+  class="cd-theme-toggle cd-state"
   type="button"
   aria-label="Alternar tema claro e escuro"
 >
-  <!-- Sol: exibido no tema ESCURO (clicar volta para o claro) -->
-  <svg class="icon icon-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <circle cx="12" cy="12" r="5" fill="currentColor"></circle>
-    <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <line x1="12" y1="1" x2="12" y2="4"></line>
-      <line x1="12" y1="20" x2="12" y2="23"></line>
-      <line x1="1" y1="12" x2="4" y2="12"></line>
-      <line x1="20" y1="12" x2="23" y2="12"></line>
-      <line x1="4.2" y1="4.2" x2="6.3" y2="6.3"></line>
-      <line x1="17.7" y1="17.7" x2="19.8" y2="19.8"></line>
-      <line x1="4.2" y1="19.8" x2="6.3" y2="17.7"></line>
-      <line x1="17.7" y1="6.3" x2="19.8" y2="4.2"></line>
-    </g>
-  </svg>
-  <!-- Lua: exibida no tema CLARO (clicar vai para o escuro) -->
-  <svg class="icon icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 1 0 10.5 10.5Z" fill="currentColor"></path>
-  </svg>
+  <span class="cd-theme-toggle__spin" aria-hidden="true">
+    <!-- Sol: exibido no tema ESCURO (clicar volta para o claro) -->
+    <svg class="icon icon-sun" width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="4.2" fill="currentColor"></circle>
+      <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="12" y1="2" x2="12" y2="4.2"></line>
+        <line x1="12" y1="19.8" x2="12" y2="22"></line>
+        <line x1="2" y1="12" x2="4.2" y2="12"></line>
+        <line x1="19.8" y1="12" x2="22" y2="12"></line>
+        <line x1="4.9" y1="4.9" x2="6.5" y2="6.5"></line>
+        <line x1="17.5" y1="17.5" x2="19.1" y2="19.1"></line>
+        <line x1="4.9" y1="19.1" x2="6.5" y2="17.5"></line>
+        <line x1="17.5" y1="6.5" x2="19.1" y2="4.9"></line>
+      </g>
+    </svg>
+    <!-- Lua: exibida no tema CLARO (clicar vai para o escuro) -->
+    <svg class="icon icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 1 0 10.5 10.5Z" fill="currentColor"></path>
+    </svg>
+  </span>
 </button>
 
 <style>
@@ -35,46 +38,46 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
-    padding: 0;
-    border: 1px solid var(--gold);
-    border-radius: var(--radius-round);
-    background: transparent;
-    color: var(--cream);
-    line-height: 0;
-    transition: background 0.15s;
+    width: var(--touch);
+    height: var(--touch);
+    border-radius: var(--r-round);
+    color: var(--on-hero);
   }
-  /* so aplica hover em dispositivos com cursor real (mouse). No celular
-     (toque), o :hover "gruda" apos o toque e o botao ficava com o fundo
-     aceso como se o cursor estivesse sempre ali. */
-  @media (hover: hover) {
-    .cd-theme-toggle:hover {
-      background: var(--gold-tint);
-    }
+  .cd-theme-toggle__spin {
+    position: relative;
+    display: block;
+    width: 22px;
+    height: 22px;
+    transition: transform var(--dur-spring) var(--ease-spring);
+  }
+  .cd-theme-toggle .icon {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    transition: opacity var(--dur-emph) var(--ease-emph);
   }
 
-  /* Troca de icone puramente via CSS conforme o tema ativo */
+  /* Claro: mostra a lua. Escuro: mostra o sol e o conjunto gira meia volta. */
   .cd-theme-toggle .icon-sun {
-    display: none;
+    opacity: 0;
   }
-  .cd-theme-toggle .icon-moon {
-    display: block;
+  :global(:root[data-theme='dark']) .cd-theme-toggle__spin {
+    transform: rotate(calc(180deg * var(--motion-shift)));
   }
   :global(:root[data-theme='dark']) .cd-theme-toggle .icon-sun {
-    display: block;
+    opacity: 1;
   }
   :global(:root[data-theme='dark']) .cd-theme-toggle .icon-moon {
-    display: none;
+    opacity: 0;
   }
 
   /* Fallback sem JS: acompanha a preferencia do sistema */
   @media (prefers-color-scheme: dark) {
     :global(:root:not([data-theme='light']):not([data-theme='dark'])) .cd-theme-toggle .icon-sun {
-      display: block;
+      opacity: 1;
     }
     :global(:root:not([data-theme='light']):not([data-theme='dark'])) .cd-theme-toggle .icon-moon {
-      display: none;
+      opacity: 0;
     }
   }
 </style>
@@ -95,6 +98,11 @@
     }
     document.querySelectorAll('.cd-theme-toggle').forEach((btn) => {
       btn.setAttribute('aria-pressed', String(theme === 'dark'));
+    });
+    // a cor da barra do navegador acompanha a escolha manual
+    document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((m) => {
+      const cor = theme === 'dark' ? m.dataset.dark : m.dataset.light;
+      if (cor) m.content = cor;
     });
   }
 

@@ -6,12 +6,15 @@ com o resto da identidade da loja.
 
 | Arquivo (padrão) | Constante em `site.ts` | Onde aparece |
 |---|---|---|
-| `public/logo.svg` | `SITE_LOGO` | "Selo" redondo da tela de confirmação do pedido (`CartDrawer.astro`) e da página 404. |
+| `public/logo.svg` | `SITE_LOGO` | "Selo" redondo da página 404. (A confirmação do pedido mostra um check animado desde o redesign Material 3; a nota no `CartDrawer.astro` explica como voltar o logo para lá.) |
 | `public/og-image.png` | `SITE_OG_IMAGE` | Preview do link ao compartilhar (WhatsApp, Instagram, Facebook): `og:image` / `twitter:image` no `BaseLayout.astro`. |
 | `public/favicon.svg` | — (fixo no `BaseLayout.astro`) | Ícone da aba do navegador. |
 
 O **nome da loja no cabeçalho** não é imagem: é o texto de `SITE_NAME`, com a
-fonte de títulos do tema (`--font-head` em `src/styles/theme.css`).
+fonte de títulos do tema (`--font-head` em `src/styles/theme.css`). Ao lado dele
+fica o **ícone da loja** (quadrado na cor de ação, `--cta`), desenhado em
+`src/components/StoreIcon.astro` — troque o `<svg>` de lá por outro ícone de
+linha, ou por `<img src={SITE_LOGO} />`.
 
 Os arquivos que vêm no template são da loja fictícia "Doceria Exemplo".
 
@@ -24,10 +27,10 @@ Os arquivos que vêm no template são da loja fictícia "Doceria Exemplo".
    export const SITE_LOGO = '/logo-minha-loja.png';
    ```
 3. Rode `npm test`: o `tests/logo-oficial.test.ts` confere se o arquivo existe
-   e se os selos usam a imagem.
+   e se o selo da 404 usa a imagem.
 
-**Formato do selo.** O selo é um **círculo** de 112 px com borda na cor de
-acento do tema (`--gold`) e uma sombra suave (`--shadow-seal`). A imagem é
+**Formato do selo.** O selo é um **círculo** de 112 px com uma sombra suave
+(`--elev-2`). A imagem é
 recortada em círculo (`object-fit: cover`), então:
 
 - logos **quadrados** com a arte centralizada funcionam melhor;
@@ -40,7 +43,7 @@ recortada em círculo (`object-fit: cover`), então:
 
 A arte do logo tem cores próprias e **não muda com o tema** claro/escuro. Isso
 é intencional (como o ícone de um app): a adaptação ao tema fica por conta da
-moldura (borda + sombra), que usa os tokens do tema.
+moldura (sombra), que usa os tokens do tema.
 
 ## Trocar a imagem de compartilhamento (og-image)
 
@@ -58,7 +61,7 @@ vem instalado como dependência do Astro):
 // node gerar-og.mjs
 import sharp from 'sharp';
 const logo = await sharp('public/logo.png').resize(420, 420, { fit: 'contain', background: '#00000000' }).toBuffer();
-await sharp({ create: { width: 1200, height: 630, channels: 3, background: '#1F4D3A' } })
+await sharp({ create: { width: 1200, height: 630, channels: 3, background: '#FFD9DF' } })
   .composite([{ input: logo, left: 390, top: 105 }])
   .png({ compressionLevel: 9 })
   .toFile('public/og-image.png');

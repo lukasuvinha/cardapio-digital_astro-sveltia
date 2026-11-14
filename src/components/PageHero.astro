@@ -1,0 +1,96 @@
+---
+// Bloco do topo: continuacao da barra superior (--hero) com os cantos
+// inferiores arredondados. No cardapio guarda o titulo, o subtitulo e o
+// banner da fornada (slot); nas paginas institucionais, so o titulo.
+//
+// `titleMobile`: false esconde o titulo no celular — no cardapio o titulo
+// "Cardápio" fica FORA do bloco no celular (acima dos chips) e DENTRO dele
+// no desktop. Nesse caso a pagina renderiza o outro titulo; so um dos dois
+// fica visivel (e no leitor de tela) por vez.
+interface Props {
+  title: string;
+  subtitle?: string;
+  eyebrow?: string;
+  titleMobile?: boolean;
+}
+const { title, subtitle, eyebrow, titleMobile = true } = Astro.props;
+---
+
+<section class:list={['cd-hero', { 'cd-hero--desk-title': !titleMobile }]}>
+  <div class="cd-hero__inner">
+    <div class="cd-hero__text">
+      {eyebrow && <span class="cd-hero__eyebrow">{eyebrow}</span>}
+      <h1 class="cd-hero__title">{title}</h1>
+      {subtitle && <p class="cd-hero__sub">{subtitle}</p>}
+    </div>
+    {Astro.slots.has('default') && (
+      <div class="cd-hero__aside">
+        <slot />
+      </div>
+    )}
+  </div>
+</section>
+
+<style>
+  .cd-hero {
+    background: var(--hero);
+    color: var(--on-hero);
+    border-radius: 0 0 var(--r-hero) var(--r-hero);
+    padding: 4px 0 24px;
+  }
+  /* mesma largura e respiro lateral da grade do cardapio (.cd-main) */
+  .cd-hero__inner {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .cd-hero__eyebrow {
+    display: block;
+    font-size: var(--fs-label);
+    font-weight: var(--fw-label);
+    margin-bottom: 4px;
+  }
+  .cd-hero__title {
+    font-size: var(--fs-page-title);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+  .cd-hero__sub {
+    margin: 8px 0 0;
+    max-width: 52ch;
+    font-size: var(--fs-body);
+  }
+  /* cardapio no celular: so o banner fica no bloco do topo */
+  .cd-hero--desk-title .cd-hero__text {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .cd-hero {
+      border-radius: 0 0 var(--r-hero-lg) var(--r-hero-lg);
+      padding: 16px 0 40px;
+    }
+    .cd-hero__inner {
+      padding: 0 clamp(24px, 4vw, 48px);
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 32px;
+    }
+    .cd-hero--desk-title .cd-hero__text {
+      display: block;
+    }
+    .cd-hero__title {
+      font-size: var(--fs-page-title-lg);
+    }
+    .cd-hero__sub {
+      font-size: 17px;
+    }
+    .cd-hero__aside {
+      flex: 0 1 400px;
+    }
+  }
+</style>

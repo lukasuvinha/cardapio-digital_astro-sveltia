@@ -101,3 +101,32 @@ export function groupByCategory(produtos: Product[]): CategoryGroup[] {
     produtos: mapa.get(categoria)!,
   }));
 }
+
+/** Cores de categoria (tokens --c-* do tema). */
+export type CorCategoria = 'morango' | 'caramelo' | 'cacau' | 'baunilha' | 'neutro';
+
+/**
+ * Ciclo usado quando a categoria nao tem cor definida no CMS: a 1a categoria
+ * (na ordem do cardapio) recebe morango, a 2a caramelo, e assim por diante,
+ * voltando ao inicio depois da 4a. "neutro" fica de fora do ciclo: e a cor
+ * do chip "Todos" e so aparece numa categoria se for escolhida no CMS.
+ */
+export const CICLO_CORES: readonly CorCategoria[] = ['morango', 'caramelo', 'cacau', 'baunilha'];
+
+/**
+ * Mapa categoria -> cor. `ordem` e a ordem das categorias no cardapio (ver
+ * categoriasDe); `definidas` traz a cor escolhida no CMS para cada nome de
+ * categoria (ausente = automatica). Categoria sem cor definida recebe a cor
+ * do ciclo pela sua POSICAO na ordem — assim a cor de uma categoria nao muda
+ * quando outra categoria ganha uma cor manual.
+ */
+export function coresPorCategoria(
+  ordem: string[],
+  definidas: Record<string, CorCategoria | undefined> = {},
+): Record<string, CorCategoria> {
+  const mapa: Record<string, CorCategoria> = {};
+  ordem.forEach((cat, i) => {
+    mapa[cat] = definidas[cat] ?? CICLO_CORES[i % CICLO_CORES.length];
+  });
+  return mapa;
+}

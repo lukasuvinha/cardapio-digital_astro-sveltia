@@ -1,6 +1,6 @@
 # Testes
 
-`npm test` roda a suíte completa (Vitest). **143 testes, 18 arquivos — todos
+`npm test` roda a suíte completa (Vitest). **178 testes, 20 arquivos — todos
 passando.**
 
 ## O que é coberto
@@ -16,15 +16,17 @@ passando.**
 | `format.test.ts` | 3 | Formatação de preço em R$. |
 | `product-card.test.ts` | 4 | Render (Container API): `<img>` com foto, placeholder sem foto, formato incompatível cai no placeholder, contagem de cards. |
 | `ui-fase-final.test.ts` | 5 | Estado vazio do cardápio, link do cabeçalho para a home, meta tags de compartilhamento. |
-| `logo-oficial.test.ts` | 3 | O logo configurado (`SITE_LOGO`) e a imagem de compartilhamento (`SITE_OG_IMAGE`) existem em `public/`; os selos da confirmação e da 404 usam esse logo (imagem), não um monograma de texto. |
+| `logo-oficial.test.ts` | 3 | O logo configurado (`SITE_LOGO`) e a imagem de compartilhamento (`SITE_OG_IMAGE`) existem em `public/`; o selo da 404 usa esse logo (imagem); a confirmação do pedido mostra o check de sucesso. |
 | `cms-config.test.ts` | 15 | **Guarda do `config.yml`**: parse do YAML, collections presentes, sem widget `date` depreciado, `validade` = datetime+`type: date`, `hora` = string opcional **cujo pattern aceita string vazia** (bug do Decap/Sveltia com campo opcional + pattern), opções do cupom, categoria = relation, campo `escondido` do produto, **`accept` da foto como string** (não lista), arquivo **"entrega"** (entrega/retirada/taxa/**taxa a combinar**) presente, arquivo **"fornada"** (chave geral, modo, data e hora com pattern seguro), e que o arquivo **"whatsapp" (edição do texto do WhatsApp) permanece desativado**. |
 | `produtos-structure.test.ts` | 3 | **Guarda de conteúdo**: pelo menos 1 produto, fotos são URLs públicas válidas, entradas planas, fotos referenciadas existem. |
 | `paginas-institucionais.test.ts` | 8 | Render (Container API) das páginas `/sobre`, `/contato`, `/desenvolvedor` e do rodapé: links do rodapé, `ContactButton` (href/rótulo/nova aba), texto do Sobre, botões de Contato usando as constantes de `site.ts` (não hardcoded), link discreto para `/desenvolvedor`, card do desenvolvedor com nome/GitHub/LinkedIn configurados. |
 | `checkout-config.test.ts` | 8 | Regras puras de `normalizeCheckoutConfig`: valores padrão, cada opção desligada isoladamente, **as duas desligadas ao mesmo tempo reativam a Retirada**, a taxa de entrega é repassada (ou `0` por padrão), e a flag "a combinar" é repassada (ou `false` por padrão). |
 | `cart-drawer.test.ts` | 1 | Render (Container API) do `CartDrawer` com a config padrão (ambas habilitadas): confere que o seletor Retirada/Entrega chega até o HTML — guarda de fiação entre `checkout-config.ts` e o template. |
 | `fornada-banner.test.ts` | 10 | Regras puras de `resolveFornadaBanner`/`formatFornadaData`: banner desligado (chave geral) fica invisível mesmo com data preenchida, modo "em_breve" mostra o aviso genérico, modo "data" formata dia/hora em português, e **modo "data" sem data preenchida cai no aviso genérico** (nunca mostra banner quebrado). |
-| `theme.test.ts` | 4 | **Guarda do tema**: nenhum componente/página tem cor, fonte, raio ou sombra fixos (tudo vem de `src/styles/theme.css`); todo `var(--token)` usado existe no tema; `theme-color` de `src/config/theme.ts` bate com os tokens; modo escuro e fallback `@media` iguais. |
-| `fornada-render.test.ts` | 2 | Render (Container API): `FornadaBanner` mostra o texto recebido; a home (`index.astro`), com a config padrão (banner desligado), não renderiza o banner — guarda de fiação entre `fornada.ts` e o template. |
+| `theme.test.ts` | 14 | **Guarda do tema**: nenhum componente/página tem cor, fonte, raio ou sombra fixos (tudo vem dos arquivos de tema); todo `var(--token)` usado existe; para **cada tema** (`material` e `confeitaria`): `theme-color` de `src/config/theme.ts` = `--hero` claro/escuro, todos os tokens de cor definidos, modo escuro e fallback `@media` iguais e **contraste AA** dos pares de texto; tema padrão com Outfit + Roboto. |
+| `categoria-cor.test.ts` | 8 | Campo opcional **`cor`** da categoria: schema (cores válidas, opcional, valor inválido cai no automático), distribuição automática pela ordem das categorias, cores das categorias de exemplo e o select do CMS. |
+| `redesign-ui.test.ts` | 15 | Estrutura do redesign Material 3: card (link + botão "+" fora do link, esgotado sem "+"), detalhe compartilhado (stepper, "Adicionar · R$ X", h1/h2), chips ("Todos" neutro e selecionado), barra superior (carrinho em pílula), carrinho (dialog modal, 3 etapas, FAB, snackbar, `aria-disabled`, Entrega/Retirada na 1ª etapa, cupom aplicado removível), reset `:where(button)` e `prefers-reduced-motion`. |
+| `fornada-render.test.ts` | 4 | Render (Container API): `FornadaBanner` mostra rótulo e valor em linhas separadas; a home sem configuração não renderiza o banner (nem quebra); o `fornada.json` de exemplo liga o banner com o aviso genérico. |
 
 Os arquivos em **negrito** são guardas de regressão criadas a partir de
 incidentes reais de produção (ver [BUGS-E-CORRECOES.md](BUGS-E-CORRECOES.md)).
@@ -48,6 +50,12 @@ incidentes reais de produção (ver [BUGS-E-CORRECOES.md](BUGS-E-CORRECOES.md)).
   `npm test` de novo — o content layer do Astro pode cachear uma sincronização
   anterior. Isso não afeta o CI/deploy normal (checkout novo nunca tem `.astro/`
   antigo).
+- **Content collections vazias no Vitest**: nos testes de render que leem
+  collections (`index.astro`, `CartDrawer`), o `getCollection` chega **vazio**
+  no ambiente do Vitest — então esses testes cobrem o comportamento com
+  configuração padrão/sem dados, não o conteúdo de `src/content/`. O conteúdo
+  de exemplo é validado lendo os arquivos direto (ex.: `categoria-cor.test.ts`,
+  `fornada-render.test.ts`).
 
 ## Cobertura que ainda falta
 

@@ -1,26 +1,29 @@
 ---
-import type { Product } from '../data/menu';
+// Grade de produtos: 2 colunas no celular; no desktop, colunas automaticas
+// de no minimo 220px. Os cards entram em cascata (ver ProductCard).
+import type { Product, CorCategoria } from '../data/menu';
 import ProductCard from './ProductCard.astro';
 
 interface Props {
   products: Product[];
+  /** cor de cada categoria (nome -> cor); sem mapa, os cards ficam neutros */
+  cores?: Record<string, CorCategoria>;
 }
 
-const { products } = Astro.props;
+const { products, cores = {} } = Astro.props;
 ---
 
 {
   products.length > 0 ? (
     <div class="cd-grid">
-      {products.map((product) => (
-        <ProductCard product={product} />
+      {products.map((product, i) => (
+        <ProductCard product={product} cor={cores[product.categoria]} index={i} />
       ))}
     </div>
   ) : (
     /* Estado vazio: cardapio sem produtos (ex.: CMS ainda sem cadastro).
        O site e estatico, entao continua no ar normalmente com esta mensagem. */
     <div class="cd-grid-empty">
-      <div class="cd-grid-empty__rule" />
       <div class="cd-grid-empty__title">Cardápio em atualização</div>
       <p class="cd-grid-empty__text">
         Estamos preparando novas delícias. Volte em breve para conferir! 💛
@@ -30,48 +33,36 @@ const { products } = Astro.props;
 }
 
 <style>
-  /* Mobile-first: 2 colunas no celular. */
   .cd-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
 
-  /* Estado vazio (sem produtos) — mesma linguagem visual retro do restante. */
   .cd-grid-empty {
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
     padding: clamp(40px, 12vh, 90px) 24px;
-  }
-  .cd-grid-empty__rule {
-    width: 40px;
-    height: 1px;
-    background: var(--gold);
-    margin-bottom: 18px;
+    border-radius: var(--r-card);
+    background: var(--sf-low);
   }
   .cd-grid-empty__title {
     font-family: var(--font-head);
-    font-size: clamp(20px, 5vw, 26px);
-    color: var(--ink);
+    font-weight: var(--fw-head);
+    font-size: 24px;
   }
   .cd-grid-empty__text {
-    margin-top: 10px;
-    font-size: 15px;
-    line-height: 1.6;
-    color: var(--muted-text);
+    margin: 8px 0 0;
+    color: var(--on-sf-v);
     max-width: 34ch;
   }
 
-  /* Tablet+: colunas automaticas com largura minima, para preencher a tela
-     sem deixar grande espaco vazio a direita e sem esticar demais os cards
-     quando um filtro deixa poucos itens. Com o max-width do container isso
-     resulta em ~4 colunas no desktop. */
-  @media (min-width: 600px) {
+  @media (min-width: 768px) {
     .cd-grid {
-      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-      gap: 24px;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
     }
   }
 </style>

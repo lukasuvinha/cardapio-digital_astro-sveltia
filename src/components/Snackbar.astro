@@ -1,0 +1,79 @@
+---
+// Snackbar (Material 3): aviso curto no rodape — ex.: "Brownie adicionado"
+// com a acao "Ver" (abre o carrinho). Some sozinho em ~2,5s. Controlado por
+// showSnackbar() em src/lib/snackbar.ts. Incluido pelo CartDrawer, entao
+// existe em toda pagina que tem carrinho.
+---
+
+<div class="cd-snack" data-snackbar data-show="false" role="status" aria-live="polite" hidden>
+  <span class="cd-snack__text" data-snack-text></span>
+  <button class="cd-snack__action cd-state" type="button" data-snack-action hidden></button>
+</div>
+
+<style>
+  .cd-snack {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    z-index: 70;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 52px;
+    padding: 4px 4px 4px 16px;
+    border-radius: var(--r-field);
+    background: var(--inv-sf);
+    color: var(--inv-on-sf);
+    box-shadow: var(--elev-3);
+    opacity: 0;
+    transform: translateY(calc(16px * var(--motion-shift)));
+    pointer-events: none;
+    transition:
+      opacity var(--dur-out) var(--ease-out),
+      transform var(--dur-out) var(--ease-out),
+      bottom var(--dur-emph) var(--ease-emph);
+  }
+  .cd-snack[data-show='true'] {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    transition:
+      opacity var(--dur-in) var(--ease-in),
+      transform var(--dur-in) var(--ease-in),
+      bottom var(--dur-emph) var(--ease-emph);
+  }
+  /* no celular, sobe para nao cobrir o botao flutuante do carrinho */
+  :global(body.cd-has-fab) .cd-snack {
+    bottom: calc(92px + env(safe-area-inset-bottom));
+  }
+  .cd-snack__text {
+    flex: 1;
+    font-size: 14px;
+  }
+  .cd-snack__action {
+    flex: none;
+    min-height: var(--touch);
+    padding: 0 16px;
+    border-radius: var(--r-pill);
+    color: var(--inv-on-sf);
+    font-weight: var(--fw-strong);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  @media (min-width: 768px) {
+    .cd-snack {
+      left: 50%;
+      right: auto;
+      width: max-content;
+      min-width: 320px;
+      max-width: 560px;
+      translate: -50% 0;
+      bottom: 24px;
+    }
+    :global(body.cd-has-fab) .cd-snack {
+      bottom: 24px;
+    }
+  }
+</style>

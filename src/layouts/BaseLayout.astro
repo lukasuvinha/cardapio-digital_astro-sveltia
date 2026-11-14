@@ -1,9 +1,12 @@
 ---
-// Tema ativo (cores, fontes, raios, sombras). Para trocar de tema, troque
-// este import — ver o topo de src/styles/theme.css.
+// Temas (cores, fontes, raios, sombras, movimento). O tema padrao vale em
+// :root; os alternativos so entram com <html data-ui-theme="...">. Para
+// trocar de tema, mude ACTIVE_THEME em src/config/theme.ts — ver o topo de
+// src/styles/theme.css.
 import '../styles/theme.css';
+import '../styles/theme-confeitaria.css';
 import '../styles/global.css';
-import { THEME_FONTS_URL, THEME_COLOR_LIGHT, THEME_COLOR_DARK } from '../config/theme';
+import { THEME_NAME, THEME_FONTS_URL, THEME_COLOR_LIGHT, THEME_COLOR_DARK } from '../config/theme';
 import { SITE_NAME, SITE_TAGLINE, SITE_DESCRIPTION, SITE_OG_IMAGE } from '../config/site';
 
 interface Props {
@@ -29,7 +32,7 @@ const ogImageURL = Astro.site ? new URL(image, Astro.site).href : image;
 ---
 
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-ui-theme={THEME_NAME}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -39,8 +42,8 @@ const ogImageURL = Astro.site ? new URL(image, Astro.site).href : image;
     <title>{title}</title>
 
     <!-- Cor da barra do navegador (mobile), acompanhando o tema -->
-    <meta name="theme-color" content={THEME_COLOR_LIGHT} media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content={THEME_COLOR_DARK} media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content={THEME_COLOR_LIGHT} media="(prefers-color-scheme: light)" data-light={THEME_COLOR_LIGHT} data-dark={THEME_COLOR_DARK} />
+    <meta name="theme-color" content={THEME_COLOR_DARK} media="(prefers-color-scheme: dark)" data-light={THEME_COLOR_LIGHT} data-dark={THEME_COLOR_DARK} />
 
     <!-- Open Graph (WhatsApp, Facebook, etc.) -->
     <meta property="og:type" content="website" />
@@ -92,6 +95,12 @@ const ogImageURL = Astro.site ? new URL(image, Astro.site).href : image;
               ? 'dark'
               : 'light');
           document.documentElement.setAttribute('data-theme', theme);
+          // escolha manual salva: a barra do navegador acompanha o tema
+          if (stored) {
+            document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
+              m.setAttribute('content', theme === 'dark' ? m.dataset.dark : m.dataset.light);
+            });
+          }
         } catch (e) {
           /* localStorage indisponivel: cai no CSS via prefers-color-scheme */
         }

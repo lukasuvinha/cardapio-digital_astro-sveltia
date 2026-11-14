@@ -1,34 +1,58 @@
 ---
-// Cabecalho da marca: nome + tagline (esquerda) e controles (direita).
-// Reutilizavel em todas as paginas. O botao "Carrinho" abre o CartDrawer
-// (via data-open-cart, tratado no script do CartDrawer) e mostra a contagem
-// de itens ao vivo no badge (data-cart-count).
+// Barra superior (Material 3 "top app bar"), sticky, na cor --hero.
+// Esquerda: icone + nome + slogan (link para a home). Direita: no desktop,
+// links Sobre/Contato e o botao "carrinho" em pilula; em qualquer tela, o
+// botao de tema. No celular o carrinho abre pelo botao flutuante (FAB) do
+// CartDrawer. Ao rolar a pagina, a barra ganha uma sombra suave.
+// O contador e o subtotal ([data-cart-count], [data-cart-subtotal-text]) sao
+// atualizados pelo script do CartDrawer.
 import ThemeToggle from './ThemeToggle.astro';
+import StoreIcon from './StoreIcon.astro';
 import { SITE_NAME, SITE_TAGLINE } from '../config/site';
 ---
 
-<header class="cd-header">
-  <!-- Nome + tagline levam de volta ao cardapio (home). Sem aria-label: o
-       nome acessivel vem do proprio texto visivel (evita divergencia
-       "label in name"). O <a> ja e anunciado como link pelo leitor de tela. -->
+<header class="cd-header" data-top>
+  <!-- Nome + slogan levam de volta ao cardapio. Sem aria-label: o nome
+       acessivel vem do proprio texto visivel ("label in name"). -->
   <a class="cd-header__brand" href="/">
-    <span class="cd-header__name">{SITE_NAME}</span>
-    <span class="cd-header__tagline">{SITE_TAGLINE}</span>
+    <StoreIcon />
+    <span class="cd-header__names">
+      <span class="cd-header__name">{SITE_NAME}</span>
+      <span class="cd-header__tagline">{SITE_TAGLINE}</span>
+    </span>
   </a>
 
   <div class="cd-header__actions">
+    <nav class="cd-header__links" aria-label="Institucional">
+      <a class="cd-header__link cd-state" href="/sobre">Sobre</a>
+      <a class="cd-header__link cd-state" href="/contato">Contato</a>
+    </nav>
+
     <ThemeToggle />
 
-    <button class="cd-header__cart" type="button" aria-label="Abrir carrinho" data-open-cart>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="9" cy="21" r="1"></circle>
-        <circle cx="20" cy="21" r="1"></circle>
-        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-      </svg>
-      <span class="cd-header__badge" data-cart-count hidden>0</span>
+    <button class="cd-header__cart cd-state" type="button" data-open-cart aria-label="Abrir carrinho">
+      <span class="cd-header__cart-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="9" cy="20" r="1.4"></circle>
+          <circle cx="18" cy="20" r="1.4"></circle>
+          <path d="M2 3h3l2.6 12.4a1.8 1.8 0 0 0 1.8 1.4h8.4a1.8 1.8 0 0 0 1.8-1.4L21 7H6"></path>
+        </svg>
+        <span class="cd-badge" data-cart-count hidden>0</span>
+      </span>
+      <span class="cd-header__cart-total" data-cart-subtotal-text>R$ 0,00</span>
     </button>
   </div>
 </header>
+
+<script>
+  // Sombra suave quando a pagina rola (a barra "descola" do conteudo).
+  const top = document.querySelector<HTMLElement>('[data-top]');
+  if (top) {
+    const marcar = () => top.classList.toggle('is-scrolled', window.scrollY > 4);
+    marcar();
+    window.addEventListener('scroll', marcar, { passive: true });
+  }
+</script>
 
 <style>
   .cd-header {
@@ -38,118 +62,112 @@ import { SITE_NAME, SITE_TAGLINE } from '../config/site';
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: nowrap;
     gap: 12px;
-    padding: 14px clamp(16px, 4vw, 48px);
-    min-height: 84px;
-    background: var(--brand);
-    border-bottom: 1px solid var(--border);
-    transition: background 0.2s;
+    min-height: 72px;
+    padding: 12px 16px;
+    background: var(--hero);
+    color: var(--on-hero);
+    transition: box-shadow var(--dur-emph) var(--ease-emph), background-color var(--dur-emph) var(--ease-emph);
+  }
+  .cd-header.is-scrolled {
+    box-shadow: var(--elev-1);
   }
 
-  /* Mobile-first: marca empilhada (nome sobre a tagline) para caber bem em
-     tela pequena sem a tagline "sobrar" ao lado dos botoes. */
   .cd-header__brand {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
+    align-items: center;
+    gap: 12px;
     min-width: 0;
+    color: inherit;
     text-decoration: none;
-    border-radius: var(--radius-md);
+    border-radius: var(--r-icon);
   }
-  /* afordancia de link: leve realce no nome ao passar o mouse */
-  .cd-header__name {
-    transition: color 0.15s;
+  .cd-header__brand:hover {
+    text-decoration: none;
   }
-  @media (hover: hover) {
-    .cd-header__brand:hover .cd-header__name {
-      color: var(--gold);
-    }
-  }
-  /* foco visivel por teclado (acessibilidade) */
-  .cd-header__brand:focus-visible {
-    outline: 2px solid var(--gold);
-    outline-offset: 4px;
+  .cd-header__names {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
   }
   .cd-header__name {
     font-family: var(--font-head);
-    font-size: clamp(20px, 5.2vw, 32px);
-    color: var(--cream);
-    letter-spacing: 0.3px;
+    font-size: var(--fs-store);
+    font-weight: var(--fw-head);
+    line-height: 1.2;
     white-space: nowrap;
-    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .cd-header__tagline {
-    font-size: 10.5px;
-    letter-spacing: 2.5px;
-    text-transform: uppercase;
-    /* creme (nao dourado): o dourado pequeno sobre o verde reprova no
-       contraste; o creme sobre o verde da marca passa com folga. */
-    color: var(--cream);
+    font-size: var(--fs-label);
+    line-height: 1.3;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .cd-header__actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     flex: none;
   }
 
-  /* A partir de tablet, marca volta a ficar na horizontal (nome + tagline) */
-  @media (min-width: 640px) {
-    .cd-header__brand {
-      flex-direction: row;
-      align-items: baseline;
-      gap: 14px;
+  /* Links e carrinho em pilula: so no desktop */
+  .cd-header__links,
+  .cd-header__cart {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .cd-header {
+      padding: 14px clamp(24px, 4vw, 48px);
+      min-height: 80px;
     }
-    .cd-header__actions {
-      gap: 14px;
+    .cd-header__links {
+      display: flex;
+      gap: 4px;
+      margin-right: 4px;
+    }
+    .cd-header__link {
+      display: inline-flex;
+      align-items: center;
+      min-height: var(--touch);
+      padding: 0 16px;
+      border-radius: var(--r-pill);
+      color: var(--on-hero);
+      font-size: var(--fs-body);
+      font-weight: var(--fw-label);
+    }
+    .cd-header__link:hover {
+      text-decoration: none;
+    }
+    .cd-header__cart {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      height: 48px;
+      padding: 0 20px 0 16px;
+      margin-left: 4px;
+      border-radius: var(--r-pill);
+      background: var(--cta);
+      color: var(--on-cta);
+      box-shadow: var(--shadow-cta), var(--shine);
+      transition: transform var(--dur-spring) var(--ease-spring);
+    }
+    .cd-header__cart:active {
+      transform: scale(0.95);
     }
   }
 
-  /* Botao circular do carrinho — uniforme com o toggle de tema */
-  .cd-header__cart {
+  .cd-header__cart-icon {
     position: relative;
     display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    height: 38px;
-    padding: 0;
-    border: 1px solid var(--gold);
-    border-radius: var(--radius-round);
-    background: transparent;
-    color: var(--cream);
-    line-height: 0;
-    cursor: pointer;
-    transition: background 0.15s;
   }
-  @media (hover: hover) {
-    .cd-header__cart:hover {
-      background: var(--gold-tint);
-    }
-  }
-  .cd-header__badge {
-    position: absolute;
-    top: -6px;
-    right: -6px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 5px;
-    background: var(--rust);
-    color: var(--on-accent);
-    font-size: 10px;
-    border-radius: var(--radius-badge);
-    border: 1px solid var(--brand);
-  }
-  .cd-header__badge[hidden] {
-    display: none;
+  .cd-header__cart-total {
+    font-family: var(--font-head);
+    font-weight: var(--fw-strong);
+    font-size: 16px;
   }
 </style>

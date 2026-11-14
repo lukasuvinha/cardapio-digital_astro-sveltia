@@ -10,7 +10,7 @@ import { produtoBaseSchema } from './produto-schema';
 import { cupomBaseSchema } from './cupom-schema';
 import { entregaConfigBaseSchema } from './configuracoes-schema';
 import { fornadaConfigBaseSchema } from './fornada-schema';
-import { z } from 'astro/zod';
+import { categoriaBaseSchema } from './categoria-schema';
 
 const produtos = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/produtos' }),
@@ -28,9 +28,10 @@ const cupons = defineCollection({
 // pelo CMS (o campo "categoria" do produto e um relation para esta collection).
 // O site em si deriva as categorias dos proprios produtos, entao esta collection
 // e usada pelo painel; mantemos definida aqui para o Astro validar os arquivos.
+// O campo opcional "cor" pinta cards, chips e detalhe (ver categoria-schema.ts).
 const categorias = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/categorias' }),
-  schema: z.object({ nome: z.string() }),
+  schema: categoriaBaseSchema,
 });
 
 // Configuracoes operacionais editaveis pelo dono da loja no CMS (collection do tipo

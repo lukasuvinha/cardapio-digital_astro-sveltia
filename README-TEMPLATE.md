@@ -11,8 +11,11 @@ Antes de publicar para um cliente:
    do pedido (`ORDER_PREFIX`) e créditos do desenvolvedor (`DEV_*`).
 2. `public/logo.svg`, `public/og-image.png` e `public/favicon.svg` — troque pelas imagens da
    loja (passo a passo em `docs/LOGO.md`).
-3. `src/styles/theme.css` + `src/config/theme.ts` — cores, fontes, raios e sombras (tema
-   "confeitaria"). Para criar um tema novo, siga o comentário no topo do `theme.css`.
+3. `src/styles/theme.css` + `src/config/theme.ts` — cores, fontes, raios, sombras e movimento
+   (tema padrão "material", Material You com paleta de confeitaria). Há um tema alternativo,
+   "confeitaria" (`src/styles/theme-confeitaria.css`): troque `ACTIVE_THEME` em `theme.ts` para
+   usá-lo. Para criar um tema novo, siga o comentário no topo do `theme.css`.
+   As cores dos cards e chips vêm do campo **Cor** de cada categoria no painel.
 4. `astro.config.mjs` — troque SITE_URL pelo domínio real.
 5. `public/admin/config.yml` — troque `repo:` e `base_url:` (worker de auth do Sveltia CMS)
    para o repositório/worker do novo cliente.

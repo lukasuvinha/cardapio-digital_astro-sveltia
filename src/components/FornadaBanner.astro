@@ -1,52 +1,68 @@
 ---
-// Banner opcional no topo do cardápio avisando quando será a próxima
-// fornada. Renderizado só quando quem administra o site liga a chave geral no CMS (ver
+// Banner opcional "Proxima fornada", dentro do bloco do topo do cardapio.
+// Renderizado só quando quem administra o site liga a chave geral no CMS (ver
 // src/lib/fornada-banner.ts e src/data/fornada.ts) — este componente é
 // "burro" de propósito: só recebe o texto já pronto.
+//
+// Visual: cartao --t-c (tertiary container) com o icone num quadrado ambar
+// (--hl). O texto "Próxima fornada: Sábado, 1 de Agosto" e mostrado em duas
+// linhas — rotulo ("Próxima fornada") e valor — quebrando no primeiro ": ".
 interface Props {
   texto: string;
 }
 const { texto } = Astro.props;
+const i = texto.indexOf(': ');
+const rotulo = i >= 0 ? texto.slice(0, i) : '';
+const valor = i >= 0 ? texto.slice(i + 2) : texto;
 ---
 
 <div class="cd-fornada" role="status">
-  <svg
-    class="cd-fornada__icon"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="1.6"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    aria-hidden="true"
-  >
-    <circle cx="12" cy="12" r="9"></circle>
-    <path d="M12 7v5l3.3 2"></path>
-  </svg>
-  <span class="cd-fornada__texto">{texto}</span>
+  <span class="cd-fornada__icon" aria-hidden="true">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="8.5"></circle>
+      <path d="M12 7.5V12l3 2"></path>
+    </svg>
+  </span>
+  <span class="cd-fornada__texto">
+    {rotulo && <span class="cd-fornada__rotulo">{rotulo}<span class="cd-sr">: </span></span>}
+    <span class="cd-fornada__valor">{valor}</span>
+  </span>
 </div>
 
 <style>
   .cd-fornada {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 10px 16px;
-    background: var(--card-alt);
-    border-bottom: 1px solid var(--border);
-    text-align: center;
+    gap: 14px;
+    padding: 14px 18px 14px 14px;
+    border-radius: var(--r-sheet);
+    background: var(--t-c);
+    color: var(--on-t-c);
   }
   .cd-fornada__icon {
     flex: none;
-    color: var(--gold-text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--touch);
+    height: var(--touch);
+    border-radius: var(--r-icon);
+    background: var(--hl);
+    color: var(--on-hl);
   }
   .cd-fornada__texto {
-    font-size: 13.5px;
-    font-weight: 500;
-    color: var(--ink);
-    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.3;
+  }
+  .cd-fornada__rotulo {
+    font-size: var(--fs-label);
+    font-weight: var(--fw-label);
+  }
+  .cd-fornada__valor {
+    font-family: var(--font-head);
+    font-size: 17px;
+    font-weight: var(--fw-head);
   }
 </style>

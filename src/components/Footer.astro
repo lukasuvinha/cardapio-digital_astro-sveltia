@@ -1,7 +1,8 @@
 ---
 // Rodape reutilizavel: usado em todas as paginas (home, detalhe de produto,
-// 404, sobre, contato, desenvolvedor). Alem da marca, traz links discretos
-// para as paginas institucionais "Sobre" e "Contato".
+// 404, sobre, contato, desenvolvedor). Alem da marca, traz links para as
+// paginas institucionais "Sobre" e "Contato" (no desktop eles tambem ficam
+// na barra superior).
 import { SITE_NAME, SITE_TAGLINE } from '../config/site';
 ---
 
@@ -16,36 +17,36 @@ import { SITE_NAME, SITE_TAGLINE } from '../config/site';
 
 <style>
   .cd-footer {
-    border-top: 1px solid var(--border);
-    padding: 22px 16px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 4px;
+    padding: 28px 16px calc(28px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--ol-v);
     text-align: center;
+    color: var(--on-sf-v);
   }
   .cd-footer__brand {
-    font-size: 11px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--muted);
+    font-family: var(--font-head);
+    font-weight: var(--fw-head);
+    font-size: var(--fs-body);
+    color: var(--on-sf);
   }
   .cd-footer__links {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 11.5px;
-    letter-spacing: 0.6px;
+    gap: 4px;
+    font-size: 14px;
   }
   .cd-footer__links a {
-    color: var(--muted-text);
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch);
+    padding: 0 8px;
+    color: var(--on-sf-v);
+    font-weight: var(--fw-label);
   }
-  @media (hover: hover) {
-    .cd-footer__links a:hover {
-      color: var(--ink);
-    }
-  }
-  .cd-footer__dot {
-    color: var(--border);
+  .cd-footer__links a:hover {
+    color: var(--primary);
   }
 </style>
