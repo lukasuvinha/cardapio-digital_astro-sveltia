@@ -1,6 +1,6 @@
 # Testes
 
-`npm test` roda a suíte completa (Vitest). **210 testes, 22 arquivos — todos
+`npm test` roda a suíte completa (Vitest). **221 testes, 22 arquivos — todos
 passando.**
 
 ## O que é coberto
@@ -19,7 +19,7 @@ passando.**
 | `logo-oficial.test.ts` | 3 | O logo configurado (`SITE_LOGO`) e a imagem de compartilhamento (`SITE_OG_IMAGE`) existem em `public/`; o selo da 404 usa esse logo (imagem); a confirmação do pedido mostra o check de sucesso. |
 | `cms-config.test.ts` | 15 | **Guarda do `config.yml`**: parse do YAML, collections presentes, sem widget `date` depreciado, `validade` = datetime+`type: date`, `hora` = string opcional **cujo pattern aceita string vazia** (bug do Decap/Sveltia com campo opcional + pattern), opções do cupom, categoria = relation, campo `escondido` do produto, **`accept` da foto como string** (não lista), arquivo **"entrega"** (entrega/retirada/taxa/**taxa a combinar**) presente, arquivo **"fornada"** (chave geral, modo, data e hora com pattern seguro), e que o arquivo **"whatsapp" (edição do texto do WhatsApp) permanece desativado**. |
 | `produtos-structure.test.ts` | 3 | **Guarda de conteúdo**: pelo menos 1 produto, fotos são URLs públicas válidas, entradas planas, fotos referenciadas existem. |
-| `paginas-institucionais.test.ts` | 8 | Render (Container API) das páginas `/sobre`, `/contato`, `/desenvolvedor` e do rodapé: links do rodapé, `ContactButton` (href/rótulo/nova aba), texto do Sobre, botões de Contato usando as constantes de `site.ts` (não hardcoded), link discreto para `/desenvolvedor`, card do desenvolvedor com nome/GitHub/LinkedIn configurados. |
+| `paginas-institucionais.test.ts` | 18 | Render (Container API) do rodapé (links Sobre/Contato, ícones de WhatsApp/Instagram com `aria-label`, horário de pedidos, crédito "Site feito por" com `nofollow`/nova aba e tokens de texto discreto), página `/desenvolvedor` desativada (arquivo `_desenvolvedor.astro`, sem link em Contato), páginas Sobre e Contato sem conteúdo do CMS (sem cartão/seção vazios), conteúdo de exemplo de `sobre.json`/`contato.json`, `paragrafos` e itens de "Como encomendar". |
 | `checkout-config.test.ts` | 8 | Regras puras de `normalizeCheckoutConfig`: valores padrão, cada opção desligada isoladamente, **as duas desligadas ao mesmo tempo reativam a Retirada**, a taxa de entrega é repassada (ou `0` por padrão), e a flag "a combinar" é repassada (ou `false` por padrão). |
 | `cart-drawer.test.ts` | 1 | Render (Container API) do `CartDrawer` com a config padrão (ambas habilitadas): confere que o seletor Retirada/Entrega chega até o HTML — guarda de fiação entre `checkout-config.ts` e o template. |
 | `fornada-banner.test.ts` | 10 | Regras puras de `resolveFornadaBanner`/`formatFornadaData`: banner desligado (chave geral) fica invisível mesmo com data preenchida, modo "em_breve" mostra o aviso genérico, modo "data" formata dia/hora em português, e **modo "data" sem data preenchida cai no aviso genérico** (nunca mostra banner quebrado). |

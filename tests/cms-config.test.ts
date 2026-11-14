@@ -185,6 +185,18 @@ describe('public/admin/config.yml — parse e estrutura', () => {
     expect(new RegExp(regexStr).test('')).toBe(true);
   });
 
+  it('collection "configuracoes" tem as paginas "sobre" (foto/texto/chamada) e "contato" (como encomendar)', () => {
+    const cfg = bySame(config.collections, 'configuracoes');
+    const arquivo = (n: string) => (cfg.files ?? []).find((f: any) => f.name === n);
+    const campos = (n: string) => (arquivo(n)?.fields ?? []).map((f: any) => f.name);
+    expect(campos('sobre')).toEqual(['foto', 'texto', 'chamada']);
+    expect(campos('contato')).toEqual(['antecedencia', 'regiao_entrega', 'retirada', 'pagamento']);
+    for (const n of ['sobre', 'contato']) for (const f of arquivo(n).fields) expect(f.required).toBe(false);
+    const foto = arquivo('sobre').fields.find((f: any) => f.name === 'foto');
+    expect(foto.widget).toBe('image');
+    expect(typeof foto.accept).toBe('string');
+  });
+
   it('o arquivo de configuracao do WhatsApp (nao usado no CMS) continua existindo', () => {
     // mantido no repo para o caso de a secao ser reativada no futuro.
     expect(existsSync(join(process.cwd(), 'src/content/configuracoes/whatsapp.json'))).toBe(true);

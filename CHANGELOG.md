@@ -2,6 +2,26 @@
 
 Novidades do template de cardápio digital (Astro + Sveltia CMS + Cloudflare Workers).
 
+## [Não lançado] — 2026-11-17
+
+Páginas institucionais mais completas e assinatura do desenvolvedor no rodapé.
+
+### Novo
+- **Rodapé mais útil:** atalhos para o WhatsApp e o Instagram da loja, linha
+  opcional com o horário de pedidos e, por fim, um crédito discreto "Site
+  feito por …" (pode ser desligado em `src/config/site.ts`; combine com o
+  cliente).
+- **Sobre:** foto da pessoa ou da loja, texto em tom pessoal e botão para o
+  cardápio, tudo editável no painel (Configurações → Página Sobre).
+- **Contato:** botão principal do WhatsApp, Instagram e a seção "Como
+  encomendar" (antecedência, região de entrega, retirada e formas de
+  pagamento), editável no painel (Configurações → Página Contato). O que fica
+  em branco não aparece.
+
+### Mudou
+- A página "Desenvolvedor" foi desativada; o crédito agora fica no rodapé de
+  todas as páginas.
+
 ## [Não lançado] — 2026-11-16
 
 Ajustes de fluidez e de respiro dos painéis no computador. Cores, tamanhos e

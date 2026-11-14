@@ -8,7 +8,9 @@ Antes de publicar para um cliente:
    (`SITE_TAGLINE`), descrição para buscadores (`SITE_DESCRIPTION`), logo (`SITE_LOGO`),
    imagem de compartilhamento (`SITE_OG_IMAGE`), WhatsApp (`WHATSAPP_NUMBER`), Instagram
    (`INSTAGRAM_URL`), título da mensagem do pedido (`WHATSAPP_ORDER_TITLE`), prefixo do número
-   do pedido (`ORDER_PREFIX`) e créditos do desenvolvedor (`DEV_*`).
+   do pedido (`ORDER_PREFIX`), horário de pedidos no rodapé (`ORDER_HOURS`) e o crédito do
+   desenvolvedor no rodapé (`DEV_CREDIT_ENABLED`, `DEV_NAME`, `DEV_URL` — combine com o cliente).
+   Textos das páginas Sobre e Contato: no painel, em Configurações → Página Sobre / Página Contato.
 2. `public/logo.svg`, `public/og-image.png` e `public/favicon.svg` — troque pelas imagens da
    loja (passo a passo em `docs/LOGO.md`).
 3. `src/styles/theme.css` + `src/config/theme.ts` — cores, fontes, raios, sombras e movimento
