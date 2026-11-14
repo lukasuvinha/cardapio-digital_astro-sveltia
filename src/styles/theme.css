@@ -58,6 +58,11 @@
   --fw-strong: 700;
   --fw-label: 500;
 
+  /* Respiro dos paineis flutuantes no desktop (drawer do carrinho e dialog
+     do detalhe do produto): distancia ate as bordas da janela. No celular
+     eles sao bottom sheets encostadas embaixo e nao usam este token. */
+  --sheet-inset: 24px;
+
   /* Raios */
   --r-badge: 8px;             /* selos ("Esgotado") */
   --r-field: 12px;            /* campos, chips, snackbar */

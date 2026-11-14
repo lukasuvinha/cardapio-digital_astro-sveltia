@@ -157,6 +157,13 @@ const temFoto = productHasPhoto(product);
   .cd-lightbox__panel:focus {
     outline: none;
   }
+  /* so durante abrir/fechar (data-animating, colocado por src/lib/modal.ts) */
+  .cd-lightbox[data-animating] .cd-lightbox__panel {
+    will-change: transform;
+  }
+  .cd-lightbox[data-animating] .cd-lightbox__scrim {
+    will-change: opacity;
+  }
   .cd-lightbox__img {
     max-width: min(92vw, 900px);
     max-height: 86vh;

@@ -4,7 +4,12 @@
 // paginas institucionais "Sobre" e "Contato" (no desktop eles tambem ficam
 // na barra superior).
 import { SITE_NAME, SITE_TAGLINE } from '../config/site';
+import CartRail from './CartRail.astro';
 ---
+
+<!-- trilhos sticky do botao flutuante do carrinho e do snackbar: precisam
+     ficar LOGO ANTES do rodape para pararem acima dele (ver CartRail.astro) -->
+<CartRail />
 
 <footer class="cd-footer">
   <span class="cd-footer__brand">{SITE_NAME} · {SITE_TAGLINE}</span>
