@@ -4,8 +4,10 @@
 // proposito NAO sao os logos oficiais das marcas; o rotulo (ou o aria-label)
 // ao lado deixa claro para onde o link leva. Decorativos: sempre dentro de um
 // elemento com aria-hidden ou com nome acessivel proprio.
+import type { IconeSocial } from '../content/rodape-schema';
+
 interface Props {
-  icon: 'whatsapp' | 'instagram' | 'github' | 'linkedin';
+  icon: IconeSocial;
   size?: number;
 }
 const { icon, size = 20 } = Astro.props;
@@ -37,3 +39,41 @@ const { icon, size = 20 } = Astro.props;
       <path d="M12 17v-4.2c0-1.5 1-2.3 2.2-2.3S16 11.3 16 12.8V17" />
     </svg>
   )}
+{icon === 'tiktok' && (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M13.5 3v11.5a3.5 3.5 0 1 1-3.5-3.5" />
+    <path d="M13.5 3c.4 2.6 2.2 4.4 5 4.6" />
+  </svg>
+)}
+{icon === 'facebook' && (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="5" />
+    <path d="M15.5 8h-1.8a2 2 0 0 0-2 2v11" />
+    <path d="M9.5 13h5" />
+  </svg>
+)}
+{icon === 'pinterest' && (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="9" />
+    <path d="M11 9.5c.4-1 1.3-1.5 2.3-1.3 1.5.3 2.2 1.8 1.7 3.4-.4 1.3-1.5 2.2-2.8 2" />
+    <path d="M12 9.5 9.5 20" />
+  </svg>
+)}
+{icon === 'x' && (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4.5 4h4l11 16h-4z" />
+    <path d="M19.5 4l-6.3 7.2M10.8 12.8 4.5 20" />
+  </svg>
+)}
+{icon === 'youtube' && (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2.5" y="5.5" width="19" height="13" rx="4" />
+    <path d="M10.2 9.4v5.2l4.4-2.6z" />
+  </svg>
+)}
+{icon === 'threads' && (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16.5 11.2c-.3-2.6-1.9-4-4.4-4-2.9 0-4.6 2-4.6 4.8s1.7 4.9 4.5 4.9c2 0 3.4-1 3.4-2.6 0-1.8-1.7-2.5-3.6-2.3-1.6.2-2.6 1-2.5 2" />
+    <path d="M12 21c-5 0-8.5-3.4-8.5-9S7 3 12 3c4.3 0 7.3 2.4 8.2 6.4" />
+  </svg>
+)}

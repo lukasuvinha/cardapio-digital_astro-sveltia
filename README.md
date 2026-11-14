@@ -44,8 +44,8 @@ no navegador.
 - Envio do pedido ao WhatsApp da loja, com número de pedido.
 - Tema claro e escuro, que segue a preferência do aparelho e pode ser trocado
   por um botão.
-- Páginas **Sobre** e **Contato**, e rodapé com atalhos para o WhatsApp e o
-  Instagram da loja e o horário de pedidos.
+- Páginas **Sobre** e **Contato**, e rodapé com as redes sociais da loja e o
+  horário de pedidos.
 
 ### Para quem vende
 - Painel visual em `/admin` para cadastrar produtos, categorias e fotos.
@@ -58,9 +58,12 @@ no navegador.
 - Textos das páginas **Sobre** (com foto opcional) e **Contato** (antecedência,
   região de entrega, retirada e formas de pagamento) editados no painel; o que
   ficar em branco não aparece.
+- Horário de pedidos (dias e horas escolhidos em menus) e redes sociais
+  (Instagram, TikTok, Facebook, Pinterest, X, YouTube, Threads) ligados e
+  desligados no painel; cada rede só aparece com o link do perfil.
 
 ### Confiabilidade
-- Mais de 220 testes automatizados cobrindo carrinho, cupons, mensagem do pedido,
+- Mais de 230 testes automatizados cobrindo carrinho, cupons, mensagem do pedido,
   regras do painel, renderização das páginas, contraste de cores do tema e
   acessibilidade das janelas (foco, teclado, leitor de tela).
 - Fotos ausentes ou quebradas são substituídas por um placeholder, e o site nunca
@@ -116,21 +119,21 @@ poucos arquivos:
 
 | Arquivo | O que define |
 |---|---|
-| `src/config/site.ts` | Nome, slogan, descrição, WhatsApp, Instagram, horário de pedidos, logo, imagem de compartilhamento, título da mensagem e prefixo do pedido, e o crédito do desenvolvedor no rodapé (que pode ser desligado) |
+| `src/config/site.ts` | Nome, slogan, descrição, WhatsApp, logo, imagem de compartilhamento, título da mensagem e prefixo do pedido, e o crédito do desenvolvedor no rodapé (que pode ser desligado) |
 | `src/styles/theme.css` | Tema padrão: cores (modos claro e escuro e cores das categorias), fontes, tamanhos de texto, bordas, sombras e animações |
 | `src/styles/theme-confeitaria.css` | Tema alternativo pronto, com outra paleta e outras fontes |
 | `src/config/theme.ts` | Tema ativo, fontes carregadas e cor da barra do navegador |
 | `astro.config.mjs` | Endereço do site |
 | `public/admin/config.yml` | Repositório e login do painel |
 | `wrangler.jsonc` | Nome do projeto na Cloudflare |
-| `src/content/` | Produtos, categorias (com cor), cupom e configurações: entrega, aviso de fornada e textos das páginas Sobre e Contato |
+| `src/content/` | Produtos, categorias (com cor), cupom e configurações: entrega, aviso de fornada, textos das páginas Sobre e Contato, e rodapé (horário e redes sociais) |
 | `public/` | Logo, ícone, imagem de compartilhamento e ilustrações de exemplo |
 
 Toda a aparência é definida por tokens de tema: trocar a identidade visual de
 uma loja não exige mexer nos componentes. Trocar de tema é mudar uma linha em
 `src/config/theme.ts`.
 
-São 221 testes automatizados; rode `npm test` depois de adaptar.
+São 245 testes automatizados; rode `npm test` depois de adaptar.
 
 O passo a passo completo está em [README-TEMPLATE.md](README-TEMPLATE.md).
 

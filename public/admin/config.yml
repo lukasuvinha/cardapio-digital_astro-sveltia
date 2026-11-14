@@ -316,7 +316,7 @@ collections:
       - name: sobre
         label: "Página Sobre"
         file: "src/content/configuracoes/sobre.json"
-        description: "Conteúdo da página Sobre (/sobre). Tudo é opcional: o que ficar em branco não aparece no site."
+        description: "Conteúdo da página Sobre (/sobre): foto e texto. Tudo é opcional: o que ficar em branco não aparece no site."
         fields:
           - {
               name: foto,
@@ -335,13 +335,17 @@ collections:
               required: false,
               hint: "Conte um pouco da sua história, em tom pessoal. Deixe uma linha em branco entre os parágrafos.",
             }
-          - {
-              name: chamada,
-              label: "Texto do botão para o cardápio",
-              widget: string,
-              required: false,
-              hint: "Ex.: Ver o cardápio. Em branco, usa \"Ver Cardápio\".",
-            }
+          # ---- DESATIVADO: texto editavel do botao para o cardapio. O botao
+          #      agora e sempre "Ver Cardápio" (fixo em src/pages/sobre.astro).
+          #      COMO REATIVAR: descomente o campo abaixo e, em sobre.astro,
+          #      volte a linha `const chamada = sobre.chamada ?? 'Ver Cardápio'`.
+          # - {
+          #     name: chamada,
+          #     label: "Texto do botão para o cardápio",
+          #     widget: string,
+          #     required: false,
+          #     hint: "Ex.: Ver o cardápio. Em branco, usa \"Ver Cardápio\".",
+          #   }
 
       # Pagina "Contato": secao "Como encomendar". Cada campo vazio some; com
       # todos vazios, a secao inteira some.
@@ -354,6 +358,197 @@ collections:
           - { name: regiao_entrega, label: "Região de entrega", widget: text, required: false, hint: "Ex.: Entregamos no Centro e bairros vizinhos." }
           - { name: retirada, label: "Retirada", widget: text, required: false, hint: "Ex.: Retirada no ateliê, de terça a sábado, das 9h às 18h." }
           - { name: pagamento, label: "Formas de pagamento", widget: text, required: false, hint: "Ex.: Pix, cartão ou dinheiro." }
+
+      # Rodape: horario de pedidos (liga/desliga + texto) e redes sociais.
+      # As redes sao uma LISTA: o dono da loja escolhe a rede, cola o link e
+      # liga/desliga cada uma. O link e OBRIGATORIO e precisa comecar com
+      # https:// (o pattern abaixo) — sem link a rede nao pode ser salva, e o
+      # site ainda ignora qualquer item sem link valido (rodape-schema.ts).
+      # ATENCAO: campos com "options"/"fields" em lista ficam em estilo BLOCO
+      # (sem chaves { }): lista em bloco dentro de mapping em fluxo quebra o
+      # YAML e derruba o painel (docs/BUGS-E-CORRECOES.md, item 2).
+      - name: rodape
+        label: "Rodapé"
+        file: "src/content/configuracoes/rodape.json"
+        description: "Horário de pedidos e redes sociais que aparecem no rodapé de todas as páginas (as redes também aparecem na página Contato)."
+        fields:
+          - {
+              name: horario_habilitado,
+              label: "Mostrar horário de pedidos",
+              widget: boolean,
+              default: true,
+              hint: "Desligue para esconder a linha de horário do rodapé (os dias e horas abaixo continuam salvos).",
+            }
+          # O TEXTO do horario e fixo ("Pedidos de terça a sábado, das 9h às
+          # 18h"), montado em src/content/rodape-schema.ts (textoHorario) a
+          # partir destes quatro menus — sem campo de texto livre.
+          # ANTES: campo de texto livre "horario" (widget string). Para voltar,
+          # recoloque-o aqui e, em rodape-schema.ts, volte horarioVisivel a ler
+          # config.horario (a linha antiga esta comentada la).
+          - name: dia_inicio
+            label: "Pedidos a partir de (dia)"
+            widget: select
+            default: "terca"
+            options:
+              - { label: "Segunda-feira", value: "segunda" }
+              - { label: "Terça-feira", value: "terca" }
+              - { label: "Quarta-feira", value: "quarta" }
+              - { label: "Quinta-feira", value: "quinta" }
+              - { label: "Sexta-feira", value: "sexta" }
+              - { label: "Sábado", value: "sabado" }
+              - { label: "Domingo", value: "domingo" }
+            hint: "Primeiro dia da semana em que você recebe pedidos."
+          - name: dia_fim
+            label: "Até (dia)"
+            widget: select
+            default: "sabado"
+            options:
+              - { label: "Segunda-feira", value: "segunda" }
+              - { label: "Terça-feira", value: "terca" }
+              - { label: "Quarta-feira", value: "quarta" }
+              - { label: "Quinta-feira", value: "quinta" }
+              - { label: "Sexta-feira", value: "sexta" }
+              - { label: "Sábado", value: "sabado" }
+              - { label: "Domingo", value: "domingo" }
+            hint: "Último dia. Igual ao primeiro: \"Pedidos às terças\" (ou \"aos sábados\"). De segunda a domingo: \"Pedidos todos os dias\"."
+          - name: hora_inicio
+            label: "Das (hora)"
+            widget: select
+            default: "09:00"
+            options:
+              - { label: "0h", value: "00:00" }
+              - { label: "0h30", value: "00:30" }
+              - { label: "1h", value: "01:00" }
+              - { label: "1h30", value: "01:30" }
+              - { label: "2h", value: "02:00" }
+              - { label: "2h30", value: "02:30" }
+              - { label: "3h", value: "03:00" }
+              - { label: "3h30", value: "03:30" }
+              - { label: "4h", value: "04:00" }
+              - { label: "4h30", value: "04:30" }
+              - { label: "5h", value: "05:00" }
+              - { label: "5h30", value: "05:30" }
+              - { label: "6h", value: "06:00" }
+              - { label: "6h30", value: "06:30" }
+              - { label: "7h", value: "07:00" }
+              - { label: "7h30", value: "07:30" }
+              - { label: "8h", value: "08:00" }
+              - { label: "8h30", value: "08:30" }
+              - { label: "9h", value: "09:00" }
+              - { label: "9h30", value: "09:30" }
+              - { label: "10h", value: "10:00" }
+              - { label: "10h30", value: "10:30" }
+              - { label: "11h", value: "11:00" }
+              - { label: "11h30", value: "11:30" }
+              - { label: "12h", value: "12:00" }
+              - { label: "12h30", value: "12:30" }
+              - { label: "13h", value: "13:00" }
+              - { label: "13h30", value: "13:30" }
+              - { label: "14h", value: "14:00" }
+              - { label: "14h30", value: "14:30" }
+              - { label: "15h", value: "15:00" }
+              - { label: "15h30", value: "15:30" }
+              - { label: "16h", value: "16:00" }
+              - { label: "16h30", value: "16:30" }
+              - { label: "17h", value: "17:00" }
+              - { label: "17h30", value: "17:30" }
+              - { label: "18h", value: "18:00" }
+              - { label: "18h30", value: "18:30" }
+              - { label: "19h", value: "19:00" }
+              - { label: "19h30", value: "19:30" }
+              - { label: "20h", value: "20:00" }
+              - { label: "20h30", value: "20:30" }
+              - { label: "21h", value: "21:00" }
+              - { label: "21h30", value: "21:30" }
+              - { label: "22h", value: "22:00" }
+              - { label: "22h30", value: "22:30" }
+              - { label: "23h", value: "23:00" }
+              - { label: "23h30", value: "23:30" }
+            hint: "Horário em que começa a receber pedidos."
+          - name: hora_fim
+            label: "Às (hora)"
+            widget: select
+            default: "18:00"
+            options:
+              - { label: "0h", value: "00:00" }
+              - { label: "0h30", value: "00:30" }
+              - { label: "1h", value: "01:00" }
+              - { label: "1h30", value: "01:30" }
+              - { label: "2h", value: "02:00" }
+              - { label: "2h30", value: "02:30" }
+              - { label: "3h", value: "03:00" }
+              - { label: "3h30", value: "03:30" }
+              - { label: "4h", value: "04:00" }
+              - { label: "4h30", value: "04:30" }
+              - { label: "5h", value: "05:00" }
+              - { label: "5h30", value: "05:30" }
+              - { label: "6h", value: "06:00" }
+              - { label: "6h30", value: "06:30" }
+              - { label: "7h", value: "07:00" }
+              - { label: "7h30", value: "07:30" }
+              - { label: "8h", value: "08:00" }
+              - { label: "8h30", value: "08:30" }
+              - { label: "9h", value: "09:00" }
+              - { label: "9h30", value: "09:30" }
+              - { label: "10h", value: "10:00" }
+              - { label: "10h30", value: "10:30" }
+              - { label: "11h", value: "11:00" }
+              - { label: "11h30", value: "11:30" }
+              - { label: "12h", value: "12:00" }
+              - { label: "12h30", value: "12:30" }
+              - { label: "13h", value: "13:00" }
+              - { label: "13h30", value: "13:30" }
+              - { label: "14h", value: "14:00" }
+              - { label: "14h30", value: "14:30" }
+              - { label: "15h", value: "15:00" }
+              - { label: "15h30", value: "15:30" }
+              - { label: "16h", value: "16:00" }
+              - { label: "16h30", value: "16:30" }
+              - { label: "17h", value: "17:00" }
+              - { label: "17h30", value: "17:30" }
+              - { label: "18h", value: "18:00" }
+              - { label: "18h30", value: "18:30" }
+              - { label: "19h", value: "19:00" }
+              - { label: "19h30", value: "19:30" }
+              - { label: "20h", value: "20:00" }
+              - { label: "20h30", value: "20:30" }
+              - { label: "21h", value: "21:00" }
+              - { label: "21h30", value: "21:30" }
+              - { label: "22h", value: "22:00" }
+              - { label: "22h30", value: "22:30" }
+              - { label: "23h", value: "23:00" }
+              - { label: "23h30", value: "23:30" }
+            hint: "Horário em que para de receber pedidos."
+          - name: redes
+            label: "Redes sociais"
+            label_singular: "rede social"
+            widget: list
+            required: false
+            summary: "{{fields.rede}} — {{fields.url}}"
+            hint: "Adicione as redes da loja. Cada uma precisa do link do perfil; use a chave \"Mostrar no site\" para esconder uma rede sem apagar."
+            fields:
+              - name: rede
+                label: "Rede"
+                widget: select
+                options:
+                  - { label: "Instagram", value: instagram }
+                  - { label: "TikTok", value: tiktok }
+                  - { label: "Facebook", value: facebook }
+                  - { label: "Pinterest", value: pinterest }
+                  - { label: "X (Twitter)", value: x }
+                  - { label: "YouTube", value: youtube }
+                  - { label: "Threads", value: threads }
+              - name: url
+                label: "Link do perfil"
+                widget: string
+                pattern: ["^https?://[^\\s/]+\\.[^\\s]+$", "Cole o link completo do perfil, começando com https:// (ex.: https://www.instagram.com/minhaloja)"]
+                hint: "Obrigatório. Abra seu perfil na rede, copie o endereço e cole aqui."
+              - {
+                  name: ativo,
+                  label: "Mostrar no site",
+                  widget: boolean,
+                  default: true,
+                }
 
       # --- DESATIVADO a pedido do cliente: edicao do texto do WhatsApp pelo
       #     dono da loja no painel. O texto agora so muda direto no codigo

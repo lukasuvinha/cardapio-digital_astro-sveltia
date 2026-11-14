@@ -14,11 +14,9 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   WHATSAPP_NUMBER,
-  INSTAGRAM_URL,
   DEV_NAME,
   DEV_URL,
   DEV_CREDIT_ENABLED,
-  ORDER_HOURS,
   SITE_NAME,
 } from '../src/config/site';
 import {
@@ -61,18 +59,21 @@ describe('ContactButton', () => {
 });
 
 describe('Footer — contato, horario e credito', () => {
-  it('icones de WhatsApp e Instagram com os links de site.ts e aria-label', async () => {
+  it('o rodape nao tem mais o atalho do WhatsApp (a pagina Contato tem o botao dedicado)', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Footer, {});
-    expect(html).toMatch(new RegExp(`<a[^>]*href="https://wa.me/${WHATSAPP_NUMBER}"[^>]*aria-label="WhatsApp da ${SITE_NAME}"`));
-    expect(html).toMatch(new RegExp(`<a[^>]*href="${INSTAGRAM_URL}"[^>]*aria-label="Instagram da ${SITE_NAME}"`));
+    expect(html).not.toContain('wa.me/');
+    // o <a> antigo ficou so como comentario no codigo, com nota de reativacao
+    const src = readFileSync(join(process.cwd(), 'src/components/Footer.astro'), 'utf8');
+    expect(src).toContain('DESATIVADO: icone do WhatsApp no rodape');
   });
 
-  it('mostra o horario de pedidos configurado', async () => {
+  it('sem configuracao do rodape (CMS vazio), nao mostra horario nem lista de redes vazia', async () => {
+    // no Vitest as collections chegam vazias: e o caso "nada cadastrado"
     const container = await AstroContainer.create();
     const html = await container.renderToString(Footer, {});
-    if (ORDER_HOURS.trim()) expect(html).toContain(ORDER_HOURS.trim());
-    else expect(html).not.toContain('cd-footer__hours');
+    expect(html).not.toContain('cd-footer__hours');
+    expect(html).not.toContain('cd-footer__social');
   });
 
   it('credito "Site feito por {DEV_NAME}" com link para DEV_URL, nofollow e nova aba', async () => {
@@ -83,6 +84,36 @@ describe('Footer — contato, horario e credito', () => {
       return;
     }
     expect(html).toMatch(new RegExp(`<a[^>]*href="${DEV_URL}"[^>]*target="_blank"[^>]*rel="nofollow noopener"[^>]*>\\s*Site feito por ${DEV_NAME}\\s*</a>`));
+  });
+
+  it('linha de base: "© {ano} {SITE_NAME}" e o credito, separados da faixa principal', async () => {
+    const container = await AstroContainer.create();
+    const html = await container.renderToString(Footer, {});
+    const base = html.slice(html.indexOf('cd-footer__base'));
+    expect(base).toContain(`© ${new Date().getFullYear()} ${SITE_NAME}`);
+    if (DEV_CREDIT_ENABLED) expect(base).toContain(`Site feito por ${DEV_NAME}`);
+    // a faixa principal (marca, links, icones) vem antes da linha de base
+    const principal = html.slice(html.indexOf('cd-footer__main'), html.indexOf('cd-footer__base'));
+    for (const trecho of ['cd-footer__name', 'href="/sobre"', 'href="/contato"']) expect(principal).toContain(trecho);
+  });
+
+  it('layout: grade de 3 colunas no desktop, nada centralizado, linha fina e area segura (tokens)', () => {
+    const css = readFileSync(join(process.cwd(), 'src/components/Footer.astro'), 'utf8');
+    expect(css).not.toMatch(/text-align:\s*center/);
+    expect(css).toMatch(/\.cd-footer__inner\s*{[^}]*max-width:\s*var\(--maxw\)/);
+    expect(css).toMatch(/'brand links social'/);
+    expect(css).toMatch(/\.cd-footer__base\s*{[^}]*border-top:\s*1px solid var\(--ol-v\)/);
+    expect(css).toMatch(/\.cd-footer__copy\s*{[^}]*min-height:\s*var\(--touch\)/);
+    expect(css).toMatch(/padding-bottom:\s*env\(safe-area-inset-bottom\)/);
+    // links e icones com area de toque de 44px
+    expect(css).toMatch(/\.cd-footer__links a\s*{[^}]*min-height:\s*var\(--touch\)/);
+    expect(css).toMatch(/\.cd-footer__icon\s*{[^}]*width:\s*var\(--touch\);[^}]*height:\s*var\(--touch\)/);
+  });
+
+  it('o CartRail continua logo antes do <footer>', () => {
+    const src = readFileSync(join(process.cwd(), 'src/components/Footer.astro'), 'utf8');
+    expect(src.indexOf('<CartRail />')).toBeGreaterThan(-1);
+    expect(src.indexOf('<CartRail />')).toBeLessThan(src.indexOf('<footer'));
   });
 
   it('o credito usa texto pequeno e cor de baixo contraste (tokens)', () => {
@@ -108,7 +139,7 @@ describe('Pagina /desenvolvedor desativada', () => {
 });
 
 describe('Página Sobre', () => {
-  it('renderiza o titulo e o botao para o cardapio; sem conteudo do CMS, nao mostra cartao vazio', async () => {
+  it('renderiza o titulo e o botao fixo "Ver Cardápio"; sem conteudo do CMS, nao mostra cartao vazio', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Sobre, {});
     expect(html).toContain(`Sobre a ${SITE_NAME}`);
@@ -116,17 +147,23 @@ describe('Página Sobre', () => {
     expect(html).not.toContain('cd-sobre__card');
   });
 
-  it('o sobre.json de exemplo tem foto, texto pessoal e chamada', () => {
+  it('o sobre.json de exemplo tem foto e texto pessoal (sem texto de botao)', () => {
     const sobre = sobrePaginaSchema.parse(json('src/content/configuracoes/sobre.json'));
     expect(sobre.foto).toBeTruthy();
     expect(existsSync(join(process.cwd(), 'public', sobre.foto!))).toBe(true);
     expect(paragrafos(sobre.texto).length).toBeGreaterThanOrEqual(2);
-    expect(sobre.chamada).toBeTruthy();
+    expect(sobre.chamada).toBeUndefined();
   });
 
   it('paragrafos: separa por linha em branco e ignora vazios', () => {
     expect(paragrafos('Um\nainda um\n\nDois\n\n\n')).toEqual(['Um ainda um', 'Dois']);
     expect(paragrafos(undefined)).toEqual([]);
+  });
+
+  it('o botao e sempre "Ver Cardápio", mesmo que um arquivo antigo ainda tenha o campo "chamada"', () => {
+    const src = readFileSync(join(process.cwd(), 'src/pages/sobre.astro'), 'utf8');
+    expect(src).toContain("const chamada = 'Ver Cardápio';");
+    expect(src).not.toMatch(/^const chamada = sobre\.chamada/m);
   });
 
   it('campos vazios do CMS viram undefined (somem da pagina)', () => {
@@ -142,11 +179,10 @@ describe('Página Contato', () => {
     expect(html).toContain('WhatsApp');
   });
 
-  it('botão do Instagram usa o link configurado', async () => {
+  it('os botoes de redes vem do CMS (Configuracoes -> Rodape): sem cadastro, nenhum botao de rede', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Contato, {});
-    expect(html).toContain(INSTAGRAM_URL);
-    expect(html).toContain('Instagram');
+    expect(html).not.toContain('cd-linkbtn');
   });
 
   it('sem conteudo do CMS, a secao "Como encomendar" nao aparece', async () => {

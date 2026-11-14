@@ -6,11 +6,11 @@ Antes de publicar para um cliente:
 
 1. `src/config/site.ts` — **identidade da loja, num só lugar**: nome (`SITE_NAME`), slogan
    (`SITE_TAGLINE`), descrição para buscadores (`SITE_DESCRIPTION`), logo (`SITE_LOGO`),
-   imagem de compartilhamento (`SITE_OG_IMAGE`), WhatsApp (`WHATSAPP_NUMBER`), Instagram
-   (`INSTAGRAM_URL`), título da mensagem do pedido (`WHATSAPP_ORDER_TITLE`), prefixo do número
-   do pedido (`ORDER_PREFIX`), horário de pedidos no rodapé (`ORDER_HOURS`) e o crédito do
-   desenvolvedor no rodapé (`DEV_CREDIT_ENABLED`, `DEV_NAME`, `DEV_URL` — combine com o cliente).
-   Textos das páginas Sobre e Contato: no painel, em Configurações → Página Sobre / Página Contato.
+   imagem de compartilhamento (`SITE_OG_IMAGE`), WhatsApp (`WHATSAPP_NUMBER`), título da
+   mensagem do pedido (`WHATSAPP_ORDER_TITLE`), prefixo do número do pedido (`ORDER_PREFIX`) e o
+   crédito do desenvolvedor no rodapé (`DEV_CREDIT_ENABLED`, `DEV_NAME`, `DEV_URL` — combine com
+   o cliente). No painel, em **Configurações**: textos das páginas Sobre e Contato, e o **Rodapé**
+   (horário de pedidos e redes sociais, cada uma com o link do perfil).
 2. `public/logo.svg`, `public/og-image.png` e `public/favicon.svg` — troque pelas imagens da
    loja (passo a passo em `docs/LOGO.md`).
 3. `src/styles/theme.css` + `src/config/theme.ts` — cores, fontes, raios, sombras e movimento
@@ -27,7 +27,9 @@ Antes de publicar para um cliente:
    Em `src/content/configuracoes/` (ou no painel, em **Configurações**), revise também:
    `entrega.json` (entrega, retirada e taxa), `fornada.json` (o aviso de próxima fornada vem
    **ligado** no exemplo), `sobre.json` (texto e foto da página Sobre; a ilustração de exemplo
-   fica em `public/img/sobre/`) e `contato.json` ("Como encomendar" da página Contato).
+   fica em `public/img/sobre/`), `contato.json` ("Como encomendar" da página Contato) e
+   `rodape.json` (horário e redes sociais; os links de exemplo são `seu_usuario`, troque pelos
+   perfis reais ou desligue as redes).
 7. `public/uploads/` — as fotos reais entram por aqui, via CMS.
 8. Rode `npm install && npm test && npm run build` depois das trocas. Os testes leem os
    valores de `site.ts`, então não dependem do nome da loja.

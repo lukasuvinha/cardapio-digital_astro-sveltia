@@ -6,19 +6,23 @@ import CartDrawer from '../components/CartDrawer.astro';
 import ContactButton from '../components/ContactButton.astro';
 import PageHero from '../components/PageHero.astro';
 import SocialIcon from '../components/SocialIcon.astro';
-import { WHATSAPP_NUMBER, INSTAGRAM_URL, SITE_NAME } from '../config/site';
+import { WHATSAPP_NUMBER, SITE_NAME } from '../config/site';
+import { getRodape } from '../data/rodape';
 import { getContatoPagina } from '../data/paginas';
 import { itensComoEncomendar } from '../content/paginas-schema';
 
-// Pagina "Contato": botao principal do WhatsApp (cor de envio, --ok), o
-// Instagram e a secao "Como encomendar" (antecedencia, regiao de entrega,
-// retirada e formas de pagamento). Numero e link vem de src/config/site.ts;
+// Pagina "Contato": botao principal do WhatsApp (cor de envio, --ok), as
+// redes sociais ligadas no CMS (Configuracoes -> Rodape, as mesmas do
+// rodape) e a secao "Como encomendar" (antecedencia, regiao de entrega,
+// retirada e formas de pagamento). O numero vem de src/config/site.ts;
 // os textos de "Como encomendar" sao editados no CMS em Configuracoes ->
 // Pagina Contato (src/content/configuracoes/contato.json). Item vazio nao
 // aparece; com todos vazios, a secao inteira some.
 // Passo a passo em docs/PAGINAS-INSTITUCIONAIS.md.
 const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}`;
 const comoEncomendar = itensComoEncomendar(await getContatoPagina());
+// redes ligadas e com link (as mesmas do rodape)
+const { redes } = await getRodape();
 
 // icones de traco de cada item de "Como encomendar"
 const ICONES: Record<string, string> = {
@@ -31,7 +35,7 @@ const ICONES: Record<string, string> = {
 
 <BaseLayout
   title={`Contato · ${SITE_NAME}`}
-  description={`Fale com a ${SITE_NAME} pelo WhatsApp ou Instagram.`}
+  description={`Fale com a ${SITE_NAME} pelo WhatsApp ou pelas redes sociais.`}
 >
   <Header />
 
@@ -43,7 +47,11 @@ const ICONES: Record<string, string> = {
         <SocialIcon icon="whatsapp" size={22} />
         <span>Chamar no WhatsApp</span>
       </a>
-      <ContactButton href={INSTAGRAM_URL} label="Instagram" icon="instagram" external />
+      {redes.map((r) => (
+        <ContactButton href={r.url} label={r.nome} icon={r.rede} external />
+      ))}
+      {/* ANTES: botao fixo do Instagram (INSTAGRAM_URL em src/config/site.ts).
+          Agora sao as redes cadastradas no CMS, as mesmas do rodape. */}
     </div>
 
     {

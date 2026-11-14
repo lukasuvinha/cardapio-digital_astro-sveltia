@@ -1,6 +1,6 @@
 ---
 // Botao grande de contato/link externo (estilo "linktree"): icone + rotulo +
-// seta. Reutilizado nas paginas Contato (WhatsApp, Instagram) e Desenvolvedor
+// seta. Reutilizado na pagina Contato (redes sociais do rodape) e na Desenvolvedor
 // (GitHub, LinkedIn). Os icones sao desenhos genericos no mesmo estilo de
 // linha fina (stroke) usado no resto do site — nao sao os logos oficiais das
 // marcas, so representacoes reconheciveis; o rotulo ao lado deixa claro para
@@ -8,12 +8,13 @@
 interface Props {
   href: string;
   label: string;
-  icon: 'whatsapp' | 'instagram' | 'github' | 'linkedin';
+  icon: IconeSocial;
   /** true para links externos (abre em nova aba, rel=noopener) */
   external?: boolean;
 }
 
 import SocialIcon from './SocialIcon.astro';
+import type { IconeSocial } from '../content/rodape-schema';
 
 const { href, label, icon, external = false } = Astro.props;
 ---

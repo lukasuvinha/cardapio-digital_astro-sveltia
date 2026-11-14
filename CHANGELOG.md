@@ -2,7 +2,31 @@
 
 Novidades do template de cardápio digital (Astro + Sveltia CMS + Cloudflare Workers).
 
-## [Não lançado] — 2026-11-17
+## [Não lançado] — 2026-11-18
+
+### Melhorado
+- **Rodapé mais baixo e organizado:** no computador, marca e horário à
+  esquerda, Sobre · Contato no centro e os ícones à direita, com uma linha de
+  base para o "© ano" e o crédito. No celular, tudo alinhado à esquerda em
+  poucas linhas. Mesmo conteúdo e mesmas cores; o rodapé ficou cerca de 35%
+  mais baixo no celular e 45% no computador.
+- **Horário de pedidos e redes sociais no painel** (Configurações → Rodapé): o
+  horário é escolhido em menus (dia inicial, dia final e horas, de meia em meia
+  hora) e vira um texto padronizado, como "Pedidos de terça a sábado, das 9h às
+  18h"; pode ser desligado a qualquer momento. As redes (Instagram, TikTok,
+  Facebook, Pinterest, X, YouTube e Threads) são adicionadas, ligadas ou
+  desligadas uma a uma. Cada rede só pode ser salva com o link do perfil, e
+  só aparece no site com ele. As mesmas redes viram botões na página Contato.
+
+### Mudou
+- O rodapé não tem mais o atalho do WhatsApp: ele fica no botão dedicado da
+  página Contato.
+- O crédito do rodapé passou a mostrar o nick do desenvolvedor no GitHub:
+  "Site feito por lukasuvinha".
+- Página Sobre: o botão para o cardápio é sempre "Ver Cardápio"; o texto dele
+  deixou de ser editável no painel.
+
+## 2026-11-17
 
 Uma rodada de acabamento: o cardápio ficou mais fluido no celular e no
 computador, as páginas Sobre e Contato ganharam conteúdo editável e o rodapé
