@@ -2,7 +2,27 @@
 
 Novidades do template de cardápio digital (Astro + Sveltia CMS + Cloudflare Workers).
 
-## [Não lançado] — 2026-11-18
+## [Não lançado] — 2026-11-19
+
+### Novo
+- **Modo demonstração** (variável de build `PUBLIC_DEMO_MODE=true`, só no
+  projeto da demo; sem ela nada muda):
+  - **Faixa discreta no topo do cardápio:** "Loja de demonstração · os pedidos
+    não são enviados".
+  - **Envio do pedido:** em vez de abrir o WhatsApp (o número da loja de
+    exemplo é fictício), o botão mostra a mensagem exatamente como a loja
+    receberia, com o título "Esta é a mensagem que a loja receberia" e o botão
+    "Voltar ao cardápio".
+  - **Painel `/admin` sem login:** usa o Test Backend do Sveltia CMS, já com os
+    produtos, as fotos e as configurações da Doceria Exemplo. As alterações
+    ficam só no navegador de quem testa, e um aviso no painel deixa isso claro.
+- **Tema controlado pela página que embute o cardápio** (iframe): `?theme=light`
+  ou `?theme=dark` na URL, ou a mensagem
+  `{ type: 'cd-theme', theme: 'light' | 'dark' }` por `postMessage`. A troca é
+  a mesma do botão de tema, mas a escolha não fica gravada no navegador do
+  visitante. Vale com ou sem o modo demonstração.
+
+## 2026-11-18
 
 ### Melhorado
 - **Rodapé mais baixo e organizado:** no computador, marca e horário à

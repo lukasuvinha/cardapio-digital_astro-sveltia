@@ -33,3 +33,29 @@ Antes de publicar para um cliente:
 7. `public/uploads/` — as fotos reais entram por aqui, via CMS.
 8. Rode `npm install && npm test && npm run build` depois das trocas. Os testes leem os
    valores de `site.ts`, então não dependem do nome da loja.
+
+## Publicar uma demonstração (modo demo)
+
+Para mostrar o template a clientes (por exemplo, embutido num iframe na página
+de vendas), publique a loja de exemplo num **projeto separado** da Cloudflare,
+com a variável de build `PUBLIC_DEMO_MODE=true` (Settings → Variables and
+Secrets, como variável de **build**). Sem a variável, nada muda.
+
+Com o modo ligado:
+
+- **Cardápio:** uma faixa discreta no topo avisa "Loja de demonstração · os
+  pedidos não são enviados". O botão "Enviar pedido pelo WhatsApp" não abre o
+  WhatsApp: mostra a mensagem exatamente como a loja receberia.
+- **Painel (`/admin`), sem login:** usa o Test Backend do Sveltia CMS, com o
+  conteúdo e as fotos da loja de exemplo. As alterações ficam só no navegador
+  de quem testa; nada vai para o GitHub. Quem testa pode recomeçar em
+  Settings → Data Management → Erase All Data, dentro do painel.
+  Quem faz isso é o `scripts/demo-admin.mjs`, que roda depois do `astro build`.
+- **Tema pela página de fora**, que vale com ou sem modo demo e não grava a
+  escolha no navegador do visitante:
+  - na URL do iframe: `?theme=light` ou `?theme=dark`;
+  - por mensagem:
+    `iframe.contentWindow.postMessage({ type: 'cd-theme', theme: 'dark' }, '*')`.
+
+Para testar a demo localmente: `PUBLIC_DEMO_MODE=true npm run build` e depois
+`npm run preview`.

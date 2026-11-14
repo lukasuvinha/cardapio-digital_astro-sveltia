@@ -153,7 +153,10 @@ describe('4. troca de tema uniforme', () => {
   });
 
   it('ThemeToggle usa View Transitions so sem prefers-reduced-motion e tira a classe depois de 2 frames', () => {
-    const t = ler('src/components/ThemeToggle.astro');
+    // a troca saiu do ThemeToggle para src/lib/theme.ts (compartilhada com o
+    // tema mandado pela pagina que embute o cardapio); o botao a importa
+    expect(ler('src/components/ThemeToggle.astro')).toContain("from '../lib/theme'");
+    const t = ler('src/lib/theme.ts');
     expect(t).toContain('startViewTransition');
     expect(t).toContain("matchMedia('(prefers-reduced-motion: reduce)')");
     expect(t).toMatch(/requestAnimationFrame\(\(\) => \{\s*requestAnimationFrame\(\(\) => html\.classList\.remove\('cd-theme-switching'\)\)/);

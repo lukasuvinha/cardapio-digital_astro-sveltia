@@ -8,6 +8,7 @@ import ProductGrid from '../components/ProductGrid.astro';
 import ProductSheet from '../components/ProductSheet.astro';
 import Footer from '../components/Footer.astro';
 import CartDrawer from '../components/CartDrawer.astro';
+import DemoBanner from '../components/DemoBanner.astro';
 import { getProdutos, getCoresCategorias, categoriasDe } from '../data/menu';
 import { getFornadaBanner } from '../data/fornada';
 import { slugify } from '../lib/slug';
@@ -26,6 +27,8 @@ const fornada = await getFornadaBanner();
 ---
 
 <BaseLayout>
+  <!-- so aparece no modo demonstracao (PUBLIC_DEMO_MODE=true) -->
+  <DemoBanner />
   <Header />
 
   <!-- Bloco do topo: no desktop tem o titulo, o subtitulo e o banner; no

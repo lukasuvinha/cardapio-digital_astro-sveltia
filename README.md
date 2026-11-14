@@ -63,7 +63,7 @@ no navegador.
   desligados no painel; cada rede só aparece com o link do perfil.
 
 ### Confiabilidade
-- Mais de 230 testes automatizados cobrindo carrinho, cupons, mensagem do pedido,
+- Mais de 270 testes automatizados cobrindo carrinho, cupons, mensagem do pedido,
   regras do painel, renderização das páginas, contraste de cores do tema e
   acessibilidade das janelas (foco, teclado, leitor de tela).
 - Fotos ausentes ou quebradas são substituídas por um placeholder, e o site nunca
@@ -133,7 +133,7 @@ Toda a aparência é definida por tokens de tema: trocar a identidade visual de
 uma loja não exige mexer nos componentes. Trocar de tema é mudar uma linha em
 `src/config/theme.ts`.
 
-São 245 testes automatizados; rode `npm test` depois de adaptar.
+São 274 testes automatizados; rode `npm test` depois de adaptar.
 
 O passo a passo completo está em [README-TEMPLATE.md](README-TEMPLATE.md).
 

@@ -1,0 +1,28 @@
+---
+// Faixa discreta no topo do cardapio, so no modo demonstracao
+// (PUBLIC_DEMO_MODE=true no build, ver src/config/demo.ts). Sem a variavel,
+// nao renderiza nada.
+import { demoAtivo } from '../config/demo';
+const demo = demoAtivo();
+---
+
+{
+  demo && (
+    <p class="cd-demo-banner" role="note">
+      Loja de demonstração · os pedidos não são enviados
+    </p>
+  )
+}
+
+<style>
+  .cd-demo-banner {
+    margin: 0;
+    padding: 6px 16px;
+    background: var(--sf-high);
+    color: var(--on-sf-v);
+    font-size: var(--fs-label);
+    font-weight: var(--fw-label);
+    line-height: 1.4;
+    text-align: center;
+  }
+</style>

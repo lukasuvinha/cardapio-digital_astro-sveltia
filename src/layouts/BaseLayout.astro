@@ -8,6 +8,7 @@ import '../styles/theme-confeitaria.css';
 import '../styles/global.css';
 import { THEME_NAME, THEME_FONTS_URL, THEME_COLOR_LIGHT, THEME_COLOR_DARK } from '../config/theme';
 import { SITE_NAME, SITE_TAGLINE, SITE_DESCRIPTION, SITE_OG_IMAGE } from '../config/site';
+import { SCRIPT_TEMA_INICIAL } from '../lib/theme';
 
 interface Props {
   title?: string;
@@ -84,30 +85,22 @@ const ogImageURL = Astro.site ? new URL(image, Astro.site).href : image;
     </noscript>
 
     <!-- Tema: define data-theme ANTES da pintura para nao piscar (FOUC).
-         Le a escolha salva; se nao houver, segue a preferencia do sistema. -->
-    <script is:inline>
-      (function () {
-        try {
-          var stored = localStorage.getItem('cd-theme');
-          var theme =
-            stored ||
-            (window.matchMedia('(prefers-color-scheme: dark)').matches
-              ? 'dark'
-              : 'light');
-          document.documentElement.setAttribute('data-theme', theme);
-          // escolha manual salva: a barra do navegador acompanha o tema
-          if (stored) {
-            document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
-              m.setAttribute('content', theme === 'dark' ? m.dataset.dark : m.dataset.light);
-            });
-          }
-        } catch (e) {
-          /* localStorage indisponivel: cai no CSS via prefers-color-scheme */
-        }
-      })();
-    </script>
+         Ordem: ?theme=light|dark na URL (pagina que embute o cardapio) >
+         tema mandado pelo iframe nesta aba > escolha salva > sistema.
+         O script fica em src/lib/theme.ts (SCRIPT_TEMA_INICIAL), onde e
+         testado. ANTES: o mesmo script, so com localStorage, ficava escrito
+         aqui. -->
+    <script is:inline set:html={SCRIPT_TEMA_INICIAL} />
   </head>
   <body>
     <slot />
+    <script>
+      // Tema controlado pela pagina que embute o cardapio num iframe:
+      // postMessage({ type: 'cd-theme', theme: 'light' | 'dark' }). Vale sempre
+      // (com ou sem modo demonstracao) e nao grava no localStorage. Ver
+      // src/lib/theme.ts.
+      import { ouvirTemaExterno } from '../lib/theme';
+      ouvirTemaExterno();
+    </script>
   </body>
 </html>

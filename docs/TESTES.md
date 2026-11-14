@@ -1,6 +1,6 @@
 # Testes
 
-`npm test` roda a suíte completa (Vitest). **245 testes, 23 arquivos — todos
+`npm test` roda a suíte completa (Vitest). **274 testes, 26 arquivos — todos
 passando.**
 
 ## O que é coberto
@@ -30,6 +30,9 @@ passando.**
 | `interacoes.test.ts` | 19 | Guardas das correções de interação e fluidez: trava de rolagem por **compensação** (barra medida antes, `overflow` no `<html>`, `padding-right` no `<body>`, `--cd-scrollbar`; drawer e dialog do desktop a `--sheet-inset` das bordas), FAB e snackbar em **trilhos sticky** antes do rodapé (sem script de scroll), abertura dos painéis com dois `requestAnimationFrame`, foco no fim da transição e `will-change` só durante a animação, foto da sheet decodificada antes de abrir, sem realce de toque; gesto de arrastar ligado pelo mesmo `modal.close()`; troca de tema uniforme. |
 | `rodape.test.ts` | 20 | Rodapé editável no CMS: horário com chave liga/desliga e **texto fixo** montado de dias e horas escolhidos em menus (\"de terça a sábado\", \"às terças\"/\"aos sábados\", \"todos os dias\"; some se desligado ou incompleto), redes sociais que só aparecem **ligadas e com link válido** (`https://` com domínio; ordem cadastrada; rede desconhecida ou repetida ignorada), ícone para cada rede, `rodape.json` de exemplo e os campos do painel (menus de dias e horas, lista com select de redes, **link obrigatório** com pattern). |
 | `fornada-render.test.ts` | 4 | Render (Container API): `FornadaBanner` mostra rótulo e valor em linhas separadas; a home sem configuração não renderiza o banner (nem quebra); o `fornada.json` de exemplo liga o banner com o aviso genérico. |
+| `tema-externo.test.ts` | 12 | Tema controlado pela página que embute o cardápio: `?theme=light` / `?theme=dark` e `postMessage({ type: 'cd-theme', theme })` só nesses formatos e valores (qualquer outro é ignorado); o script do `<head>` é **executado** com window/document/storages falsos (`?theme=` vence a escolha salva e o sistema, **não grava no localStorage**, acerta a cor da barra do navegador e vale nas próximas páginas da mesma aba); o layout liga o ouvinte de `postMessage`; nada bloqueia o site em iframe (`X-Frame-Options`/`frame-ancestors`). |
+| `demo-admin.test.ts` | 10 | Painel de demonstração (`scripts/demo-admin.mjs`): `config.yml` da demo com `backend: { name: test-repo }` e o resto igual, link `cms-seed-url` e aviso no `admin/index.html` (sem duplicar), lista do seed (conteúdo e fotos da loja de exemplo, caminhos relativos à raiz, todas as fotos dos produtos incluídas) e, num repositório temporário, **`manifest.json` gerado** com os arquivos copiados para `dist/seed/`; sem `PUBLIC_DEMO_MODE=true`, não faz nada. |
+| `modo-demo.test.ts` | 7 | Modo demonstração no site: `demoAtivo` só com `PUBLIC_DEMO_MODE=true`; render (Container API) **sem** a variável não tem faixa nem etapa de demonstração (a confirmação continua igual) e **com** a variável tem a faixa "Loja de demonstração · os pedidos não são enviados" e a etapa com "Esta é a mensagem que a loja receberia" e "Voltar ao cardápio"; no envio, o ramo demo não abre o `wa.me`; o `build` roda o script depois do `astro build`. |
 
 Os arquivos em **negrito** são guardas de regressão criadas a partir de
 incidentes reais de produção (ver [BUGS-E-CORRECOES.md](BUGS-E-CORRECOES.md)).

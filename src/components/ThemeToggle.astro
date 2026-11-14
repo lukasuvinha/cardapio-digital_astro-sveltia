@@ -3,6 +3,8 @@
 // Uso: <ThemeToggle /> em qualquer lugar. Pode haver mais de um na pagina;
 // o script sincroniza todos. A escolha e persistida em localStorage ('cd-theme')
 // e aplicada antes da pintura pelo script inline do BaseLayout (sem flash).
+// A pagina que embute o cardapio tambem pode mandar o tema (?theme= ou
+// postMessage) — ver src/lib/theme.ts.
 // O icone (sol/lua) gira ao trocar. A pagina troca de tema de uma vez so
 // (cross-fade com View Transitions, quando houver) — ver applyTheme.
 ---
@@ -84,56 +86,18 @@
 </style>
 
 <script>
-  function currentTheme(): 'dark' | 'light' {
-    const attr = document.documentElement.getAttribute('data-theme');
-    if (attr === 'dark' || attr === 'light') return attr;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  }
-
-  // Aplica o tema de uma vez so na pagina inteira. A classe
-  // cd-theme-switching (global.css) zera as transicoes de cor de todos os
-  // elementos durante a troca — sem ela cada componente trocava no seu
-  // proprio ritmo — e sai depois de dois frames, quando a pintura nova ja
-  // aconteceu.
-  function trocarTema(theme: 'dark' | 'light') {
-    const html = document.documentElement;
-    html.classList.add('cd-theme-switching');
-    html.setAttribute('data-theme', theme);
-    try {
-      localStorage.setItem('cd-theme', theme);
-    } catch (e) {
-      /* localStorage indisponivel: mantem apenas na sessao atual */
-    }
-    document.querySelectorAll('.cd-theme-toggle').forEach((btn) => {
-      btn.setAttribute('aria-pressed', String(theme === 'dark'));
-    });
-    // a cor da barra do navegador acompanha a escolha manual
-    document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((m) => {
-      const cor = theme === 'dark' ? m.dataset.dark : m.dataset.light;
-      if (cor) m.content = cor;
-    });
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => html.classList.remove('cd-theme-switching'));
-    });
-  }
-
-  // Com View Transitions (e sem pedido de menos movimento), a troca vira um
-  // cross-fade unico da pagina inteira (~300ms, ver ::view-transition-* em
-  // global.css). Sem suporte ou com movimento reduzido: troca instantanea.
-  function applyTheme(theme: 'dark' | 'light') {
-    const reduzir = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown };
-    if (typeof doc.startViewTransition === 'function' && !reduzir) {
-      doc.startViewTransition(() => trocarTema(theme));
-    } else {
-      trocarTema(theme);
-    }
-  }
+  // A troca em si (de uma vez so na pagina, com cross-fade quando houver
+  // View Transitions, e a cor da barra do navegador) fica em src/lib/theme.ts,
+  // compartilhada com o tema mandado pela pagina que embute o cardapio
+  // (?theme= / postMessage). Aqui a escolha e do visitante: grava no
+  // localStorage.
+  // ANTES: currentTheme, trocarTema e applyTheme ficavam escritos aqui.
+  import { aplicarTema, temaAtual } from '../lib/theme';
 
   document.querySelectorAll('.cd-theme-toggle').forEach((btn) => {
-    btn.setAttribute('aria-pressed', String(currentTheme() === 'dark'));
+    btn.setAttribute('aria-pressed', String(temaAtual() === 'dark'));
     btn.addEventListener('click', () => {
-      applyTheme(currentTheme() === 'dark' ? 'light' : 'dark');
+      aplicarTema(temaAtual() === 'dark' ? 'light' : 'dark', { persistir: true });
     });
   });
 </script>
