@@ -65,6 +65,44 @@ const { products, cores } = Astro.props;
       fechar: () => modal.close(),
     });
 
+    // ---- foto pronta ANTES de animar ----
+    // A foto da sheet tem a MESMA URL da foto do card (ja baixada e em cache).
+    // Sem preparo, ela so era decodificada quando o painel abria — no meio
+    // da animacao de entrada, causando um "soluco". Agora: no toque
+    // (pointerdown) ja pedimos a decodificacao; no clique, esperamos a foto
+    // da sheet ficar pronta (decode) e so entao abrimos. Se demorar mais que
+    // ESPERA_MAX_MS, abre mesmo assim.
+    const ESPERA_MAX_MS = 150;
+    const fotoDoCard = (link: HTMLElement) =>
+      link.querySelector<HTMLImageElement>('.cd-media__img')?.currentSrc ||
+      link.querySelector<HTMLImageElement>('.cd-media__img')?.src ||
+      '';
+    const preparadas = new Map<string, Promise<void>>();
+    function preparar(url: string): Promise<void> {
+      if (!url) return Promise.resolve();
+      let p = preparadas.get(url);
+      if (!p) {
+        const img = new Image();
+        img.decoding = 'async';
+        img.src = url;
+        p = img.decode().catch(() => {});
+        preparadas.set(url, p);
+      }
+      return p;
+    }
+    const noMaximo = (p: Promise<unknown>) =>
+      Promise.race([p.catch(() => {}), new Promise((r) => setTimeout(r, ESPERA_MAX_MS))]);
+
+    document.addEventListener(
+      'pointerdown',
+      (e) => {
+        const link = (e.target as HTMLElement).closest<HTMLElement>('[data-open-detail]');
+        if (link) preparar(fotoDoCard(link));
+      },
+      { passive: true },
+    );
+
+    let pedido = 0; // ignora um clique antigo se outro card foi tocado depois
     document.addEventListener('click', (e) => {
       const link = (e.target as HTMLElement).closest<HTMLAnchorElement>('[data-open-detail]');
       if (!link) return;
@@ -76,11 +114,22 @@ const { products, cores } = Astro.props;
       );
       if (!tpl) return; // sem template: segue o link
       e.preventDefault();
+      if (modal.isOpen()) return;
+      const meu = ++pedido;
       slot.replaceChildren(tpl.content.cloneNode(true));
       panel.dataset.cor = tpl.dataset.cor ?? 'neutro';
       panel.scrollTop = 0;
       ligarDetalhe(slot, () => modal.close());
-      modal.open(link);
+      // a foto da sheet (mesma URL do card): sem lazy, decodificada antes
+      const foto = slot.querySelector<HTMLImageElement>('.cd-media__img');
+      if (foto) {
+        foto.loading = 'eager';
+        foto.decoding = 'sync';
+      }
+      const pronta = Promise.all([preparar(fotoDoCard(link)), foto ? foto.decode() : Promise.resolve()]);
+      noMaximo(pronta).then(() => {
+        if (meu === pedido && !modal.isOpen()) modal.open(link);
+      });
     });
   }
 </script>
@@ -137,6 +186,13 @@ const { products, cores } = Astro.props;
   }
   .cd-sheet__panel:focus {
     outline: none;
+  }
+  /* so durante abrir/fechar (data-animating, colocado por src/lib/modal.ts) */
+  .cd-sheet[data-animating] .cd-sheet__panel {
+    will-change: transform;
+  }
+  .cd-sheet[data-animating] .cd-sheet__scrim {
+    will-change: opacity;
   }
 
   .cd-sheet__handle {

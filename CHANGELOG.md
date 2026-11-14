@@ -2,7 +2,22 @@
 
 Novidades do template de cardápio digital (Astro + Sveltia CMS + Cloudflare Workers).
 
-## [Não lançado] — 2026-11-15
+## [Não lançado] — 2026-11-16
+
+Ajustes de fluidez. O visual aprovado não mudou.
+
+### Melhorado
+- **Abrir e fechar o carrinho ou o detalhe do produto no computador não mexe
+  em nada da página**, sem faixa vazia no lugar da barra de rolagem: o fundo
+  escurecido cobre a tela inteira e o carrinho fica a 12px da borda.
+- **O botão flutuante do carrinho para acima do rodapé sem tremer** no celular,
+  acompanhando a rolagem junto com a página.
+- **O detalhe do produto abre sem "soluço"**: a foto já está pronta quando a
+  animação começa, e o toque nos cards não mostra mais o realce azul do celular.
+- O botão flutuante escondido (carrinho vazio) não recebe mais foco pelo
+  teclado.
+
+## 2026-11-15
 
 Correções de interação. O visual aprovado não mudou.
 

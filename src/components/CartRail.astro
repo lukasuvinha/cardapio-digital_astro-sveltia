@@ -1,0 +1,113 @@
+---
+// "Trilhos" do botao flutuante do carrinho (FAB, celular) e do Snackbar.
+// Renderizado pelo Footer, LOGO ANTES do <footer>, em toda pagina.
+//
+// Cada trilho e um elemento position: sticky de ALTURA ZERO (nao ocupa
+// espaco no layout). Enquanto o rodape esta fora da tela, o trilho gruda no
+// fundo da janela; quando o rodape aparece, o trilho fica na posicao natural
+// dele — a borda de cima do rodape — e sobe junto com a rolagem. O FAB cresce
+// para cima a partir do trilho, com 16px de respiro (margem), entao:
+//   - no meio da pagina: 16px acima do fundo da tela (+ area segura do iOS);
+//   - com o rodape visivel: 16px acima da borda de cima do rodape.
+// Tudo feito pelo navegador junto da rolagem (sem script de scroll), entao
+// nao ha atraso de quadro nem tremor.
+//
+// O comportamento (abrir o carrinho, contador, subtotal, mostrar/esconder o
+// FAB, mostrar o snackbar) vem do script do CartDrawer e de
+// src/lib/snackbar.ts, que procuram [data-fab] e [data-snackbar].
+//
+// Sao DOIS trilhos porque sticky sempre cria um contexto de empilhamento: o
+// do FAB fica abaixo dos paineis (z-index 40 < sheets/drawer), o do snackbar
+// fica acima deles (70), como antes.
+import Snackbar from './Snackbar.astro';
+---
+
+<div class="cd-rail cd-rail--fab">
+  <!-- Botao flutuante (FAB estendido), so no celular e so com itens -->
+  <button class="cd-fab cd-state" type="button" data-open-cart data-fab data-visible="false" tabindex="-1" aria-hidden="true" aria-label="Abrir carrinho">
+    <span class="cd-fab__icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="9" cy="20" r="1.4"></circle>
+        <circle cx="18" cy="20" r="1.4"></circle>
+        <path d="M2 3h3l2.6 12.4a1.8 1.8 0 0 0 1.8 1.4h8.4a1.8 1.8 0 0 0 1.8-1.4L21 7H6"></path>
+      </svg>
+      <span class="cd-badge" data-cart-count hidden>0</span>
+    </span>
+    <span class="cd-fab__total" data-cart-subtotal-text>R$ 0,00</span>
+  </button>
+</div>
+
+<div class="cd-rail cd-rail--snack">
+  <Snackbar />
+</div>
+
+<style>
+  /* ===== Trilhos ======================================================== */
+  .cd-rail {
+    position: sticky;
+    /* o respiro de 16px fica na margem do FAB/snackbar: assim a posicao
+       natural do trilho (borda de cima do rodape) ja da os 16px acima dele */
+    bottom: env(safe-area-inset-bottom);
+    height: 0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    pointer-events: none; /* so os filhos visiveis recebem toque */
+  }
+  .cd-rail--fab {
+    z-index: 40;
+  }
+  .cd-rail--snack {
+    z-index: 70;
+  }
+
+  /* ===== FAB (celular) ================================================== */
+  .cd-fab {
+    flex: none;
+    margin: 0 16px 16px 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    height: 60px;
+    padding: 0 22px 0 18px;
+    border-radius: var(--r-pill);
+    background: var(--cta);
+    color: var(--on-cta);
+    box-shadow: var(--shadow-cta), var(--elev-2), var(--shine);
+    transform: scale(0.6) translateY(calc(40px * var(--motion-shift)));
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      transform var(--dur-out) var(--ease-out),
+      opacity var(--dur-out) var(--ease-out);
+  }
+  /* ---- ANTES (PR #4): position: fixed; right: 16px; bottom: calc(16px +
+     env(safe-area-inset-bottom)); translate: 0 calc(-1 * var(--fab-lift, 0px));
+     — o FAB era fixo e um script de scroll o empurrava acima do rodape (ver a
+     nota "FAB x rodape por script" no CartDrawer). */
+  .cd-fab[data-visible='true'] {
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
+    transition:
+      transform var(--dur-spring) var(--ease-spring),
+      opacity var(--dur-emph) var(--ease-emph);
+  }
+  .cd-fab:active {
+    transform: scale(0.95);
+  }
+  .cd-fab__icon {
+    position: relative;
+    display: inline-flex;
+  }
+  .cd-fab__total {
+    font-family: var(--font-head);
+    font-size: var(--fs-price);
+    font-weight: var(--fw-strong);
+  }
+  @media (min-width: 768px) {
+    .cd-fab {
+      display: none;
+    }
+  }
+</style>

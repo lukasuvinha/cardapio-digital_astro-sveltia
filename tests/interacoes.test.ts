@@ -8,26 +8,106 @@ import { join } from 'node:path';
 const ler = (p: string) => readFileSync(join(process.cwd(), p), 'utf8');
 const css = (p: string) => ler(p).replace(/\/\*[\s\S]*?\*\//g, '');
 
-describe('1. pagina nao "salta" ao abrir carrinho/detalhe', () => {
-  it('html reserva o espaco da barra de rolagem (scrollbar-gutter: stable)', () => {
-    expect(css('src/styles/global.css')).toMatch(/html\s*{[^}]*scrollbar-gutter:\s*stable/);
+describe('1. pagina nao "salta" ao abrir carrinho/detalhe (trava por compensacao)', () => {
+  it('sem scrollbar-gutter ativo (a faixa reservada foi trocada pela compensacao)', () => {
+    expect(css('src/styles/global.css')).not.toMatch(/scrollbar-gutter:\s*stable/);
   });
 
-  it('o drawer compensa a faixa reservada para ficar a 12px da borda', () => {
-    expect(ler('src/components/CartDrawer.astro')).toContain('right: calc(12px - var(--cd-gutter, 0px))');
-    expect(ler('src/lib/modal.ts')).toContain("'--cd-gutter'");
+  it('modal.ts mede a barra ANTES de travar e aplica overflow no <html> + padding-right no <body>', () => {
+    const m = ler('src/lib/modal.ts');
+    const medir = m.indexOf('window.innerWidth - html.clientWidth');
+    const travar = m.indexOf("html.style.overflow = 'hidden'");
+    expect(medir).toBeGreaterThan(-1);
+    expect(travar).toBeGreaterThan(medir);
+    expect(m).toContain('body.style.paddingRight');
+    expect(m).toContain("'--cd-scrollbar'");
+    // ao destravar, tudo sai junto
+    expect(m).toMatch(/removeProperty\('overflow'\);\s*html\.style\.removeProperty\('--cd-scrollbar'\);\s*body\.style\.removeProperty\('padding-right'\)/);
+  });
+
+  it('o body nao recebe overflow: hidden (quebraria o header sticky com o painel aberto)', () => {
+    expect(css('src/styles/global.css')).not.toMatch(/body\.cd-scroll-lock\s*{[^}]*overflow/);
+  });
+
+  it('o drawer volta a right: 12px (sem --cd-gutter)', () => {
+    const drawer = css('src/components/CartDrawer.astro');
+    expect(drawer).toMatch(/right:\s*12px;/);
+    expect(drawer).not.toContain('--cd-gutter');
   });
 });
 
-describe('2. FAB nao cobre o rodape', () => {
-  it('o FAB sobe por --fab-lift (translate, separado do transform das animacoes)', () => {
+describe('2. FAB preso acima do rodape so com CSS', () => {
+  it('FAB e snackbar ficam em trilhos sticky de altura 0, renderizados logo antes do <footer>', () => {
+    const rail = css('src/components/CartRail.astro');
+    expect(rail).toMatch(/\.cd-rail\s*{[^}]*position:\s*sticky;[^}]*bottom:\s*env\(safe-area-inset-bottom\);[^}]*height:\s*0;/);
+    expect(ler('src/components/CartRail.astro')).toContain('data-fab');
+    expect(ler('src/components/CartRail.astro')).toContain('<Snackbar />');
+    const footer = ler('src/components/Footer.astro');
+    expect(footer.indexOf('<CartRail />')).toBeGreaterThan(-1);
+    expect(footer.indexOf('<CartRail />')).toBeLessThan(footer.indexOf('<footer'));
+  });
+
+  it('o FAB tem 16px de respiro e nao usa mais position: fixed nem --fab-lift', () => {
+    const rail = css('src/components/CartRail.astro');
+    expect(rail).toMatch(/\.cd-fab\s*{[^}]*margin:\s*0 16px 16px 0;/);
+    expect(rail).not.toMatch(/\.cd-fab\s*{[^}]*position:\s*fixed/);
+    expect(rail).not.toContain('--fab-lift');
+    expect(css('src/components/Snackbar.astro')).not.toContain('--fab-lift');
+  });
+
+  it('o listener de scroll do --fab-lift ficou so como comentario', () => {
     const drawer = ler('src/components/CartDrawer.astro');
-    expect(drawer).toMatch(/\.cd-fab\s*{[^}]*translate:\s*0 calc\(-1 \* var\(--fab-lift, 0px\)\)/);
-    // calculado no scroll/resize com rAF e listeners passivos
-    expect(drawer).toContain("window.innerHeight - footer.getBoundingClientRect().top");
-    expect(drawer).toMatch(/addEventListener\('scroll', agendar, \{ passive: true \}\)/);
-    expect(drawer).toMatch(/addEventListener\('resize', agendar, \{ passive: true \}\)/);
-    expect(drawer).toContain('requestAnimationFrame(medir)');
+    const ativo = drawer.split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
+    expect(ativo).not.toContain('--fab-lift');
+    expect(ativo).not.toMatch(/addEventListener\('scroll'/);
+  });
+});
+
+describe('3b. abertura fluida dos paineis', () => {
+  it('modal.open usa dois requestAnimationFrame antes de data-open e foca so no fim da transicao', () => {
+    const m = ler('src/lib/modal.ts');
+    expect(m).toMatch(/requestAnimationFrame\(\(\) => \{\s*requestAnimationFrame\(\(\) => \{[\s\S]*?root\.dataset\.open = 'true'/);
+    expect(m).toContain("addEventListener('transitionend'");
+    expect(m).toContain('LIMITE_ANIMACAO_MS');
+    expect(m).toContain('focus({ preventScroll: true })');
+    expect(m).toContain('dataset.animating');
+  });
+
+  it('will-change so durante a animacao (data-animating) no painel e no fundo', () => {
+    for (const [p, painel, fundo] of [
+      ['src/components/CartDrawer.astro', 'cd-cart__panel', 'cd-cart__scrim'],
+      ['src/components/ProductSheet.astro', 'cd-sheet__panel', 'cd-sheet__scrim'],
+    ]) {
+      const c = css(p);
+      expect(c).toMatch(new RegExp(`\\[data-animating\\] \\.${painel}\\s*{\\s*will-change:\\s*transform`));
+      expect(c).toMatch(new RegExp(`\\[data-animating\\] \\.${fundo}\\s*{\\s*will-change:\\s*opacity`));
+    }
+  });
+
+  it('abrir/fechar so anima transform e opacity', () => {
+    for (const p of ['src/components/CartDrawer.astro', 'src/components/ProductSheet.astro']) {
+      for (const m of css(p).matchAll(/transition:\s*([^;]+);/g)) {
+        const props = m[1].split(',').map((t) => t.trim().split(/\s+/)[0]);
+        for (const prop of props) expect(['transform', 'opacity', 'visibility', 'none', 'background-color', 'color', 'width', 'border-radius']).toContain(prop);
+      }
+      // painel e fundo: so transform/opacity
+      const c = css(p);
+      for (const bloco of c.match(/\.cd-(cart|sheet)__(panel|scrim)\s*{[^}]*}/g) ?? []) {
+        const t = bloco.match(/transition:\s*([^;]+);/);
+        if (t) for (const prop of t[1].split(',').map((x) => x.trim().split(/\s+/)[0])) expect(['transform', 'opacity']).toContain(prop);
+      }
+    }
+  });
+
+  it('a sheet decodifica a foto (mesma URL do card) antes de abrir, com limite de ~150ms', () => {
+    const s = ler('src/components/ProductSheet.astro');
+    expect(s).toContain("'pointerdown'");
+    expect(s).toContain('.decode()');
+    expect(s).toContain('ESPERA_MAX_MS = 150');
+  });
+
+  it('sem realce de toque em links e clicaveis dos cards', () => {
+    expect(css('src/styles/global.css')).toMatch(/:where\(a,[^)]*\[data-open-detail\][^)]*\)\s*{\s*-webkit-tap-highlight-color:\s*transparent/);
   });
 });
 

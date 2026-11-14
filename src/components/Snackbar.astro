@@ -1,8 +1,9 @@
 ---
 // Snackbar (Material 3): aviso curto no rodape — ex.: "Brownie adicionado"
 // com a acao "Ver" (abre o carrinho). Some sozinho em ~2,5s. Controlado por
-// showSnackbar() em src/lib/snackbar.ts. Incluido pelo CartDrawer, entao
-// existe em toda pagina que tem carrinho.
+// showSnackbar() em src/lib/snackbar.ts. Fica no trilho sticky do
+// CartRail.astro (logo antes do rodape), entao acompanha o FAB sem script e
+// existe em toda pagina que tem rodape/carrinho.
 ---
 
 <div class="cd-snack" data-snackbar data-show="false" role="status" aria-live="polite" hidden>
@@ -11,12 +12,13 @@
 </div>
 
 <style>
+  /* Posicionado dentro do trilho sticky (CartRail.astro), que fica no fundo
+     da janela — ou na borda de cima do rodape, quando ele aparece. */
   .cd-snack {
-    position: fixed;
+    position: absolute;
     left: 16px;
     right: 16px;
-    bottom: calc(16px + env(safe-area-inset-bottom));
-    z-index: 70;
+    bottom: 16px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -34,6 +36,10 @@
       transform var(--dur-out) var(--ease-out),
       bottom var(--dur-emph) var(--ease-emph);
   }
+  /* ---- ANTES (PR #4): position: fixed; bottom: calc(16px +
+     env(safe-area-inset-bottom)); e, com o FAB, translate: 0 calc(-1 *
+     var(--fab-lift, 0px)). Agora a area segura e o rodape sao resolvidos
+     pelo trilho sticky. */
   .cd-snack[data-show='true'] {
     opacity: 1;
     transform: none;
@@ -43,11 +49,9 @@
       transform var(--dur-in) var(--ease-in),
       bottom var(--dur-emph) var(--ease-emph);
   }
-  /* no celular, sobe para nao cobrir o botao flutuante do carrinho — e
-     acompanha o FAB quando ele sobe junto com o rodape (--fab-lift) */
+  /* no celular, fica acima do botao flutuante do carrinho (16 + 60 + 16) */
   :global(body.cd-has-fab) .cd-snack {
-    bottom: calc(92px + env(safe-area-inset-bottom));
-    translate: 0 calc(-1 * var(--fab-lift, 0px));
+    bottom: 92px;
   }
   .cd-snack__text {
     flex: 1;
@@ -76,7 +80,6 @@
     }
     :global(body.cd-has-fab) .cd-snack {
       bottom: 24px;
-      translate: -50% 0;
     }
   }
 </style>
