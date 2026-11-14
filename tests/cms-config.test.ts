@@ -185,11 +185,12 @@ describe('public/admin/config.yml — parse e estrutura', () => {
     expect(new RegExp(regexStr).test('')).toBe(true);
   });
 
-  it('collection "configuracoes" tem as paginas "sobre" (foto/texto/chamada) e "contato" (como encomendar)', () => {
+  it('collection "configuracoes" tem as paginas "sobre" (foto/texto) e "contato" (como encomendar)', () => {
     const cfg = bySame(config.collections, 'configuracoes');
     const arquivo = (n: string) => (cfg.files ?? []).find((f: any) => f.name === n);
     const campos = (n: string) => (arquivo(n)?.fields ?? []).map((f: any) => f.name);
-    expect(campos('sobre')).toEqual(['foto', 'texto', 'chamada']);
+    // o texto do botao ("chamada") foi desativado: o botao e fixo
+    expect(campos('sobre')).toEqual(['foto', 'texto']);
     expect(campos('contato')).toEqual(['antecedencia', 'regiao_entrega', 'retirada', 'pagamento']);
     for (const n of ['sobre', 'contato']) for (const f of arquivo(n).fields) expect(f.required).toBe(false);
     const foto = arquivo('sobre').fields.find((f: any) => f.name === 'foto');

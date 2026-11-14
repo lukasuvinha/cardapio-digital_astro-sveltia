@@ -94,7 +94,8 @@ Conteúdo editado no painel: **Configurações → Página Sobre**
 - **Foto** — da pessoa, da equipe ou da loja (horizontal, 4:3, funciona
   melhor). No desktop fica ao lado do texto; no celular, acima.
 - **Texto** — em tom pessoal. Uma **linha em branco** separa os parágrafos.
-- **Texto do botão para o cardápio** — em branco, usa "Ver Cardápio".
+
+O botão para o cardápio é sempre **"Ver Cardápio"** (o texto não é editável).
 
 Sem foto e sem texto, a página mostra só o título e o botão. O título usa
 `SITE_NAME` ("Sobre a Doceria Exemplo"); se o nome pedir artigo masculino,

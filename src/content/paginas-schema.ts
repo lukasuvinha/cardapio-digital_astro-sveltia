@@ -17,7 +17,11 @@ export const sobrePaginaSchema = z.object({
   foto: textoOpcional,
   /** texto em tom pessoal; paragrafos separados por uma linha em branco */
   texto: textoOpcional,
-  /** rotulo do botao que leva ao cardapio */
+  /**
+   * DESATIVADO: rotulo do botao que leva ao cardapio (o botao agora e fixo,
+   * "Ver Cardápio"). Continua aceito para nao quebrar arquivos antigos que
+   * ainda tenham o campo, mas nao e mais lido pela pagina.
+   */
   chamada: textoOpcional,
 });
 

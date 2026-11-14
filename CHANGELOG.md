@@ -23,6 +23,8 @@ Novidades do template de cardápio digital (Astro + Sveltia CMS + Cloudflare Wor
   página Contato.
 - O crédito do rodapé passou a mostrar o nick do desenvolvedor no GitHub:
   "Site feito por lukasuvinha".
+- Página Sobre: o botão para o cardápio é sempre "Ver Cardápio"; o texto dele
+  deixou de ser editável no painel.
 
 ## 2026-11-17
 

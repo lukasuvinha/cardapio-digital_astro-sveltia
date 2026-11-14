@@ -316,7 +316,7 @@ collections:
       - name: sobre
         label: "Página Sobre"
         file: "src/content/configuracoes/sobre.json"
-        description: "Conteúdo da página Sobre (/sobre). Tudo é opcional: o que ficar em branco não aparece no site."
+        description: "Conteúdo da página Sobre (/sobre): foto e texto. Tudo é opcional: o que ficar em branco não aparece no site."
         fields:
           - {
               name: foto,
@@ -335,13 +335,17 @@ collections:
               required: false,
               hint: "Conte um pouco da sua história, em tom pessoal. Deixe uma linha em branco entre os parágrafos.",
             }
-          - {
-              name: chamada,
-              label: "Texto do botão para o cardápio",
-              widget: string,
-              required: false,
-              hint: "Ex.: Ver o cardápio. Em branco, usa \"Ver Cardápio\".",
-            }
+          # ---- DESATIVADO: texto editavel do botao para o cardapio. O botao
+          #      agora e sempre "Ver Cardápio" (fixo em src/pages/sobre.astro).
+          #      COMO REATIVAR: descomente o campo abaixo e, em sobre.astro,
+          #      volte a linha `const chamada = sobre.chamada ?? 'Ver Cardápio'`.
+          # - {
+          #     name: chamada,
+          #     label: "Texto do botão para o cardápio",
+          #     widget: string,
+          #     required: false,
+          #     hint: "Ex.: Ver o cardápio. Em branco, usa \"Ver Cardápio\".",
+          #   }
 
       # Pagina "Contato": secao "Como encomendar". Cada campo vazio some; com
       # todos vazios, a secao inteira some.

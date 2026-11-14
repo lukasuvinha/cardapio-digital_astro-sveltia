@@ -139,7 +139,7 @@ describe('Pagina /desenvolvedor desativada', () => {
 });
 
 describe('Página Sobre', () => {
-  it('renderiza o titulo e o botao para o cardapio; sem conteudo do CMS, nao mostra cartao vazio', async () => {
+  it('renderiza o titulo e o botao fixo "Ver Cardápio"; sem conteudo do CMS, nao mostra cartao vazio', async () => {
     const container = await AstroContainer.create();
     const html = await container.renderToString(Sobre, {});
     expect(html).toContain(`Sobre a ${SITE_NAME}`);
@@ -147,17 +147,23 @@ describe('Página Sobre', () => {
     expect(html).not.toContain('cd-sobre__card');
   });
 
-  it('o sobre.json de exemplo tem foto, texto pessoal e chamada', () => {
+  it('o sobre.json de exemplo tem foto e texto pessoal (sem texto de botao)', () => {
     const sobre = sobrePaginaSchema.parse(json('src/content/configuracoes/sobre.json'));
     expect(sobre.foto).toBeTruthy();
     expect(existsSync(join(process.cwd(), 'public', sobre.foto!))).toBe(true);
     expect(paragrafos(sobre.texto).length).toBeGreaterThanOrEqual(2);
-    expect(sobre.chamada).toBeTruthy();
+    expect(sobre.chamada).toBeUndefined();
   });
 
   it('paragrafos: separa por linha em branco e ignora vazios', () => {
     expect(paragrafos('Um\nainda um\n\nDois\n\n\n')).toEqual(['Um ainda um', 'Dois']);
     expect(paragrafos(undefined)).toEqual([]);
+  });
+
+  it('o botao e sempre "Ver Cardápio", mesmo que um arquivo antigo ainda tenha o campo "chamada"', () => {
+    const src = readFileSync(join(process.cwd(), 'src/pages/sobre.astro'), 'utf8');
+    expect(src).toContain("const chamada = 'Ver Cardápio';");
+    expect(src).not.toMatch(/^const chamada = sobre\.chamada/m);
   });
 
   it('campos vazios do CMS viram undefined (somem da pagina)', () => {

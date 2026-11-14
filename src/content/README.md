@@ -61,7 +61,7 @@ Os componentes/páginas leem via `getProdutos()` em
   |---|---|---|---|
   | `entrega.json` | `configuracoes` | [`configuracoes-schema.ts`](./configuracoes-schema.ts) | Entrega, retirada e taxa |
   | `fornada.json` | `fornada` | [`fornada-schema.ts`](./fornada-schema.ts) | Aviso de próxima fornada |
-  | `sobre.json` | `sobre` | [`paginas-schema.ts`](./paginas-schema.ts) | Foto, texto e botão da página Sobre |
+  | `sobre.json` | `sobre` | [`paginas-schema.ts`](./paginas-schema.ts) | Foto e texto da página Sobre |
   | `contato.json` | `contato` | [`paginas-schema.ts`](./paginas-schema.ts) | "Como encomendar" da página Contato |
   | `rodape.json` | `rodape` | [`rodape-schema.ts`](./rodape-schema.ts) | Horário de pedidos e redes sociais (rodapé e página Contato) |
 

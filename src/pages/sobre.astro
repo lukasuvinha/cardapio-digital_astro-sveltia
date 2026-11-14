@@ -8,10 +8,10 @@ import { SITE_NAME } from '../config/site';
 import { getSobrePagina } from '../data/paginas';
 import { paragrafos } from '../content/paginas-schema';
 
-// Pagina "Sobre". O conteudo (foto opcional, texto em tom pessoal e o texto
-// do botao para o cardapio) e editado no CMS em Configuracoes -> Pagina
-// Sobre (src/content/configuracoes/sobre.json). O que estiver vazio nao
-// aparece. O titulo usa SITE_NAME (src/config/site.ts); se o nome pedir
+// Pagina "Sobre". O conteudo (foto opcional e texto em tom pessoal) e
+// editado no CMS em Configuracoes -> Pagina Sobre
+// (src/content/configuracoes/sobre.json); o que estiver vazio nao aparece.
+// O botao "Ver Cardápio" e fixo. O titulo usa SITE_NAME (src/config/site.ts); se o nome pedir
 // artigo masculino, troque "a" por "o" no titulo abaixo.
 // Passo a passo em docs/PAGINAS-INSTITUCIONAIS.md.
 //
@@ -19,7 +19,9 @@ import { paragrafos } from '../content/paginas-schema';
 //      SITE_NAME). Agora vem do CMS; o texto de exemplo esta no sobre.json.
 const sobre = await getSobrePagina();
 const textos = paragrafos(sobre.texto);
-const chamada = sobre.chamada ?? 'Ver Cardápio';
+// texto do botao FIXO (o campo editavel "chamada" foi desativado no CMS).
+// ANTES: const chamada = sobre.chamada ?? 'Ver Cardápio';
+const chamada = 'Ver Cardápio';
 ---
 
 <BaseLayout
