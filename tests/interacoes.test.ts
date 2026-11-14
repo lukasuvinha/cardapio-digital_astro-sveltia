@@ -29,10 +29,18 @@ describe('1. pagina nao "salta" ao abrir carrinho/detalhe (trava por compensacao
     expect(css('src/styles/global.css')).not.toMatch(/body\.cd-scroll-lock\s*{[^}]*overflow/);
   });
 
-  it('o drawer volta a right: 12px (sem --cd-gutter)', () => {
+  it('o drawer usa --sheet-inset nas bordas e na largura (sem --cd-gutter)', () => {
     const drawer = css('src/components/CartDrawer.astro');
-    expect(drawer).toMatch(/right:\s*12px;/);
+    for (const lado of ['top', 'right', 'bottom']) expect(drawer).toMatch(new RegExp(`${lado}:\\s*var\\(--sheet-inset\\);`));
+    expect(drawer).toContain('width: min(460px, calc(100vw - 2 * var(--sheet-inset)));');
     expect(drawer).not.toContain('--cd-gutter');
+  });
+
+  it('--sheet-inset (24px) vem do tema e tambem da o respiro do dialog do produto', () => {
+    expect(css('src/styles/theme.css')).toMatch(/--sheet-inset:\s*24px;/);
+    const sheet = css('src/components/ProductSheet.astro');
+    expect(sheet).toMatch(/\.cd-sheet\s*{[^}]*padding:\s*var\(--sheet-inset\);/);
+    expect(sheet).toContain('max-height: calc(100vh - 2 * var(--sheet-inset));');
   });
 });
 

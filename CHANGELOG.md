@@ -9,7 +9,11 @@ Ajustes de fluidez. O visual aprovado não mudou.
 ### Melhorado
 - **Abrir e fechar o carrinho ou o detalhe do produto no computador não mexe
   em nada da página**, sem faixa vazia no lugar da barra de rolagem: o fundo
-  escurecido cobre a tela inteira e o carrinho fica a 12px da borda.
+  escurecido cobre a tela inteira.
+- **Mais respiro nos painéis do computador:** o carrinho agora flutua a 24px
+  das bordas da janela (eram 12px), e a janela de detalhe do produto usa o
+  mesmo respiro. O valor é um token do tema (`--sheet-inset`). No celular nada
+  muda.
 - **O botão flutuante do carrinho para acima do rodapé sem tremer** no celular,
   acompanhando a rolagem junto com a página.
 - **O detalhe do produto abre sem "soluço"**: a foto já está pronta quando a

@@ -236,13 +236,14 @@ const { products, cores } = Astro.props;
   }
 
   @media (min-width: 768px) {
+    /* dialog central com o mesmo respiro do drawer do carrinho */
     .cd-sheet {
       align-items: center;
-      padding: 24px;
+      padding: var(--sheet-inset);
     }
     .cd-sheet__panel {
       max-width: 880px;
-      max-height: calc(100vh - 48px);
+      max-height: calc(100vh - 2 * var(--sheet-inset));
       padding: 28px;
       border-radius: var(--r-sheet);
       transform: translateY(calc(24px * var(--motion-shift))) scale(calc(1 - 0.04 * var(--motion-shift)));
