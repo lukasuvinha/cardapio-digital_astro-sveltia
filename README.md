@@ -130,7 +130,7 @@ Toda a aparência é definida por tokens de tema: trocar a identidade visual de
 uma loja não exige mexer nos componentes. Trocar de tema é mudar uma linha em
 `src/config/theme.ts`.
 
-São 221 testes automatizados; rode `npm test` depois de adaptar.
+São 224 testes automatizados; rode `npm test` depois de adaptar.
 
 O passo a passo completo está em [README-TEMPLATE.md](README-TEMPLATE.md).
 

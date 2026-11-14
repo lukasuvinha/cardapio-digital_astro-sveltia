@@ -1,14 +1,20 @@
 ---
 // Rodape reutilizavel: usado em todas as paginas (home, detalhe de produto,
-// 404, sobre, contato). Traz, de cima para baixo:
-//  - a marca (nome · slogan);
-//  - atalhos para o WhatsApp e o Instagram da loja (icones de traco
-//    genericos, com aria-label — nao sao os logos das marcas);
-//  - links para "Sobre" e "Contato" (no desktop eles tambem ficam na barra
-//    superior);
-//  - o horario de pedidos (ORDER_HOURS em site.ts; some se vazio);
-//  - o credito discreto do desenvolvedor (DEV_CREDIT_ENABLED em site.ts).
-// Logo antes dele vem o CartRail (FAB e snackbar).
+// 404, sobre, contato). Logo antes dele vem o CartRail (FAB e snackbar).
+//
+// Layout (ver os blocos de CSS abaixo):
+//  - Desktop (>= 768px): faixa em 3 colunas alinhadas ao topo, dentro de
+//    --maxw — marca (nome, slogan e horario de pedidos) | Sobre · Contato |
+//    icones de WhatsApp e Instagram. Abaixo, separada por uma linha fina, a
+//    linha de base: "© ano loja" a esquerda e o credito a direita.
+//  - Celular: linha 1 com a marca a esquerda e os icones a direita; linha 2
+//    com Sobre · Contato e o horario (quebra se precisar); linha de base com
+//    © e credito. Nada centralizado.
+//
+// Conteudo: nome e slogan (SITE_NAME, SITE_TAGLINE), icones de traco
+// genericos com aria-label (nao sao os logos das marcas), horario
+// (ORDER_HOURS; some se vazio) e o credito do desenvolvedor
+// (DEV_CREDIT_ENABLED; desligado, a linha de base mostra so o ©).
 import {
   SITE_NAME,
   SITE_TAGLINE,
@@ -24,6 +30,8 @@ import SocialIcon from './SocialIcon.astro';
 
 const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}`;
 const horario = ORDER_HOURS.trim();
+// ano do build: o site e estatico, entao atualiza a cada publicacao
+const ano = new Date().getFullYear();
 ---
 
 <!-- trilhos sticky do botao flutuante do carrinho e do snackbar: precisam
@@ -31,58 +39,99 @@ const horario = ORDER_HOURS.trim();
 <CartRail />
 
 <footer class="cd-footer">
-  <span class="cd-footer__brand">{SITE_NAME} · {SITE_TAGLINE}</span>
+  <div class="cd-footer__inner">
+    <div class="cd-footer__main">
+      <div class="cd-footer__brand">
+        <span class="cd-footer__name">{SITE_NAME}</span>
+        <span class="cd-footer__tagline">{SITE_TAGLINE}</span>
+      </div>
 
-  <div class="cd-footer__social">
-    <a class="cd-footer__icon cd-state" href={whatsappUrl} target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp da ${SITE_NAME}`}>
-      <SocialIcon icon="whatsapp" size={22} />
-    </a>
-    <a class="cd-footer__icon cd-state" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" aria-label={`Instagram da ${SITE_NAME}`}>
-      <SocialIcon icon="instagram" size={22} />
-    </a>
-  </div>
+      <!-- No celular, links e horario dividem a linha 2 (com quebra); no
+           desktop este bloco "some" (display: contents) e cada filho vai
+           para a sua coluna da grade. -->
+      <div class="cd-footer__meta">
+        <nav class="cd-footer__links" aria-label="Links institucionais">
+          <a href="/sobre">Sobre</a>
+          <span class="cd-footer__dot" aria-hidden="true">·</span>
+          <a href="/contato">Contato</a>
+        </nav>
+        {horario && <p class="cd-footer__hours">{horario}</p>}
+      </div>
 
-  <nav class="cd-footer__links" aria-label="Links institucionais">
-    <a href="/sobre">Sobre</a>
-    <span class="cd-footer__dot" aria-hidden="true">·</span>
-    <a href="/contato">Contato</a>
-  </nav>
-
-  {horario && <p class="cd-footer__hours">{horario}</p>}
-
-  {
-    DEV_CREDIT_ENABLED && (
-      <p class="cd-footer__credit">
-        <a href={DEV_URL} target="_blank" rel="nofollow noopener">
-          Site feito por {DEV_NAME}
+      <div class="cd-footer__social">
+        <a class="cd-footer__icon cd-state" href={whatsappUrl} target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp da ${SITE_NAME}`}>
+          <SocialIcon icon="whatsapp" size={22} />
         </a>
-      </p>
-    )
-  }
+        <a class="cd-footer__icon cd-state" href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" aria-label={`Instagram da ${SITE_NAME}`}>
+          <SocialIcon icon="instagram" size={22} />
+        </a>
+      </div>
+    </div>
+
+    <div class="cd-footer__base">
+      <span class="cd-footer__copy">© {ano} {SITE_NAME}</span>
+      {
+        DEV_CREDIT_ENABLED && (
+          <p class="cd-footer__credit">
+            <a href={DEV_URL} target="_blank" rel="nofollow noopener">
+              Site feito por {DEV_NAME}
+            </a>
+          </p>
+        )
+      }
+    </div>
+  </div>
 </footer>
 
 <style>
   .cd-footer {
+    border-top: 1px solid var(--ol-v);
+    color: var(--on-sf-v);
+    /* area segura do iOS no fim do rodape */
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  /* mesma largura e respiro lateral do conteudo (.cd-main) */
+  .cd-footer__inner {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+
+  /* ===== Celular: faixa principal ======================================== */
+  .cd-footer__main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'brand social'
+      'meta meta';
+    align-items: center;
+    column-gap: 16px;
+    row-gap: 4px;
+    padding: 16px 0 8px;
+  }
+
+  .cd-footer__brand {
+    grid-area: brand;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    padding: 28px 16px calc(28px + env(safe-area-inset-bottom));
-    border-top: 1px solid var(--ol-v);
-    text-align: center;
-    color: var(--on-sf-v);
+    min-width: 0;
   }
-  .cd-footer__brand {
+  .cd-footer__name {
     font-family: var(--font-head);
     font-weight: var(--fw-head);
     font-size: var(--fs-body);
+    line-height: 1.3;
     color: var(--on-sf);
+  }
+  .cd-footer__tagline {
+    font-size: var(--fs-label);
+    line-height: 1.4;
   }
 
   .cd-footer__social {
+    grid-area: social;
     display: flex;
-    gap: 12px;
-    margin: 8px 0 2px;
+    gap: 8px;
   }
   .cd-footer__icon {
     display: inline-flex;
@@ -98,10 +147,20 @@ const horario = ORDER_HOURS.trim();
     text-decoration: none;
   }
 
+  /* linha 2: links + horario, alinhados a esquerda, quebrando se precisar */
+  .cd-footer__meta {
+    grid-area: meta;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 12px;
+  }
   .cd-footer__links {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
+    /* o texto do 1o link alinha com a marca; a area de toque continua 44px */
+    margin-left: -8px;
     font-size: 14px;
   }
   .cd-footer__links a {
@@ -115,15 +174,32 @@ const horario = ORDER_HOURS.trim();
   .cd-footer__links a:hover {
     color: var(--primary);
   }
-
   .cd-footer__hours {
     margin: 0;
     font-size: var(--fs-label);
+    line-height: 1.4;
   }
 
+  /* ===== Linha de base: © a esquerda, credito a direita ================== */
+  .cd-footer__base {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: 16px;
+    border-top: 1px solid var(--ol-v);
+    font-size: var(--fs-label);
+    color: var(--on-sf-v);
+  }
+  /* altura de 44px (toque no credito) = ~14px de respiro acima e abaixo do texto */
+  .cd-footer__copy {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch);
+  }
   /* credito do desenvolvedor: pequeno e de baixo contraste, mas legivel (AA) */
   .cd-footer__credit {
-    margin: 4px 0 0;
+    margin: 0 -8px 0 auto;
     font-size: var(--fs-label);
   }
   .cd-footer__credit a {
@@ -135,5 +211,42 @@ const horario = ORDER_HOURS.trim();
   }
   .cd-footer__credit a:hover {
     color: var(--primary);
+  }
+
+  /* ===== Desktop: 3 colunas alinhadas ao topo ============================ */
+  @media (min-width: 768px) {
+    .cd-footer__inner {
+      padding: 0 clamp(24px, 4vw, 48px);
+    }
+    .cd-footer__main {
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      grid-template-areas:
+        'brand links social'
+        'hours links social';
+      align-items: start;
+      row-gap: 2px;
+      /* ~24px de respiro (os links e icones tem 44px de area de toque) */
+      padding: 20px 0;
+    }
+    /* o bloco da linha 2 do celular se desfaz: links e horario vao cada um
+       para a sua area da grade */
+    .cd-footer__meta {
+      display: contents;
+    }
+    .cd-footer__links {
+      grid-area: links;
+      justify-self: center;
+      margin-left: 0;
+      margin-top: -10px; /* alinha o texto dos links ao topo do nome */
+    }
+    .cd-footer__hours {
+      grid-area: hours;
+      margin-top: 4px;
+    }
+    .cd-footer__social {
+      grid-area: social;
+      justify-self: end;
+      margin-top: -6px; /* topo dos icones alinhado ao topo do nome */
+    }
   }
 </style>

@@ -85,6 +85,36 @@ describe('Footer — contato, horario e credito', () => {
     expect(html).toMatch(new RegExp(`<a[^>]*href="${DEV_URL}"[^>]*target="_blank"[^>]*rel="nofollow noopener"[^>]*>\\s*Site feito por ${DEV_NAME}\\s*</a>`));
   });
 
+  it('linha de base: "© {ano} {SITE_NAME}" e o credito, separados da faixa principal', async () => {
+    const container = await AstroContainer.create();
+    const html = await container.renderToString(Footer, {});
+    const base = html.slice(html.indexOf('cd-footer__base'));
+    expect(base).toContain(`© ${new Date().getFullYear()} ${SITE_NAME}`);
+    if (DEV_CREDIT_ENABLED) expect(base).toContain(`Site feito por ${DEV_NAME}`);
+    // a faixa principal (marca, links, icones) vem antes da linha de base
+    const principal = html.slice(html.indexOf('cd-footer__main'), html.indexOf('cd-footer__base'));
+    for (const trecho of ['cd-footer__name', 'href="/sobre"', 'href="/contato"', 'cd-footer__social']) expect(principal).toContain(trecho);
+  });
+
+  it('layout: grade de 3 colunas no desktop, nada centralizado, linha fina e area segura (tokens)', () => {
+    const css = readFileSync(join(process.cwd(), 'src/components/Footer.astro'), 'utf8');
+    expect(css).not.toMatch(/text-align:\s*center/);
+    expect(css).toMatch(/\.cd-footer__inner\s*{[^}]*max-width:\s*var\(--maxw\)/);
+    expect(css).toMatch(/'brand links social'/);
+    expect(css).toMatch(/\.cd-footer__base\s*{[^}]*border-top:\s*1px solid var\(--ol-v\)/);
+    expect(css).toMatch(/\.cd-footer__copy\s*{[^}]*min-height:\s*var\(--touch\)/);
+    expect(css).toMatch(/padding-bottom:\s*env\(safe-area-inset-bottom\)/);
+    // links e icones com area de toque de 44px
+    expect(css).toMatch(/\.cd-footer__links a\s*{[^}]*min-height:\s*var\(--touch\)/);
+    expect(css).toMatch(/\.cd-footer__icon\s*{[^}]*width:\s*var\(--touch\);[^}]*height:\s*var\(--touch\)/);
+  });
+
+  it('o CartRail continua logo antes do <footer>', () => {
+    const src = readFileSync(join(process.cwd(), 'src/components/Footer.astro'), 'utf8');
+    expect(src.indexOf('<CartRail />')).toBeGreaterThan(-1);
+    expect(src.indexOf('<CartRail />')).toBeLessThan(src.indexOf('<footer'));
+  });
+
   it('o credito usa texto pequeno e cor de baixo contraste (tokens)', () => {
     const css = readFileSync(join(process.cwd(), 'src/components/Footer.astro'), 'utf8');
     expect(css).toMatch(/\.cd-footer__credit\s*{[^}]*font-size:\s*var\(--fs-label\)/);

@@ -2,7 +2,16 @@
 
 Novidades do template de cardápio digital (Astro + Sveltia CMS + Cloudflare Workers).
 
-## [Não lançado] — 2026-11-17
+## [Não lançado] — 2026-11-18
+
+### Melhorado
+- **Rodapé mais baixo e organizado:** no computador, marca e horário à
+  esquerda, Sobre · Contato no centro e os ícones à direita, com uma linha de
+  base para o "© ano" e o crédito. No celular, tudo alinhado à esquerda em
+  poucas linhas. Mesmo conteúdo e mesmas cores; o rodapé ficou cerca de 35%
+  mais baixo no celular e 45% no computador.
+
+## 2026-11-17
 
 Uma rodada de acabamento: o cardápio ficou mais fluido no celular e no
 computador, as páginas Sobre e Contato ganharam conteúdo editável e o rodapé

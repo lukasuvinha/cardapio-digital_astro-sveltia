@@ -5,21 +5,40 @@ links no **rodapé** de todas as páginas e na **barra superior** no desktop.
 
 ## Rodapé
 
-`src/components/Footer.astro`, presente em todas as páginas:
+`src/components/Footer.astro`, presente em todas as páginas.
+
+No computador, uma faixa em três colunas e, abaixo de uma linha fina, a linha
+de base:
 
 ```
-        Doceria Exemplo · Doceria Artesanal
-              (WhatsApp)  (Instagram)
-                Sobre  ·  Contato
-     Pedidos de terça a sábado, das 9h às 18h
-               Site feito por Lukas
+Doceria Exemplo                        Sobre · Contato           (WhatsApp) (Instagram)
+Doceria Artesanal
+Pedidos de terça a sábado, das 9h às 18h
+─────────────────────────────────────────────────────────────────────────────────────
+© 2026 Doceria Exemplo                                              Site feito por Lukas
 ```
+
+No celular, a marca e os ícones dividem a primeira linha; links e horário
+vêm logo abaixo (quebrando linha se não couberem); por fim a linha de base:
+
+```
+Doceria Exemplo                 (WhatsApp) (Instagram)
+Doceria Artesanal
+Sobre · Contato
+Pedidos de terça a sábado, das 9h às 18h
+──────────────────────────────────────────────────────
+© 2026 Doceria Exemplo            Site feito por Lukas
+```
+
+O ano do © é o do build (o site é estático, então ele atualiza a cada
+publicação).
 
 | Linha | De onde vem | Some quando |
 |---|---|---|
 | Nome · slogan | `SITE_NAME`, `SITE_TAGLINE` em `src/config/site.ts` | — |
 | Ícones de WhatsApp e Instagram | `WHATSAPP_NUMBER`, `INSTAGRAM_URL` | — |
 | Sobre · Contato | fixo | — |
+| © ano e nome da loja | `SITE_NAME` | — |
 | Horário de pedidos | `ORDER_HOURS` | `ORDER_HOURS = ''` |
 | Crédito do desenvolvedor | `DEV_NAME`, `DEV_URL` | `DEV_CREDIT_ENABLED = false` |
 
