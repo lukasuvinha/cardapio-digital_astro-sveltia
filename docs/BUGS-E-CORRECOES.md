@@ -5,6 +5,10 @@ real que deu origem a este template) e como cada um foi
 resolvido. A maioria apareceu **em produção** (o CMS só dá para testar de verdade
 no ar), então cada correção veio junto de uma blindagem para não repetir.
 
+> Os nomes de classes e arquivos citados são os **da época** de cada correção.
+> Onde o código mudou depois (por exemplo, no redesign Material You), o item
+> traz uma nota "Hoje:" com o lugar atual.
+
 ---
 
 ## 1. Build quebrava por causa das fotos (`image()` do Astro) — 3 incidentes
@@ -82,6 +86,10 @@ elemento "escondido" continuava visível.
 **Onde ver:** `src/components/CartDrawer.astro`. Descoberto em verificação no
 navegador real, não pelos testes.
 
+**Hoje:** a classe `.cd-drawer__line` não existe mais (o carrinho foi refeito
+no redesign); a mesma regra vale para `.cd-summary__row[hidden]`,
+`.cd-coupon[hidden]` e demais blocos com `display: flex` no mesmo arquivo.
+
 ---
 
 ## 5. Guarda de produtos falhava com produto sem foto
@@ -133,6 +141,10 @@ No toque, o hover simplesmente não existe.
 
 **Onde ver:** `Header.astro`, `ThemeToggle.astro`, `CategoryNav.astro`,
 `ProductCard.astro`, `CartDrawer.astro`, `404.astro`, `produto/[id].astro`.
+
+**Hoje:** o retorno visual de hover e toque dos botões vem da camada de estado
+`.cd-state` em `src/styles/global.css`, cujo hover também fica dentro de
+`@media (hover: hover)`.
 
 ---
 
@@ -198,6 +210,71 @@ real e falha se o `accept` voltar a ser uma lista (`typeof === 'string'`).
 > **Não fixei um número aqui de propósito:** este ambiente não alcança a CDN
 > para conferir qual é a versão boa mais recente, e chutar uma versão que não
 > existe derrubaria o painel por completo — pior que o problema original.
+
+---
+
+## 10. Página "saltava" para o lado ao abrir o carrinho ou o detalhe (desktop)
+
+**Sintoma:** ao abrir o carrinho ou o detalhe do produto, todo o conteúdo
+andava ~15px para a direita; ao fechar, voltava.
+
+**Causa:** a trava de rolagem (`overflow: hidden`) escondia a barra de rolagem
+vertical e o layout ganhava a largura dela.
+
+**Correção:** trava por **compensação** em `src/lib/modal.ts`: a largura da
+barra é medida antes de escondê-la, e o `<body>` recebe a mesma largura como
+`padding-right`. Uma primeira tentativa com `scrollbar-gutter: stable` foi
+descartada (deixava uma faixa vazia à direita, que o fundo escurecido não
+cobria) e ficou comentada em `src/styles/global.css`.
+
+**Blindagem:** `tests/interacoes.test.ts`. Medido no navegador quadro a
+quadro: deslocamento 0px ao abrir e fechar.
+
+---
+
+## 11. Botão flutuante do carrinho cobria o rodapé e tremia (celular)
+
+**Sintoma:** o botão flutuante (FAB) ficava fixo no fundo da tela e tampava os
+links do rodapé. A primeira correção, por script de rolagem, fazia o botão
+tremer ao chegar no rodapé.
+
+**Causa:** no celular a rolagem roda fora da thread principal; um script que
+reage ao `scroll` sempre chega um quadro atrasado.
+
+**Correção:** o FAB e o snackbar ficam em "trilhos" `position: sticky` logo
+antes do rodapé (`src/components/CartRail.astro`): o próprio navegador os
+posiciona junto da rolagem, parando 16px acima do rodapé. O script antigo
+ficou comentado em `CartDrawer.astro`.
+
+---
+
+## 12. Troca de tema claro/escuro desencontrada
+
+**Sintoma:** ao trocar o tema, partes da página mudavam de cor antes de outras.
+
+**Causa:** cada componente tinha transições de cor com durações diferentes.
+
+**Correção:** durante a troca, a classe `cd-theme-switching` zera as
+transições de todos os elementos; com View Transitions disponível (e sem
+"reduzir movimento"), a página inteira faz um único cross-fade. Ver
+`src/components/ThemeToggle.astro` e `src/styles/global.css`.
+
+---
+
+## 13. Abertura do detalhe do produto com "soluço" (celular)
+
+**Sintoma:** a janela do produto engasgava no começo da animação, e o toque no
+card mostrava o realce azul do navegador.
+
+**Causa:** a foto só era decodificada quando a janela abria, no meio da
+animação; o realce de toque padrão do iOS/Android não estava desligado nos
+links.
+
+**Correção:** a foto é preparada (`img.decode()`) já no toque, e a animação só
+começa com ela pronta (limite de 150ms); a abertura espera dois quadros e o
+foco entra só no fim da animação; `-webkit-tap-highlight-color: transparent`
+em links e clicáveis. Ver `src/components/ProductSheet.astro` e
+`src/lib/modal.ts`.
 
 ---
 

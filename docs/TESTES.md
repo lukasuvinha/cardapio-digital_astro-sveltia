@@ -17,7 +17,7 @@ passando.**
 | `product-card.test.ts` | 4 | Render (Container API): `<img>` com foto, placeholder sem foto, formato incompatível cai no placeholder, contagem de cards. |
 | `ui-fase-final.test.ts` | 5 | Estado vazio do cardápio, link do cabeçalho para a home, meta tags de compartilhamento. |
 | `logo-oficial.test.ts` | 3 | O logo configurado (`SITE_LOGO`) e a imagem de compartilhamento (`SITE_OG_IMAGE`) existem em `public/`; o selo da 404 usa esse logo (imagem); a confirmação do pedido mostra o check de sucesso. |
-| `cms-config.test.ts` | 15 | **Guarda do `config.yml`**: parse do YAML, collections presentes, sem widget `date` depreciado, `validade` = datetime+`type: date`, `hora` = string opcional **cujo pattern aceita string vazia** (bug do Decap/Sveltia com campo opcional + pattern), opções do cupom, categoria = relation, campo `escondido` do produto, **`accept` da foto como string** (não lista), arquivo **"entrega"** (entrega/retirada/taxa/**taxa a combinar**) presente, arquivo **"fornada"** (chave geral, modo, data e hora com pattern seguro), e que o arquivo **"whatsapp" (edição do texto do WhatsApp) permanece desativado**. |
+| `cms-config.test.ts` | 16 | **Guarda do `config.yml`**: parse do YAML, collections presentes, sem widget `date` depreciado, `validade` = datetime+`type: date`, `hora` = string opcional **cujo pattern aceita string vazia** (bug do Decap/Sveltia com campo opcional + pattern), opções do cupom, categoria = relation, campo `escondido` do produto, **`accept` da foto como string** (não lista), arquivo **"entrega"** (entrega/retirada/taxa/**taxa a combinar**) presente, arquivo **"fornada"** (chave geral, modo, data e hora com pattern seguro), arquivos **"sobre"** e **"contato"** (campos opcionais, foto com `accept` em string), e que o arquivo **"whatsapp" (edição do texto do WhatsApp) permanece desativado**. |
 | `produtos-structure.test.ts` | 3 | **Guarda de conteúdo**: pelo menos 1 produto, fotos são URLs públicas válidas, entradas planas, fotos referenciadas existem. |
 | `paginas-institucionais.test.ts` | 18 | Render (Container API) do rodapé (links Sobre/Contato, ícones de WhatsApp/Instagram com `aria-label`, horário de pedidos, crédito "Site feito por" com `nofollow`/nova aba e tokens de texto discreto), página `/desenvolvedor` desativada (arquivo `_desenvolvedor.astro`, sem link em Contato), páginas Sobre e Contato sem conteúdo do CMS (sem cartão/seção vazios), conteúdo de exemplo de `sobre.json`/`contato.json`, `paragrafos` e itens de "Como encomendar". |
 | `checkout-config.test.ts` | 8 | Regras puras de `normalizeCheckoutConfig`: valores padrão, cada opção desligada isoladamente, **as duas desligadas ao mesmo tempo reativam a Retirada**, a taxa de entrega é repassada (ou `0` por padrão), e a flag "a combinar" é repassada (ou `false` por padrão). |
@@ -63,18 +63,21 @@ incidentes reais de produção (ver [BUGS-E-CORRECOES.md](BUGS-E-CORRECOES.md)).
 
 1. **Fluxo do carrinho no navegador (E2E)** — a maior lacuna. O script client-side
    do `CartDrawer` (aplicar cupom, recalcular totais, montar a mensagem e abrir o
-   WhatsApp) só é validado **manualmente** hoje. A lógica pura por trás
+   WhatsApp) não tem teste automatizado no repositório: foi conferido no
+   navegador (Playwright, fora do repo) a cada mudança, mas isso não roda no CI. A lógica pura por trás
    (`coupon.ts`, `whatsapp.ts`, `cart-core.ts`) está bem testada, mas a **fiação
    com o DOM** não tem teste automatizado. Um teste Playwright/E2E no CI cobriria
    isso (não está montado no repo por causa do acesso a browsers/CDN no ambiente).
-2. **Script da página de detalhe** (`produto/[id].astro`): seletor de quantidade,
-   "adicionar ao carrinho" e a **foto ampliável (lightbox)** — sem teste
-   automatizado (mesma razão do item 1).
-3. **Componente `CartDrawer`** tem só um teste de render "de fiação" (config
-   padrão → seletor aparece no HTML — ver `cart-drawer.test.ts`); a interação de
-   verdade (cliques, recalcular totais ao trocar Entrega/Retirada, aplicar
-   cupom) continua sem teste automatizado — é o componente mais complexo do
-   projeto.
+2. **Scripts do detalhe do produto** (`src/lib/product-detail.ts`, usado na
+   sheet do cardápio e na página `produto/[id].astro`): seletor de quantidade,
+   "Adicionar" e a **foto ampliável (lightbox)** — sem teste automatizado (mesma
+   razão do item 1).
+3. **Componente `CartDrawer`**: a estrutura é coberta por testes de render
+   (`cart-drawer.test.ts`, `redesign-ui.test.ts`) e a decisão do gesto de
+   arrastar por `sheet-drag.test.ts`, mas a interação de verdade (cliques,
+   recalcular totais ao trocar Entrega/Retirada, aplicar e remover cupom, foco
+   preso nos painéis de `src/lib/modal.ts`) continua sem teste automatizado — é
+   o componente mais complexo do projeto.
 4. **Casos de fuso/DST** em `isExpired` — cobertos em datas fixas, não de forma
    exaustiva.
 

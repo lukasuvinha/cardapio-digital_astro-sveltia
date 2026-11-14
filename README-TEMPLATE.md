@@ -24,6 +24,10 @@ Antes de publicar para um cliente:
 6. `src/content/` — apague os produtos, categorias e o cupom de exemplo (`produtos/`,
    `categorias/`, `cupons/`) e cadastre os reais, ou deixe o cliente cadastrar pelo painel.
    As ilustrações de exemplo ficam em `public/img/produtos/` e podem ser apagadas junto.
+   Em `src/content/configuracoes/` (ou no painel, em **Configurações**), revise também:
+   `entrega.json` (entrega, retirada e taxa), `fornada.json` (o aviso de próxima fornada vem
+   **ligado** no exemplo), `sobre.json` (texto e foto da página Sobre; a ilustração de exemplo
+   fica em `public/img/sobre/`) e `contato.json` ("Como encomendar" da página Contato).
 7. `public/uploads/` — as fotos reais entram por aqui, via CMS.
 8. Rode `npm install && npm test && npm run build` depois das trocas. Os testes leem os
    valores de `site.ts`, então não dependem do nome da loja.
