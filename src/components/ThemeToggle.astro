@@ -3,7 +3,8 @@
 // Uso: <ThemeToggle /> em qualquer lugar. Pode haver mais de um na pagina;
 // o script sincroniza todos. A escolha e persistida em localStorage ('cd-theme')
 // e aplicada antes da pintura pelo script inline do BaseLayout (sem flash).
-// O icone (sol/lua) gira ao trocar.
+// O icone (sol/lua) gira ao trocar. A pagina troca de tema de uma vez so
+// (cross-fade com View Transitions, quando houver) — ver applyTheme.
 ---
 
 <button
@@ -89,8 +90,15 @@
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
 
-  function applyTheme(theme: 'dark' | 'light') {
-    document.documentElement.setAttribute('data-theme', theme);
+  // Aplica o tema de uma vez so na pagina inteira. A classe
+  // cd-theme-switching (global.css) zera as transicoes de cor de todos os
+  // elementos durante a troca — sem ela cada componente trocava no seu
+  // proprio ritmo — e sai depois de dois frames, quando a pintura nova ja
+  // aconteceu.
+  function trocarTema(theme: 'dark' | 'light') {
+    const html = document.documentElement;
+    html.classList.add('cd-theme-switching');
+    html.setAttribute('data-theme', theme);
     try {
       localStorage.setItem('cd-theme', theme);
     } catch (e) {
@@ -104,6 +112,22 @@
       const cor = theme === 'dark' ? m.dataset.dark : m.dataset.light;
       if (cor) m.content = cor;
     });
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => html.classList.remove('cd-theme-switching'));
+    });
+  }
+
+  // Com View Transitions (e sem pedido de menos movimento), a troca vira um
+  // cross-fade unico da pagina inteira (~300ms, ver ::view-transition-* em
+  // global.css). Sem suporte ou com movimento reduzido: troca instantanea.
+  function applyTheme(theme: 'dark' | 'light') {
+    const reduzir = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown };
+    if (typeof doc.startViewTransition === 'function' && !reduzir) {
+      doc.startViewTransition(() => trocarTema(theme));
+    } else {
+      trocarTema(theme);
+    }
   }
 
   document.querySelectorAll('.cd-theme-toggle').forEach((btn) => {

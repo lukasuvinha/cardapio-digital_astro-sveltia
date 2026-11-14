@@ -43,9 +43,11 @@
       transform var(--dur-in) var(--ease-in),
       bottom var(--dur-emph) var(--ease-emph);
   }
-  /* no celular, sobe para nao cobrir o botao flutuante do carrinho */
+  /* no celular, sobe para nao cobrir o botao flutuante do carrinho — e
+     acompanha o FAB quando ele sobe junto com o rodape (--fab-lift) */
   :global(body.cd-has-fab) .cd-snack {
     bottom: calc(92px + env(safe-area-inset-bottom));
+    translate: 0 calc(-1 * var(--fab-lift, 0px));
   }
   .cd-snack__text {
     flex: 1;
@@ -74,6 +76,7 @@
     }
     :global(body.cd-has-fab) .cd-snack {
       bottom: 24px;
+      translate: -50% 0;
     }
   }
 </style>

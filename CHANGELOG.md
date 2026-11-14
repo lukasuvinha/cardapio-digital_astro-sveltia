@@ -2,7 +2,23 @@
 
 Novidades do template de cardápio digital (Astro + Sveltia CMS + Cloudflare Workers).
 
-## [Não lançado] — 2026-11-14
+## [Não lançado] — 2026-11-15
+
+Correções de interação. O visual aprovado não mudou.
+
+### Corrigido
+- **A página não "salta" mais para o lado** ao abrir o carrinho ou o detalhe do
+  produto no computador (o espaço da barra de rolagem fica sempre reservado).
+- **O botão flutuante do carrinho não cobre mais o rodapé** no celular: quando o
+  rodapé aparece, o botão sobe junto e para logo acima dele.
+- **Arrastar para baixo fecha** o detalhe do produto e o carrinho no celular,
+  pela alça, pelo topo do painel ou pelo conteúdo quando ele está no topo.
+  Arrasto curto volta o painel ao lugar.
+- **A troca entre tema claro e escuro acontece de uma vez na página inteira**,
+  com um leve esmaecimento nos navegadores que suportam View Transitions
+  (instantânea nos demais, ou para quem prefere menos movimento).
+
+## 2026-11-14
 
 Redesign completo no estilo **Material You (Material 3)**, com paleta quente de
 confeitaria. As regras de negócio (carrinho, cupons, entrega/retirada, fornada,

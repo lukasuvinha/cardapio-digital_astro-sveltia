@@ -13,6 +13,12 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* Reserva SEMPRE o espaco da barra de rolagem vertical. Sem isso, quando
+     um sheet/drawer/dialog abre (body.cd-scroll-lock = overflow: hidden) a
+     barra some, a pagina ganha a largura dela e "salta" para o lado — e
+     volta ao fechar. Com o espaco reservado, nada se desloca. Em celulares
+     (barra sobreposta, sem largura) nao muda nada. */
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -23,13 +29,34 @@ body {
   font-family: var(--font-body);
   font-size: var(--fs-body);
   line-height: 1.5;
-  transition: background-color var(--dur-emph) var(--ease-emph), color var(--dur-emph) var(--ease-emph);
+  /* Sem transicao de cor aqui: a troca de tema e feita de uma vez para a
+     pagina inteira (ver "Troca de tema" abaixo e ThemeToggle.astro). Uma
+     transicao propria do body fazia o fundo trocar num ritmo diferente dos
+     componentes. */
 }
 
 /* Trava a rolagem da pagina quando um sheet/drawer/dialog esta aberto
    (ver src/lib/modal.ts). */
 body.cd-scroll-lock {
   overflow: hidden;
+}
+
+/* ---- Troca de tema claro/escuro ----------------------------------------
+   Enquanto o tema troca (classe colocada por ThemeToggle.astro por dois
+   frames), nenhum elemento anima cor: tudo muda no MESMO instante. O giro
+   do icone sol/lua fica de fora de proposito.
+   Quando o navegador tem View Transitions (e o usuario nao pediu menos
+   movimento), a troca vira um cross-fade unico da pagina inteira. Sem View
+   Transitions, ou com movimento reduzido, a troca e instantanea. */
+.cd-theme-switching *:not(.cd-theme-toggle__spin),
+.cd-theme-switching *::before,
+.cd-theme-switching *::after {
+  transition: none !important;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 300ms;
+  animation-timing-function: var(--ease-emph);
 }
 
 a {

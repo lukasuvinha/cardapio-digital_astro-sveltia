@@ -22,6 +22,8 @@ const { products, cores } = Astro.props;
   <div class="cd-sheet__scrim" data-modal-close></div>
   <section class="cd-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="cd-detail-title" data-detail-panel data-cor="neutro">
     <div class="cd-sheet__handle" aria-hidden="true"></div>
+    <!-- faixa invisivel de 48px no topo: pega para arrastar e fechar (celular) -->
+    <div class="cd-sheet__grab" data-sheet-grab aria-hidden="true"></div>
     <button class="cd-sheet__close cd-state" type="button" data-modal-close aria-label="Fechar detalhe do produto">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
     </button>
@@ -40,6 +42,7 @@ const { products, cores } = Astro.props;
 <script>
   import { createModal } from '../lib/modal';
   import { ligarDetalhe } from '../lib/product-detail';
+  import { ligarArrastoDaSheet } from '../lib/sheet-drag';
 
   const root = document.querySelector<HTMLElement>('[data-detail-root]');
   const panel = root?.querySelector<HTMLElement>('[data-detail-panel]');
@@ -49,6 +52,17 @@ const { products, cores } = Astro.props;
     const modal = createModal(root, {
       panel,
       initialFocus: () => panel.querySelector<HTMLElement>('[data-add-detail]') ?? panel,
+    });
+
+    // arrastar para baixo fecha (so no celular, onde a alca aparece)
+    const alca = panel.querySelector<HTMLElement>('.cd-sheet__handle')!;
+    ligarArrastoDaSheet({
+      painel: panel,
+      fundo: root.querySelector<HTMLElement>('.cd-sheet__scrim')!,
+      pegas: () => [alca, panel.querySelector<HTMLElement>('[data-sheet-grab]')!],
+      rolavel: () => panel, // o proprio painel e o que rola
+      ativo: () => modal.isOpen() && getComputedStyle(alca).display !== 'none',
+      fechar: () => modal.close(),
     });
 
     document.addEventListener('click', (e) => {
@@ -132,6 +146,21 @@ const { products, cores } = Astro.props;
     border-radius: var(--r-pill);
     background: var(--ol);
   }
+  /* pega do arrasto: faixa de 48px no topo do painel, sem rolagem nativa */
+  .cd-sheet__grab {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    z-index: 2;
+    touch-action: none;
+    user-select: none;
+    cursor: grab;
+  }
+  .cd-sheet__handle {
+    touch-action: none;
+  }
   .cd-sheet__close {
     position: absolute;
     top: 8px;
@@ -162,7 +191,8 @@ const { products, cores } = Astro.props;
       border-radius: var(--r-sheet);
       transform: translateY(calc(24px * var(--motion-shift))) scale(calc(1 - 0.04 * var(--motion-shift)));
     }
-    .cd-sheet__handle {
+    .cd-sheet__handle,
+    .cd-sheet__grab {
       display: none;
     }
     .cd-sheet__close {

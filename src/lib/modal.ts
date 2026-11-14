@@ -35,6 +35,14 @@ const pilha: Modal[] = [];
 let travas = 0;
 
 function travarRolagem(on: boolean) {
+  const html = document.documentElement;
+  if (on && travas === 0) {
+    // largura da faixa reservada para a barra de rolagem (scrollbar-gutter:
+    // stable em global.css): 0 em celulares, ~15px no desktop. Medida ANTES
+    // de travar; elementos fixos que encostam na borda direita (drawer do
+    // carrinho) usam --cd-gutter para manter a margem do design.
+    html.style.setProperty('--cd-gutter', `${Math.max(0, window.innerWidth - html.clientWidth)}px`);
+  }
   travas = Math.max(0, travas + (on ? 1 : -1));
   document.body.classList.toggle('cd-scroll-lock', travas > 0);
 }

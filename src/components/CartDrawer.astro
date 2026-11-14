@@ -286,6 +286,11 @@ const check = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
     background: var(--cta);
     color: var(--on-cta);
     box-shadow: var(--shadow-cta), var(--elev-2), var(--shine);
+    /* sobe junto com o rodape quando ele entra na tela, parando 16px acima
+       dele (--fab-lift e calculado no script, ver "FAB x rodape"). Usa a
+       propriedade `translate`, separada do `transform` das animacoes de
+       entrada e de toque, e SEM transicao: acompanha o scroll 1:1. */
+    translate: 0 calc(-1 * var(--fab-lift, 0px));
     transform: scale(0.6) translateY(calc(40px * var(--motion-shift)));
     opacity: 0;
     pointer-events: none;
@@ -373,6 +378,12 @@ const check = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
   .cd-cart__panel:focus {
     outline: none;
   }
+  /* pega do arrasto (alca + barra do titulo, ~70px): sem rolagem nativa */
+  .cd-cart__handle,
+  .cd-cart__bar {
+    touch-action: none;
+    user-select: none;
+  }
   .cd-cart__handle {
     flex: none;
     width: 32px;
@@ -387,7 +398,10 @@ const check = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
     .cd-cart__panel {
       left: auto;
       top: 12px;
-      right: 12px;
+      /* 12px da borda da TELA: o espaco da barra de rolagem fica reservado
+         (scrollbar-gutter: stable) e o painel avanca sobre ele (--cd-gutter,
+         medido em src/lib/modal.ts) */
+      right: calc(12px - var(--cd-gutter, 0px));
       bottom: 12px;
       width: min(460px, calc(100vw - 24px));
       height: auto;
@@ -809,6 +823,7 @@ const check = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
   import { createModal } from '../lib/modal';
   import { avisarAdicionado } from '../lib/product-detail';
   import { hideSnackbar } from '../lib/snackbar';
+  import { ligarArrastoDaSheet } from '../lib/sheet-drag';
   import { WHATSAPP_NUMBER } from '../config/site';
 
   // catalogo embutido pelo servidor a partir da Content Collection
@@ -830,6 +845,32 @@ const check = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
   } = checkoutConfigEl
     ? JSON.parse(checkoutConfigEl.textContent || '{}')
     : { entregaHabilitada: true, retiradaHabilitada: true, taxaEntrega: 0, taxaACombinar: false };
+
+  // ---- FAB x rodape (celular) ----
+  // O FAB e fixo no fundo da tela. Quando o rodape entra na tela, ele sobe
+  // exatamente o quanto do rodape esta visivel, ficando sempre 16px acima da
+  // borda superior do rodape (o mesmo respiro que tem do fundo da tela) e
+  // nunca cobrindo os links. O valor vai em --fab-lift no <html>, usado pelo
+  // FAB e pelo snackbar (que fica acima do FAB).
+  {
+    const footer = document.querySelector<HTMLElement>('.cd-footer');
+    if (footer) {
+      let agendado = false;
+      const medir = () => {
+        agendado = false;
+        const visivel = Math.max(0, window.innerHeight - footer.getBoundingClientRect().top);
+        document.documentElement.style.setProperty('--fab-lift', `${Math.round(visivel)}px`);
+      };
+      const agendar = () => {
+        if (agendado) return;
+        agendado = true;
+        requestAnimationFrame(medir);
+      };
+      window.addEventListener('scroll', agendar, { passive: true });
+      window.addEventListener('resize', agendar, { passive: true });
+      medir();
+    }
+  }
 
   // ---- ANTES: texto da mensagem do WhatsApp editavel pelo dono da loja no CMS.
   //      Desativado — ver nota de reativacao na frontmatter acima.
@@ -887,6 +928,19 @@ const check = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
     const modal = createModal(root, {
       panel,
       initialFocus: () => root.querySelector<HTMLElement>('[data-pane][data-state="active"] [data-modal-close], [data-modal-close].cd-cart__icon-btn'),
+    });
+
+    // ---- arrastar para baixo fecha (so no celular, onde a alca aparece) ----
+    // A pega e a alca + a barra do titulo; o gesto tambem comeca no conteudo
+    // da etapa atual quando ele esta rolado ate o topo.
+    const alca = panel.querySelector<HTMLElement>('.cd-cart__handle')!;
+    ligarArrastoDaSheet({
+      painel: panel,
+      fundo: root.querySelector<HTMLElement>('.cd-cart__scrim')!,
+      pegas: () => [alca, panel.querySelector<HTMLElement>('.cd-cart__bar')!],
+      rolavel: () => panel.querySelector<HTMLElement>('[data-pane][data-state="active"] .cd-pane__scroll'),
+      ativo: () => modal.isOpen() && getComputedStyle(alca).display !== 'none',
+      fechar: () => modal.close(),
     });
 
     // ---- etapas ----
