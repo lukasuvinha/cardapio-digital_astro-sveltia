@@ -11,13 +11,24 @@
     "preview": "astro preview",
     "astro": "astro",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "auditoria": "astro check ; eslint . ; prettier --check . ; knip ; npm audit ; npm outdated"
   },
   "dependencies": {
     "astro": "^5.14.1"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.15.0",
+    "eslint-plugin-astro": "^3.2.1",
+    "globals": "^17.14.0",
     "js-yaml": "^5.2.1",
+    "knip": "^6.48.0",
+    "prettier": "^3.10.1",
+    "prettier-plugin-astro": "^1.1.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.74.0",
     "vitest": "^3.2.4"
   }
 }
